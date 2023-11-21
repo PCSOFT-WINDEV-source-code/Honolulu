@@ -1,0 +1,408 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pAttachments
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561780ec9ea818
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAADm4ZIMM4I1aBOekxYChyTfqxh5JXzlnKYhe0/TnYcG1x+YvDl9BQePHkpL0TXitxTn+Je3y0EB+Pt0dnHbpP+XnAde6x4S/5TxrYaEUZTVuWL5qOEpEXG/swHz8pgD2m0W3f/zA30MFVa/Vw==
+     code : |1-
+      // Set of procedures for managing the attachments (upload, download...)
+      
+      // Define the types of attachments
+      CONSTANT
+      	attachImage 	= 1
+      	attachOther 	= 2
+      END
+     type : 720896
+  procedures :
+   -
+     name : ATTACHSave
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1825672541438453784
+     type_code : 15
+     code : |1+
+      // Summary: Saves an attachment
+      // Syntaxe :
+      //[ <Résultat> = ] ATTACHSave (<sKey> est chaîne, <sFile> est chaîne [, <nType> [, <sInfo> [, <nOwnerID>]]])
+      //
+      // Paramètres :
+      //	sKey (chaîne ANSI) : String variable that will receive the key of the attachment
+      //	sFile (chaîne ANSI) : File of the attachment
+      //	nType (valeur par défaut=2) : Type of the attachment (attachImage, attachOther)
+      //	sInfo (valeur par défaut="") : Additional information
+      //	nOwnerID (valeur par défaut=-1) : Owner user (ForEach if no owner)
+      // Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      // Return value:
+      // 	boolean:  True if the attachment was saved, False otherwise
+      //// Automatic process of exceptions:   run CASE EXCEPTION:
+      PROCEDURE ATTACHSave(sKey is string, local sFile is string, local nType = attachOther, local sInfo = "", local nOwnerID = -1)
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Generates a key
+      sKey = GetGUID(guidRough)
+      
+      // Define the attachment
+      HReset(Attachment)
+      Attachment.Key 				= sKey
+      Attachment.CreationDateTime 	= Today + Now
+      Attachment.UserID 		= nOwnerID
+      Attachment.Info 				= sInfo
+      Attachment.Type 				= nType
+      Attachment.FileName 			= fExtractPath(sFile,fFileName+fExtension)
+      Attachment.FileSize 		= fSize(sFile)
+      Attachment.FileMIMEType 	= MIMEType(sFile)
+      
+      // Attaches the attachment
+      HLinkMemo(Attachment, Memo, sFile, hAcceptOpenedFile)
+      
+      // Saves the attachment
+      bReturn = HAdd(Attachment)
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the status report	
+      RESULT bReturn	
+      
+      CASE EXCEPTION:
+      dbgAssert(False,<§@155338f90061321f0000§>+ExceptionInfo(errFullDetails))
+      HFRestorePosition(GUID)
+      RESULT False
+     type : 458752
+   -
+     name : ATTACHModify
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1825672541438519320
+     type_code : 15
+     code : |1-
+      // Summary: Modifies an attachment
+      // Syntax:
+      //[ <Result> = ] ATTACHModify (<sKey>, <sFile> [, <sInfo>])
+      //
+      // Parameters:
+      //	sKey: Key of the attachment
+      //	sFile: File of the attachment
+      //	sInfo (default value=""): Additional information
+      // Return value:
+      // 	boolean:  True if the attachment was modified, False otherwise
+      //// Automatic process of exceptions:   run CASE EXCEPTION:
+      //
+      
+      PROCEDURE ATTACHModify(sKey, sFile, sInfo = "")
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment
+      HReadSeekFirst(Attachment, Key, sKey)
+      IF HFound(Attachment) THEN
+      	// Update the information		
+      	Attachment.Info 			= sInfo
+      	Attachment.FileName 		= fExtractPath(sFile,fFileName+fExtension)
+      	Attachment.FileSize 	= fSize(sFile)
+      	Attachment.FileMIMEType = MIMEType(sFile)		
+      	
+      	// Attaches the attachment
+      	HLinkMemo(Attachment, Memo, sFile, hAcceptOpenedFile)
+      	
+      	// Saves the attachment
+      	HModify(Attachment)
+      	bReturn = True		
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the status report		
+      RESULT bReturn	
+      
+      CASE EXCEPTION:
+      dbgAssert(False,<§@155338f90061321f0000§>+ExceptionInfo(errFullDetails))
+      HFRestorePosition(GUID)
+      RESULT False
+     type : 458752
+   -
+     name : ATTACHDelete
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1825672541438584856
+     type_code : 15
+     code : |1-
+      // Summary: Deletes an attachment
+      // Syntax:
+      //[ <Result> = ] ATTACHDelete (<sKey>)
+      //
+      // Parameters:
+      //	sKey: Key of the attachment
+      // Return value:
+      // 	boolean:  True if the attachment was deleted, False otherwise
+      //// Automatic process of exceptions:   run CASE EXCEPTION:
+      //
+      
+      PROCEDURE ATTACHDelete(sKey)
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment
+      HReadSeekFirst(Attachment, Key, sKey)
+      IF HFound(Attachment) THEN
+      	// Deletion
+      	HDelete(Attachment)
+      	bReturn = True		
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the status report		
+      RESULT bReturn	
+      
+      CASE EXCEPTION:		
+      dbgAssert(False,<§@155338f90061321f0000§>+ExceptionInfo(errFullDetails))
+      HFRestorePosition(GUID)
+      RESULT False
+     type : 458752
+   -
+     name : ATTACHGet
+     procedure_id : 1825672541438650392
+     type_code : 15
+     code : |1-
+      // Summary: Retrieves an attachment
+      // Syntax:
+      //[ <Result> = ] ATTACHGet (<sKey> [, <sInfo> [, <sMIMEType> [, <nSize> [, <sFileName>]]]])
+      //
+      // Parameters:
+      //	sKey: Key of the attachment
+      //	sInfo (default value=""): Variable that will contain the information
+      //	sMIMEType (default value=""): Variable that will contain the MIME type
+      //	nSize (default value=0): Variable that will contain the size
+      //	sFileName (default value=""): Variable that will contain the name of the source file
+      // Return value:
+      // 	Undefined type: Content of the attachment
+      //
+      PROCEDURE ATTACHGet(sKey, sInfo = "", sMIMEType = "", nSize = 0, sFileName = "")
+      
+      // Local variables
+      bufContent 		is buffer
+      GUID 			is string 
+      
+      // If no key was specified
+      IF sKey ~= "" THEN RESULT ""
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment	
+      HReadSeekFirst(Attachment, Key, sKey)
+      IF HFound(Attachment) THEN
+      	// Retrieve the information
+      	bufContent  = Attachment.Memo		
+      	sInfo 		= Attachment.Info
+      	sMIMEType 	= Attachment.FileMIMEType
+      	nSize 	= Attachment.FileSize
+      	sFileName = Attachment.FileName
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the status report			
+      RESULT bufContent	
+     type : 458752
+   -
+     name : ATTACHGetURL
+     internal_properties : CAAAAAgAAAC+OfpczPomtATcybfoKLHEuU6WQmwljnaDXgCV9UCiPxJH4VwJdpSVLGSmqJYy1dr4wKQFhhJBg6Qg4a4sqDzxI9TKEsT+g6I6Qq7eqHHyWWpXTdlh6r/MqAVgmr9Y2oMPxlWXqA2xWqxv6rF4vM000ZcTphxxNMuESegS0XxMou7Aesr7zjGcdFFT1eBc4PiKKDPKRU4=
+     procedure_id : 1825672541438715928
+     type_code : 15
+     code : |1+
+      // Summary: Retrieves the URL of an attachment
+      // Syntax:
+      //[ <Result> = ] ATTACHGetURL (<sKey> [, <bFull>])
+      //
+      // Parameters:
+      //	sKey: Key of the attachment
+      //	bFull (default value=1): type of URL to return: True for a full URL, False for a relative URL
+      // Return value:
+      // 	Undefined type: URL of the attachment
+      //
+      PROCEDURE ATTACHGetURL(sKey, bComplete = True, bNonPersistentSession = False)
+      
+      // What is the requested type of URL	
+      IF bComplete = True THEN
+      	// Full URL
+      	RESULT "/" + FolderWeb() + <§@155338f90061321f0001§> + AWP_EXT + "?" + (bNonPersistentSession ? "%SESSIONID%" ELSE "AWPSESSIONID=" + gsIdentifier) + "&key=" + sKey	
+      ELSE
+      	// Relative URL
+      	RESULT <§@155338f90061321f0002§> + AWP_EXT + "?" + (bNonPersistentSession ? "%SESSIONID%" ELSE "AWPSESSIONID=" + gsIdentifier) + "&key=" + sKey
+      END
+     type : 458752
+   -
+     name : ATTACHKeyExist
+     procedure_id : 1825672541438781464
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether an attachment key already exists
+      // Syntax:
+      //[ <Result> = ] ATTACHKeyExist (<sKey>)
+      //
+      // Parameters:
+      //	sKey: Key of the attachment
+      // Return value:
+      // 	boolean: True if the attachment key already exists
+      //
+      PROCEDURE ATTACHKeyExist(sKey)
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment
+      HReadSeekFirst(Attachment, Key, sKey)
+      IF HFound(Attachment) THEN
+      	bReturn = True		
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the status report	
+      RESULT bReturn	
+     type : 458752
+   -
+     name : ATTACHDuplicate
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1825672541438847000
+     type_code : 15
+     code : |1-
+      // Summary: Used to duplicate an attachment
+      // Syntax:
+      //[ <Result> = ] ATTACHDuplicate (<sKey>)
+      //
+      // Parameters:
+      //	sKey: Key of the attachment to duplicate
+      // Return value:
+      // 	string: Key of the new attachment
+      // Automatic process of exceptions:   run CASE EXCEPTION:
+      //
+      
+      PROCEDURE ATTACHDuplicate(sKey)
+      
+      // Local variables
+      sNewKey 	is string
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment
+      HReadSeekFirst(Attachment, Key, sKey)
+      
+      IF HFound(Attachment) THEN
+      	// Generates a key
+      	sNewKey = GetGUID(guidRough)
+      	Attachment.Key = sNewKey
+      	HAdd(Attachment)
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the new key of the attachment
+      RESULT sNewKey
+      
+      CASE EXCEPTION:
+      dbgAssert(False,<§@155338f90061321f0000§>+ExceptionInfo(errFullDetails))
+      HFRestorePosition(GUID)
+      RESULT ""
+     type : 458752
+   -
+     name : ATTACHGetFileInfo
+     internal_properties : CAAAAAgAAAAWYRJk0lrGafiYF+nWlNueQfbmGq6B5SaCZKxx6TISk3yROwLpzPDxgvqWkL7YOY5iUj4jvsitI5qmFab0xgw5aRKYtDiwzzagyCL3P9QrWOnmRjhY7ZKxfxSPlxLHfx4O1Wb2P4AMN3u+SXI7+9b7BFLYqVf4+yDb2Ccb8FDYRTXfh8W2YaD968BC0lc77sqYIDsy7eY=
+     procedure_id : 1825672541438912536
+     type_code : 15
+     code : |1-
+      // Summary: Used to retrieve the name of the file, its extension or its name + its extension
+      // Syntax:
+      //[ <Result> = ] ATTACHGetFileInfo (<sKey> [, <nInformationType>])
+      //
+      // Parameters:
+      //	sKey: Key of the attachment whose information is requested
+      //	nInformationType (default value=12): everything that is accepted by fExtractPath in 2nd parameter
+      // Return value:
+      // 	string: returns the requested information
+      
+      PROCEDURE ATTACHGetFileInfo(sKey, nInformationType = fFileName + fExtension)
+      
+      // Local variables
+      sFileInfo 	is string
+      GUID 			is string 
+      
+      // Save the context
+      GUID = HFSavePosition(Attachment..Name)
+      
+      // Search for the attachment
+      HReadSeekFirst(Attachment, Key, sKey)
+      IF HFound(Attachment) THEN
+      	// Retrieve the information
+      	sFileInfo = fExtractPath(Attachment.FileName,nInformationType)
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the information
+      RESULT sFileInfo
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x155338f90061321f
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "Exception detected: "
+     index : 0
+   -
+     text :
+      en-GB : /UK/PAGE_ATTACH.
+     index : 1
+   -
+     text :
+      en-GB : /UK/PAGE_ATTACH.
+     index : 2
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

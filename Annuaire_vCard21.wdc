@@ -1,0 +1,1257 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : cVCard21
+ major_version : 28
+ minor_version : 0
+ type : 4
+ description : ""
+ subtype : 0
+class :
+ identifier : 0x15f173117e4646f7
+ internal_properties : CAAAAAgAAAB2/vstTMCJbS/hlxjFxirSqKvCUuv8YxgpWyl7S3iA
+ code_elements :
+  type_code : 10
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAAB/Vr4u0/60ZTM8eadwDOotksx+tDfMTnE3cNrEgJfLj6htUSEWjZuvLCekvb9CsZYXeyFPMkO4U+pDM0yFoV8u0r64cqkOIEr64638dIQHDijljDByDpC3MuMO+l7IQ9V6pvEZS35+oUvFFF9yg9G1EM/Fm30wVSlsUQQpD7nwcw==
+     code : |1-
+      // Class for managing the vCards
+      
+      // Structure for the URLs
+      stVCard21Url is Structure
+      	sURL 		est une chaine		// Internet address
+      	sWhereIs 	est une chaine		// Type of the address (HOME, WORK)
+      	sContent 	est une chaine
+      FIN
+      
+      // Structure for the emails
+      stVCard21Email is Structure
+      	sEmail 		is string		// Email address
+      	bDefault 	is boolean		// Default address or not
+      	sContent 	is string
+      END
+      
+      // Structure for the addresses
+      stVCard21Address is Structure
+      	sWhereIs 	is string		// Type of the address (HOME, WORK)
+      	sOffice		is string		// Office number
+      	sStreet		is string		// Street
+      	sCity   	is string		// City
+      	sDept  		is string		// State
+      	sCode    	is string		// Zip code
+      	sCountry   	is string		// Country, region
+      	sContent 	is string
+      END
+      
+      // Structure for the phone numbers, fax numbers, ...
+      stVCard21Tel is Structure
+      	sAddr  		is string		// Phone number
+      	sWhereIs 	is string		// Type of the number (HOME, WORK, CELL)
+      	sType 		is string		// Type of device (VOICE, RADIO, IP, FAX)
+      	sContent 	is string
+      END
+      
+      cVCard21 is class
+      RESTRICTED
+      	m_sVCard21 		is string				// vCard 2.1 format (VCF)
+      	m_sFullName		is string				// Full name (FN:)
+      	m_sName			is string				// Name (N:)
+      	m_sNickName  	is string				// Nickname (NICKNAME:)
+      	m_sOrganization	is string				// Company (ORG:)
+      	m_sTitle		is string				// Title (TITLE:)
+      	m_sExpenses		is string				// Notes, comments (NOTE:)
+      	m_arrTel		is array dynamic		// Telephone(s) (TEL:)
+      	m_arrAddr		is array dynamic		// Addresses	(ADDR:)
+      	m_arrURL		is array dynamic		// Web site(s)	(URL:)
+      	m_arrEmail		is array dynamic		// Web email(s)	(EMAIL:)
+      	m_sBday			is string				// Birthday (BDAY:)
+      	m_sRevision		is string				// Revision	(REV:)
+      END
+      
+      CONSTANT
+      	// Constants available for the WhereIs attribute
+      	wiHOME 	= "HOME"
+      	wiWORK 	= "WORK"
+      	wiCELL 	= "CELL"
+      	wiPAGER = "PAGER"
+      	
+      	// Constants available for the Type attribute
+      	tpVOICE = "VOICE"
+      	tpFAX   = "FAX"
+      	
+      	// Constants for export
+      	cvFile 		= "vcf"
+      	cvString 	= "str"
+      	
+      	// Constant for operations
+      	QuotedPrintable = 1
+      	Text 			= 2
+      END
+     type : 131072
+   -
+     code : |1-
+      
+     type : 131074
+  procedures :
+   -
+     name : Constructeur
+     procedure_id : 1581171463153993463
+     type_code : 27
+     code : |1-
+      PROCEDURE Constructor()
+      
+      // vCard 2.1 format
+      :m_svCard21 = [
+      	BEGIN:VCARD
+      	VERSION:2.1
+      	%1
+      	REV:%2
+      	END:VCARD
+      ]
+      
+      // Revision date
+      :m_sRevision = DateSys + "T" + TimeSys + "Z"
+      
+      // Allocates the Phone, Address, URL and Email arrays
+      :m_arrTel 	= new array dynamic of 0 stVCard21Tel	
+      :m_arrAddr 	= new array dynamic of 0 stVCard21Address	
+      :m_arrURL 	= new array dynamic of 0 stVCard21Url	
+      :m_arrEmail = new array dynamic of 0 stVCard21Email	
+     type : 589824
+   -
+     name : Destructeur
+     procedure_id : 1581171463154058999
+     type_code : 28
+     code : |1-
+      PROCEDURE Destructor()
+     type : 655360
+   -
+     name : SetName
+     procedure_id : 1581171463154124535
+     type_code : 12
+     code : |1-
+      // Summary: Defines the name, the first name and the title of the contact
+      // Syntax:
+      //setName (<sFamilyName>, <sFirstName> [, <sFirstNames> [, <sTitle>]])
+      //
+      // Parameters:
+      //	sFamilyName: 	Family name
+      //	sFirstName: 		Usual first name
+      //	sFirstNames: 		First names
+      //	sTitle: 		Title (Mr, Mrs, Miss)
+      // Return value:
+      // 	None
+      //
+      PROCEDURE SetName(LOCAL sFamilyName, LOCAL sFirstName, LOCAL sFirst_names = "", sTitle = "")
+      
+      sFamilyName = NoSpace(sFamilyName)	
+      sFirstName     = NoSpace(sFirstName)
+      sFirst_names    = NoSpace(sFirst_names)
+      
+      :m_sName 	= "N:" + :_IfNotEmpty(sFamilyName, sFamilyName) + ";" + :_IfNotEmpty(sFirstName, sFirstName) + ";" + :_IfNotEmpty(sFirst_names, sFirst_names) + ";" + NoSpace(:_IfNotEmpty(sTitle, sTitle))
+      :m_sFullName = "FN:" + NoSpace(:_IfNotEmpty(sFirstName, sFirstName) + " " + :_IfNotEmpty(sFirst_names, sFirst_names)) + " " + :_IfNotEmpty(sFamilyName, sFamilyName)
+     type : 458752
+   -
+     name : setPseudonym
+     procedure_id : 1581171463154190071
+     type_code : 12
+     code : |1-
+      // Summary: Defines a pseudonym for the contact
+      // Syntax:
+      //setPseudonym ([<sPseudonym>])
+      //
+      // Parameters:
+      //	sPseudonym: Pseudonym
+      // Return value:
+      // 	None
+      //
+      PROCEDURE setPseudonym(sNickname = "")
+      
+      :m_sNickName = "NICKNAME:" + :_IfNotEmpty(NoSpace(sNickname),NoSpace(sNickname))
+     type : 458752
+   -
+     name : setCompany
+     procedure_id : 1581171463154255607
+     type_code : 12
+     code : |1-
+      // Summary: Defines the information about the company: Name, Position and Department of the contact in the company
+      // Syntax:
+      //setCompany (<sCompanyName>, <sTitle> [, <sDepartmentName>])
+      //
+      // Parameters:
+      //	sCompanyName: 	Name of the company
+      //	sTitle: 		Position of the contact in the company
+      //	sDepartmentName: 	Name of the department in the company
+      // Return value:
+      // 	None
+      
+      PROCEDURE setCompany(sCompanyName, sTitle, sServiceName = "")
+      
+      :m_sOrganization 	= "ORG:" + :_IfNotEmpty(NoSpace(sCompanyName),NoSpace(sCompanyName)) + ";" + :_IfNotEmpty(NoSpace(sServiceName),NoSpace(sServiceName))
+      :m_sTitle 			= "TITLE:" + :_IfNotEmpty(NoSpace(sTitle),NoSpace(sTitle))
+     type : 458752
+   -
+     name : setComments
+     procedure_id : 1581171463154321143
+     type_code : 12
+     code : |1-
+      // Summary: Defines the comments of this contact
+      // Syntax:
+      //setComments ([<sComment>])
+      //
+      // Parameters:
+      //	sComment: Comments
+      // Return value:
+      // 	None
+      //
+      PROCEDURE setComments(sComment = "")
+      
+      :m_sExpenses = "NOTE;ENCODING=QUOTED-PRINTABLE:" + :_Encodes(NoSpace(sComment), ::QuotedPrintable)
+     type : 458752
+   -
+     name : setBirthday
+     procedure_id : 1581171463154386679
+     type_code : 12
+     code : |1-
+      // Summary: Defines the birthday 
+      // Syntax:
+      //setBirthday (<dDate>)
+      //
+      // Parameters:
+      //	dDate: Birthday
+      // Return value:
+      // 	None
+      //
+      PROCEDURE setBirthday(dDate)
+      
+      // If the date is valid
+      IF DateValid(dDate) THEN
+      	// Specifies the date
+      	:m_sBday = "BDAY:" + dDate
+      ELSE // If the date is not valid
+      	// Specifies an empty string ("")
+      	:m_sBday = ""
+      END
+     type : 458752
+   -
+     name : addTelephone
+     procedure_id : 1581171463154452215
+     type_code : 12
+     code : |1-
+      // Summary: Adds a phone number for the contact
+      // Syntax:
+      //[ <Result> = ] addPhone (<sNumber> [, <sWhereIS> [, <sType>]])
+      //
+      // Parameters:
+      //	sNumber: 	Phone number
+      //	sWhereIS (default value="HOME"): 	Localization (HOME, WORK, CELL, PAGER)
+      //	sType (default value="VOICE"): 	Type of number (VOICE or FAX)
+      // Return value:
+      // 	boolean:  	TRUE if the number was added, FALSE otherwise
+      //
+      PROCEDURE addTelephone(LOCAL sNumber, sWhereIS = ::wiHOME, sType = ::tpVOICE)
+      
+      // Deletes the space characters before and after the number
+      sNumber = NoSpace(sNumber)
+      
+      // If the number is properly specified
+      IF sNumber <> "" THEN
+      	
+      	// Checks whether the type of number is correct
+      	IF (sWhereIS <> ::wiHOME AND sWhereIS <> ::wiCELL AND sWhereIS <> ::wiPAGER AND sWhereIS <> ::wiWORK) THEN
+      		RESULT False
+      	END
+      	
+      	// Checks the mode
+      	IF (sType <> ::tpFAX AND sType <> ::tpVOICE) THEN
+      		RESULT False
+      	END			
+      	
+      	// Adds the number
+      	Dimension(:m_arrTel, Dimension(:m_arrTel) + 1)
+      	:m_arrTel[Dimension(:m_arrTel)]:sAddr 		= sNumber
+      	:m_arrTel[Dimension(:m_arrTel)]:sWhereIS 	= sWhereIS
+      	:m_arrTel[Dimension(:m_arrTel)]:sType 		= sType
+      	
+      	// Generates the content
+      	:m_arrTel[Dimension(:m_arrTel)]:sContent = "TEL;" + sWhereIS + ";" + sType + ":" + sNumber
+      	
+      	// The addition of the number is effective
+      	RESULT True	
+      END
+      
+      // The addition was not performed
+      RESULT False
+     type : 458752
+   -
+     name : addAddress
+     procedure_id : 1581171463154517751
+     type_code : 12
+     code : |1-
+      // Summary: Adds an address to the contact 
+      // Syntax:
+      //[ <Result> = ] addAddress (<sWhereIS>, <sOffice>, <sStreet>, <sCity>, <sState>, <sZipCode>, <sCountryRegion>)
+      //
+      // Parameters:
+      //	sWhereIS: 		Localization (HOME, WORK)
+      //	sOffice: 			Office
+      //	sStreet: 			Address (number + street)
+      //	sCity: 		City
+      //	sState: 		State
+      //	sZipCode: 	Zip code
+      //	sCountryRegion: 	Country or region
+      // Return value:
+      // 	boolean:   		TRUE if the address was added, FALSE otherwise
+      //
+      PROCEDURE addAddress(sWhereIS, sOffice, sStreet, sCity, sState, sZipCode, sCountryRegion)
+      
+      // Deletes the unnecessary spaces
+      sStreet = NoSpace(sStreet)
+      
+      // Checks whether the type of address is correct
+      IF (sWhereIS <> ::wiHOME AND sWhereIS <> ::wiWORK) THEN
+      	RESULT False
+      END
+      
+      // Adds the address
+      Dimension(:m_arrAddr, Dimension(:m_arrAddr) + 1)
+      :m_arrAddr[Dimension(:m_arrAddr)]:sWhereIS = sWhereIS
+      :m_arrAddr[Dimension(:m_arrAddr)]:sOffice  = NoSpace(sOffice)
+      :m_arrAddr[Dimension(:m_arrAddr)]:sStreet  	  = NoSpace(sStreet)
+      :m_arrAddr[Dimension(:m_arrAddr)]:sCity   = sCity
+      :m_arrAddr[Dimension(:m_arrAddr)]:sDept    = sState
+      :m_arrAddr[Dimension(:m_arrAddr)]:sCode    = sZipCode
+      :m_arrAddr[Dimension(:m_arrAddr)]:sCountry    = sCountryRegion
+      
+      // Generates the content
+      :m_arrAddr[Dimension(:m_arrAddr)]:sContent = "ADDR;" + sWhereIS + ";ENCODING=QUOTED-PRINTABLE:;" + sOffice + ";" + :_Encodes(:m_arrAddr[Dimension(:m_arrAddr)]:sStreet) + ";" + ...
+      sCity + ";" + sState + ";" + sZipCode + ";" + sCountryRegion + CR + ...
+      "LABEL;" + sWhereIS + ";ENCODING=QUOTED-PRINTABLE:" + :_Encodes(...
+      sStreet + CR + sCity + ", " + sState + " " + sZipCode + CR + sCountryRegion, ::QuotedPrintable)
+      
+      RESULT True	
+     type : 458752
+   -
+     name : addURL
+     procedure_id : 1581171463154583287
+     type_code : 12
+     code : |1-
+      // Summary: Adds an URL to the contact
+      // Syntax:
+      //[ <Result> = ] addURL (<sURL> [, <sWhereIS>])
+      //
+      // Parameters:
+      //	sURL: 			URL address
+      //	sWhereIS (default value="HOME"): 		Localization (HOME, WORK)
+      // Return value:
+      // 	boolean:  		TRUE if the URL was added, FALSE otherwise
+      //
+      PROCEDURE addURL(LOCAL sURL, sWhereIS = ::wiHOME)
+      
+      sURL = :_IfNotEmpty(sURL,NoSpace(sURL))
+      
+      // If the URL is properly specified
+      IF sURL <> "" THEN
+      	
+      	// Checks whether the type of URL is correct
+      	IF (sWhereIS <> ::wiHOME AND sWhereIS <> ::wiWORK) THEN
+      		RESULT False
+      	END
+      	
+      	// Adds the URL
+      	Dimension(:m_arrURL, Dimension(:m_arrURL) + 1)
+      	:m_arrURL[Dimension(:m_arrURL)]:sURL = sURL
+      	:m_arrURL[Dimension(:m_arrURL)]:sWhereIS = sWhereIS
+      	
+      	// Generates the content
+      	:m_arrURL[Dimension(:m_arrURL)]:sContent = "URL;" + sWhereIS + ":" + sURL
+      	
+      	// The addition is effective
+      	RESULT True	
+      END
+      
+      // The URL was not added
+      RESULT False
+     type : 458752
+   -
+     name : addEmail
+     procedure_id : 1581171463154648823
+     type_code : 12
+     code : |1-
+      // Summary: Adds an email address to the contact
+      // Syntax:
+      //[ <Result> = ] addEmail (<sEmail> [, <bDefault>])
+      //
+      // Parameters:
+      //	sEmail: 							Email address
+      //	bDefault (default value=0): 		TRUE if it is the default email address, FALSE otherwise
+      // Return value:
+      // 	boolean:   						TRUE if the email address was added, FALSE otherwise
+      //
+      PROCEDURE addEmail(LOCAL sEmail, bDefault = False)
+      
+      // Deletes the unnecessary spaces
+      sEmail = NoSpace(sEmail)
+      
+      // If the email address is properly specified
+      IF sEmail <> "" THEN
+      	
+      	// Adds the email
+      	Dimension(:m_arrEmail, Dimension(:m_arrEmail) + 1)
+      	:m_arrEmail[Dimension(:m_arrEmail)]:sEmail = sEmail
+      	:m_arrEmail[Dimension(:m_arrEmail)]:bDefault = bDefault
+      	
+      	// Generates the content		
+      	IF bDefault THEN
+      		:m_arrEmail[Dimension(:m_arrEmail)]:sContent = "EMAIL;PREF;INTERNET:" + sEmail
+      	ELSE
+      		:m_arrEmail[Dimension(:m_arrEmail)]:sContent = "EMAIL;INTERNET:" + sEmail
+      	END
+      	
+      	// The addition is effective
+      	RESULT True	
+      END
+      
+      // The email address was not added
+      RESULT False
+     type : 458752
+   -
+     name : Export
+     internal_properties : CAAAAAgAAADQDcOFwlJ/0F2rRGoAL/PTwzVWVRyRjcRx3fGpPDtJtA1K/WQ6XmcTat8ApCL0EW1XKCMPjbaQRV//JwJZkm8kR276J9bmllJtBBEf0y1bYhuFH+64jeNA+WexQBS1qqy3tLly1dbzXGvFVxlJjQFPNbXNvX32JAuPm8sYzptw21/lE4DTfkt2xrwri15AGEjz6mCO2y4RQ2CrL0rozbU6z5+T
+     procedure_id : 1581171463154714359
+     type_code : 12
+     code : |1+
+      // Summary: Exports the contact into a VCard file (.vcf)
+      // Syntax:
+      // [ <Result> = ] Export (<cDest>, <sDestination>)
+      //
+      // Parameters:
+      // 	cDest: 		Type of destination: vcFile for a file OR vcString for a string
+      // 	sDestination: 	Path of the destination file (for an export into a file)
+      // Return value:
+      // 	boolean: 		TRUE if the export was performed, FALSE otherwise
+      //
+      
+      PROCEDURE Export(cDest, sDestination)
+      
+      // Local variables
+      sVCF 			is string	// String containing the formatted information of the contact
+      nArraySize 	is int	// Size of the array handled (optimization)
+      
+      // Fills the string with the available information
+      sVCF = ...
+      :m_sName 			+ :_IfNotEmpty(:m_sName, CR) 	 	+ ...
+      :m_sFullName 		+ :_IfNotEmpty(:m_sFullName, CR) 	+ ...
+      :m_sNickName		+ :_IfNotEmpty(:m_sNickName, CR) 	+ ...
+      :m_sOrganization 	+ :_IfNotEmpty(:m_sOrganization, CR) + ...
+      :m_sTitle			+ :_IfNotEmpty(:m_sTitle, CR) 	 	+ ...
+      :m_sExpenses		+ :_IfNotEmpty(:m_sExpenses, CR)
+      
+      // Phone numbers
+      nArraySize = Dimension(:m_arrTel)
+      FOR i=1 TO nArraySize
+      	sVCF += :m_arrTel[i]:sContent + :_IfNotEmpty(:m_arrTel[i]:sContent, CR)
+      END
+      
+      // Addresses
+      nArraySize = Dimension(:m_arrAddr)
+      FOR i=1 TO nArraySize
+      	sVCF += :m_arrAddr[i]:sContent + :_IfNotEmpty(:m_arrAddr[i]:sContent, CR)
+      END
+      
+      // URL
+      nArraySize = Dimension(:m_arrURL)
+      FOR i=1 TO nArraySize
+      	sVCF += :m_arrURL[i]:sContent + :_IfNotEmpty(:m_arrURL[i]:sContent, CR)
+      END
+      
+      // Birthday
+      sVCF += :m_sBday + :_IfNotEmpty(:m_sBday, CR)
+      
+      // Emails
+      nArraySize = Dimension(:m_arrEmail)
+      FOR i=1 TO nArraySize
+      	sVCF += :m_arrEmail[i]:sContent + :_IfNotEmpty(:m_arrEmail[i]:sContent, CR)
+      END
+      
+      // Deletes the final CR character
+      IF Right(sVCF, 2) = CR THEN sVCF = Complete(sVCF, Length(sVCF)-2)
+      
+      // According to the type of destination
+      SWITCH cDest
+      	// Saves the information in the specified file
+      	CASE ::cvFile
+      		fSaveText(sDestination, StringBuild(:m_svCard21, sVCF, :m_sRevision))
+      		RESULT NOT ErrorOccurred			
+      		
+      	// Returns a string containing the information
+      	CASE ::cvString			
+      		sDestination = StringBuild(:m_svCard21, sVCF, :m_sRevision)
+      		RESULT True
+      		
+      	OTHER CASE
+      		RESULT False
+      END
+     type : 458752
+   -
+     name : Import
+     internal_properties : CAAAAAgAAACBY7IUCwGQlFnFY3GtwOFRr6pJaqQkzNyL6qG9hIUSvJ7aDI65gagg0rSG96FV+fWOPwYtwQBjz6Cc6UmF09WOkQSi6HKkraxk+1AwF5AhyTc6d4gKQZsZLGC6Wy8WO0MsISijJovmodxI4q4uNv5CTkZ8Ln7lXYJCJlg1I3whmJ7+eh24K7mEqdeOQ2/WPZfjkuJiE5vRM4g2VFQytemyhAZsKIcbh0B4v5XalQnb8gnecg==
+     procedure_id : 1581171463154779895
+     type_code : 12
+     code : |1-
+      // Summary: Imports the information from a VCard file (.vcf)
+      // Syntax:
+      //[ <Result> = ] Import (<cSource>, <sSource>)
+      //
+      // Parameters:
+      //	cSource: 		Type of destination: vcFile for a file OR vcString for a string
+      //	sSource: 		Path of the destination file (for an export into a file)
+      // Return value:
+      // 	boolean:  		TRUE if the import was performed, FALSE otherwise
+      //
+      PROCEDURE Import(cSource, sSource)
+      
+      i 			is int
+      sVCF 		is string
+      sLineVCF 	is string
+      sWhereIS 	is string
+      
+      // According to the source used for the import
+      SWITCH cSource
+      	// The source is a file
+      	CASE ::cvFile
+      		// Loads the file content
+      		sVCF = fLoadText(sSource)
+      		IF ErrorOccurred THEN RESULT False
+      		// If the content is empty
+      		IF sVCF ~= "" THEN
+      			RESULT False
+      		END
+      		
+      	// The source is a character string
+      	CASE ::cvString
+      		sVCF = sSource
+      		
+      	OTHER CASE
+      		RESULT False
+      END
+      
+      // Clears the existing information
+      Dimension(:m_arrAddr, 0)
+      Dimension(:m_arrEmail, 0)
+      Dimension(:m_arrURL, 0)
+      Dimension(:m_arrTel, 0)
+      :m_sFullName		=	""
+      :m_sName			=	""
+      :m_sNickName  		=	""
+      :m_sOrganization	=	""
+      :m_sTitle			=	""
+      :m_sExpenses			=	""
+      :m_sBday			=	""
+      
+      i = 1
+      // Browse each content line
+      sLineVCF = ExtractString(sVCF, i, CR)
+      WHILE sLineVCF <> EOT
+      	// If the current line is not empty
+      	IF sLineVCF <> "" THEN
+      		// According to the line number
+      		SWITCH i
+      			// The first line must be "BEGIN:VCARD"
+      			CASE 1
+      				IF NoSpace(sLineVCF) <> "BEGIN:VCARD" THEN
+      					RESULT False
+      				END		
+      				
+      			// The second line must be "VERSION:2.1"
+      			CASE 2
+      				IF NoSpace(sLineVCF)[[TO	Length("VERSION:2.1")]] <> "VERSION:2.1" THEN
+      					RESULT False				
+      				END
+      				
+      			OTHER CASE
+      				// The last line must be "END:VCARD"
+      				IF NoSpace(sLineVCF) = "END:VCARD" THEN
+      					RESULT True
+      				END
+      				
+      				sLineVCF = NoSpace(sLineVCF)
+      				
+      				// Define the name
+      				IF sLineVCF[[TO 2]] = "N:" THEN
+      					sLineVCF[[TO 2]] = ""
+      					:SetName(ExtractString(sLineVCF,1,";"), ...
+      					ExtractString(sLineVCF,2,";"), ...
+      					ExtractString(sLineVCF,3,";"), ...
+      					ExtractString(sLineVCF,4,";"))
+      					GOTO Reading
+      				END
+      				
+      				// Define the nickname
+      				IF sLineVCF[[TO 9]] = "NICKNAME:" THEN
+      					sLineVCF[[TO 9]] = ""
+      					:setPseudonym(sLineVCF)
+      					GOTO Reading
+      				END
+      				
+      				// Define the company
+      				IF sLineVCF[[TO 4]] = "ORG:" THEN
+      					sLineVCF[[TO 4]] = ""
+      					:setCompany(ExtractString(sLineVCF,1,";"), ...
+      					"", ...
+      					ExtractString(sLineVCF,2,";"))
+      					GOTO Reading
+      				END
+      				// Define the title
+      				IF sLineVCF[[TO 6]] = "TITLE:" THEN
+      					:m_sTitle = sLineVCF
+      				END
+      				
+      				// Define the comment
+      				IF sLineVCF[[TO 4]] = "MARK" THEN
+      					sLineVCF[[TO 5]] = ""
+      					IF sLineVCF[[TO 26]] = "ENCODING=QUOTED-PRINTABLE:" THEN
+      						sLineVCF[[TO 26]] = ""
+      						
+      						:_ReadForward(sVCF, sLineVCF, i, ::QuotedPrintable)
+      						
+      						sLineVCF = :_Decodes(sLineVCF, ::QuotedPrintable)
+      					END
+      					:setComments(sLineVCF)
+      					GOTO Reading
+      				END
+      				
+      				// Define the birthday
+      				IF sLineVCF[[TO 5]] = "BDAY:" THEN
+      					sLineVCF[[TO 5]] = ""
+      					:setBirthday(sLineVCF)
+      					GOTO Reading
+      				END
+      				
+      				// Define the revision
+      				IF sLineVCF[[TO 4]] = "REV:" THEN
+      					:m_sRevision = sLineVCF[[5 TO]]
+      					GOTO Reading
+      				END
+      				
+      				// Define the emails
+      				IF sLineVCF[[TO 6]] = "EMAIL;" THEN
+      					sLineVCF[[TO 6]] = ""
+      					
+      					bDefault is boolean
+      					IF Position(sLineVCF, "PREF;") > 0 THEN
+      						bDefault = True
+      					ELSE
+      						bDefault = False
+      					END
+      					
+      					:addEmail(sLineVCF[[Position(sLineVCF, ":")+1 TO]], bDefault)
+      					GOTO Reading
+      				END
+      				
+      				// Define the URLs
+      				IF sLineVCF[[TO 4]] = "URL;" THEN
+      					sLineVCF[[TO 4]] = ""
+      					
+      					sWhereIS = sLineVCF[[TO Position(sLineVCF, ":")-1]]
+      					:addURL(sLineVCF[[Position(sLineVCF, ":")+1 TO]], sWhereIS)
+      					GOTO Reading
+      				END
+      				
+      				// Define the phone numbers
+      				IF sLineVCF[[TO 4]] = "TEL;" THEN
+      					sLineVCF[[TO 4]] = ""
+      					
+      					sWhereIS = sLineVCF[[TO Position(sLineVCF, ";")-1]]
+      					sLineVCF[[TO Position(sLineVCF, ";")]] = ""
+      					sType is string = sLineVCF[[TO Position(sLineVCF, ":")-1]]
+      					sLineVCF[[TO Position(sLineVCF, ":")]] = ""
+      					
+      					:addTelephone(sLineVCF, sWhereIS, sType)
+      					GOTO Reading
+      				END
+      				
+      				// Define the addresses
+      				IF sLineVCF[[TO 4]] = "ADDR;" THEN
+      					sLineVCF[[TO 4]] = ""
+      					
+      					sWhereIS = sLineVCF[[TO Position(sLineVCF, ":")-1]]
+      					
+      					bEncode is boolean
+      					IF Position(sWhereIS, ";") > 0 THEN
+      						sWhereIS = sWhereIS[[TO Position(sWhereIS, ";")-1]]	
+      						bEncode = True						
+      					END
+      					
+      					sLineVCF = sLineVCF[[Position(sLineVCF, ":")+1 TO]]
+      					IF sLineVCF[[Length(sLineVCF)]] = "=" THEN
+      						sLineVCF[[Length(sLineVCF)]] = ""
+      						i++
+      						sLineVCF += ExtractString(sVCF, i, CR)
+      					END
+      					
+      					
+      					:addAddress(sWhereIS, ExtractString(sLineVCF, 2, ";"), ...
+      					:_Decodes(ExtractString(sLineVCF, 3, ";"), ::QuotedPrintable), ...
+      					:_Decodes(ExtractString(sLineVCF, 4, ";"), ::QuotedPrintable), ...
+      					:_Decodes(ExtractString(sLineVCF, 5, ";"), ::QuotedPrintable), ...
+      					:_Decodes(ExtractString(sLineVCF, 6, ";"), ::QuotedPrintable), ...
+      					:_Decodes(ExtractString(sLineVCF, 7, ";"), ::QuotedPrintable))
+      					
+      					
+      					GOTO Reading
+      				END
+      		END
+      		
+      		
+      	END		
+      	
+      	Reading:
+      	
+      	// Read the next row
+      	i++
+      	sLineVCF = ExtractString(sVCF, i, CR)	
+      END
+      
+      // By default, the operation is performed properly
+      RESULT True
+     type : 458752
+   -
+     name : getBirthday
+     procedure_id : 1581171463154845431
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the birthday of the contact
+      // Syntax:
+      //[ <Result> = ] getBirthday ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	variant:  Birthday of the contact
+      
+      PROCEDURE getBirthday()
+      
+      // Returns the birthday (by deleting the name of the attribute)
+      RESULT Replace(:m_sBday, "BDAY:", "")
+     type : 458752
+   -
+     name : getComments
+     procedure_id : 1581171463154910967
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the comment of this contact
+      // Syntax:
+      // [ <Result> = ] getComments ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	Undefined type: Comment of the contact
+      //
+      
+      PROCEDURE getComments()
+      
+      // Returns the comment by deleting the tags
+      RESULT :_Decodes(Replace(:m_sExpenses, "NOTE;ENCODING=QUOTED-PRINTABLE:", ""), ::QuotedPrintable)
+     type : 458752
+   -
+     name : GetName
+     internal_properties : CAAAAAgAAAB/Qxn1hFUXt/wpZbI/fyT8yo11QRhvN2IhJPjbxv9HZE6z5xW5OOPIqIpH6wkn8p27Opoi4V6RUy4mRc07zN083HxOWSOEIfBzSHpSvuKJPsOcFSB9AcCzom370iN5L3ocD0nIFNSOHTI//Ul2WfKTOIL9R3gs/4DqKZuU6b8n0p2Fokvjrd+mFEPi0la4EZau7XEE
+     procedure_id : 1581171463154976503
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the name information of the contact
+      // Syntax:
+      // [ <Result> = ] getName ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	variant: Name information (name, first name, first names, title)
+      //
+      
+      PROCEDURE GetName()
+      
+      // Deletes the name of the attribute at the front
+      sName is string = :m_sName[[3 TO]]
+      
+      // Returns the name information separated by TAB characters
+      RESULT Replace(sName, ";", TAB)
+     type : 458752
+   -
+     name : getPseudonym
+     procedure_id : 1581171463155042039
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the pseudonym of the contact
+      // Syntax:
+      // [ <Result> = ] getPseudonym ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	variant: Pseudonym of the contact
+      //
+      
+      PROCEDURE getPseudonym()
+      
+      // Returns the pseudonym by deleting the caption
+      RESULT Replace(:m_sNickName, "NICKNAME:", "")
+     type : 458752
+   -
+     name : getCompany
+     internal_properties : CAAAAAgAAAA4Cjz2paSXvsijZNbqjPYTQjgP0NE7wcqLKL7FYX04rJK1Qy7I169hme23Zg/WNLaTfFq51QYxDXwo40zjQGgq2RkXWe4zQHffzosHU8aqvGwcS81u/ffXykuEHV7Zkqxr/webWWLTu1DXUMDt61c3kSIH9PtkasDeh9SdnqeIjALbYhzSRSjSjE1xbSFOqxclaailnQ==
+     procedure_id : 1581171463155107575
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves information about the contact company
+      // Syntax:
+      //[ <Result> = ] getCompany ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	variant:  Information about the company
+      
+      PROCEDURE getCompany()
+      
+      // Retrieves the name of the company and the role (title) of the contact (by deleting the captions of the attributes)
+      sCompany is string = :m_sOrganization[[5 TO]] + ";" + :m_sTitle[[7 TO]]
+      
+      // Returns the company information separated by TAB characters
+      RESULT Replace(sCompany, ";", TAB)
+     type : 458752
+   -
+     name : getURL
+     procedure_id : 1581171463155173111
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves an URL of the contact
+      // Syntax:
+      // [ <Result> = ] getURL ([<nIndex>])
+      //
+      // Parameters:
+      // 	nIndex (default value=1): Subscript of the URL to retrieve
+      // Return value:
+      // 	Undefined type: Type and address of this URL
+      //
+      
+      PROCEDURE getURL(nIndex=1)
+      
+      // If the specified subscript is invalid
+      IF nIndex > Dimension(:m_arrURL) THEN
+      	// Returns an empty string
+      	RESULT ""
+      	
+      ELSE // If the subscript is valid
+      	
+      	// Returns the type of URL and the address
+      	RESULT :m_arrURL[nIndex]:sWhereIS + TAB + :m_arrURL[nIndex]:sURL
+      END
+     type : 458752
+   -
+     name : GetPhone
+     procedure_id : 1581171463155238647
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the work phone number 
+      // Syntax:
+      // [ <Result> = ] getPhone ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: Information about the phone
+      //
+      
+      PROCEDURE GetPhone()
+      
+      
+      stPhoneItem	is stVCard21Tel
+      
+      // Search for the phone with the following attributes:
+      //	- WhereIs 	= WORK
+      //	- Type		= VOICE
+      // Browses all the elements
+      FOR ALL ELEMENT stPhoneItem of :m_arrTel
+      	
+      	IF NOT (stPhoneItem:sWhereIs ~= "WORK" _AND_ stPhoneItem:sType ~= "VOICE" ) THEN CONTINUE
+      	
+      	RESULT stPhoneItem:sWhereIs + TAB + stPhoneItem:sType + TAB + stPhoneItem:sAddr	
+      	
+      END
+      
+      RESULT ""
+     type : 458752
+   -
+     name : getEmail
+     procedure_id : 1581171463155304183
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the email address
+      // Syntax:
+      //[ <Result> = ] getEmail ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string:     					Information about the email
+      //
+      //	nIndex (default value=1): Subscript of the email address
+      PROCEDURE getEmail()
+      
+      stEmail	is stVCard21Email
+      
+      // Search for the email with the following attributes:
+      //	- Default = true
+      // Browses all the elements
+      FOR ALL ELEMENT stEmail of :m_arrEmail
+      	
+      	IF NOT (stEmail:bDefault = True) THEN CONTINUE
+      	
+      	RESULT stEmail:bDefault + TAB + stEmail:sEmail
+      	
+      END
+      
+      // By default, the operation is not performed properly
+      RESULT ""
+     type : 458752
+   -
+     name : GetAddress
+     internal_properties : CAAAAAgAAAA4Cjz2pSSXfsgjZNbqDPYTQjiP0FG7QcoLKD5F4X24LBI1Q67I16/hmW23Zg9WNLaTfNq5VYaxDfwoY8xjQOiqWZkX2e4zQPffTstHk4ZqfKxcC42uvTeXigvEXZ6ZUmyrP8dbmSITexCXkAAtqxf30WLHtDskqoCeRxTd3mdITEIbItwSBWiSTA2xrWHOKxclaailnQ==
+     procedure_id : 1581171463155369719
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves an address
+      // Syntax:
+      //[ <Result> = ] getAddress ([<nIndex>])
+      //
+      // Parameters:
+      //	nIndex (default value=1): Subscript of the address
+      // Return value:
+      // 	Undefined type:   Information about the address
+      //
+      PROCEDURE GetAddress(nIndex=1)
+      
+      // If the specified subscript is invalid
+      IF nIndex > Dimension(:m_arrAddr) THEN
+      	// Returns an empty string
+      	RESULT ""
+      	
+      ELSE	// If the subscript is valid
+      	
+      	// Returns information about the address
+      	RESULT :m_arrAddr[nIndex]:sWhereIS + TAB + ...
+      	:m_arrAddr[nIndex]:sOffice		+ TAB + ...
+      	:m_arrAddr[nIndex]:sStreet  	+ TAB + ...
+      	:m_arrAddr[nIndex]:sCode		+ TAB + ...
+      	:m_arrAddr[nIndex]:sCity		+ TAB + ...
+      	:m_arrAddr[nIndex]:sDept		+ TAB + ...
+      	:m_arrAddr[nIndex]:sCountry    		
+      END
+     type : 458752
+   -
+     name : getFax
+     procedure_id : 1581171463155435255
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the fax number
+      // Syntax:
+      // [ <Result> = ] getFax ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: Information about the fax
+      //
+      
+      PROCEDURE getFax()
+      
+      stPhoneItem	is stVCard21Tel
+      
+      // Search for the phone with the following attributes:
+      //	- WhereIs 	= WORK
+      //	- Type		= FAX
+      // Browses all the elements
+      FOR ALL ELEMENT stPhoneItem of :m_arrTel
+      	
+      	IF NOT (stPhoneItem:sWhereIs ~= "WORK" _AND_ stPhoneItem:sType ~= "FAX" ) THEN CONTINUE
+      	
+      	RESULT stPhoneItem:sWhereIs + TAB + stPhoneItem:sType + TAB + stPhoneItem:sAddr	
+      	
+      END
+      
+      RESULT ""
+     type : 458752
+   -
+     name : getMobile
+     procedure_id : 1581171463155500791
+     type_code : 12
+     code : |1-
+      // Summary: Retrieves the information about the cell phone
+      // Syntaxe :
+      //[ <Résultat> = ] getMobile ()
+      //
+      // Paramètres :
+      //	Aucun
+      
+      // Return value:
+      // 	string: Information about the cell phone
+      PROCEDURE getMobile()
+      
+      stPhoneItem	is stVCard21Tel
+      
+      // Search for the phone with the following attributes:
+      //	- WhereIs 	= CELL
+      //	- Type		= VOICE
+      // Browses all the elements
+      FOR ALL ELEMENT stPhoneItem of :m_arrTel
+      	
+      	IF NOT (stPhoneItem:sWhereIs ~= "CELL" _AND_ stPhoneItem:sType ~= "VOICE" ) THEN CONTINUE
+      	
+      	RESULT stPhoneItem:sWhereIs + TAB + stPhoneItem:sType + TAB + stPhoneItem:sAddr	
+      	
+      END
+      
+      RESULT ""
+     type : 458752
+   -
+     name : _ReadForward
+     procedure_id : 1581171463155566327
+     type_code : 12
+     code : |1-
+      // Syntax:
+      //_ReadForward (<sVCS>, <sLineVCS>, <iIndex> [, <nMode>])
+      //
+      // Parameters:
+      //	sVCS: Source for the read operation
+      //	sLineVCS: Line for the read operation
+      //	iIndex: Start index
+      //	nMode (default value=1): Read mode
+      // Return value:
+      // 	None
+      
+      PROCEDURE RESTRICTED _ReadForward(sVCS, sLineVCS, iIndex, nMode = ::QuotedPrintable)
+      
+      j is int
+      sTmp is string
+      
+      IF nMode = ::QuotedPrintable THEN
+      	
+      	// In Quoted--Printable, the truncated lines end with a "="
+      	IF sLineVCS[[Length(sLineVCS)]] = "=" THEN
+      		
+      		// Reads the following lines as long as they end with a "="
+      		j = iIndex + 1
+      		
+      		sTmp = ExtractString(sVCS, j, CR) 
+      		WHILE sTmp[[Length(sTmp)]] = "="							
+      			sLineVCS += sTmp[[TO Length(sTmp)-1]]
+      			j ++
+      			sTmp = ExtractString(sVCS, j, CR) 
+      		END
+      		
+      		// If at least one line was read, the next read operation will start from the following line
+      		IF j > iIndex + 1 THEN 
+      			iIndex = j
+      			// Add the additional lines to the current line
+      			sLineVCS += sTmp[[TO Length(sTmp)-1]]
+      		END
+      	END
+      ELSE
+      	j = iIndex + 1
+      	
+      	// Reads the following lines as long as they start with a space
+      	sTmp = ExtractString(sVCS, j, CR) 
+      	WHILE sTmp[[1]] = " "								
+      		sLineVCS += sTmp
+      		j ++
+      		sTmp = ExtractString(sVCS, j, CR) 
+      	END
+      	
+      	// If at least one line was read, the next read operation will start from the following line
+      	IF j > iIndex + 1 THEN 
+      		iIndex = j
+      		sLineVCS += sTmp
+      	END
+      END
+     type : 458752
+   -
+     name : _Decodes
+     internal_properties : CAAAAAgAAAAqfDoXJyawrgjTDOYypG4TAugXoAnDsULjoJ79kZ2I1Doto0b4F7dxmR1f9rcOHMbTvKLZPd7RxUTAs9RjUOiiEdE38V6TeJdfLh9Tv1IuwDBgz/F6ycsbBqcIaZpFJqBvc4sf5d7Xv2xD5GxpZ8uLdRYbqBdgbsRq04hZWsM8wNYvBpCuYcxmGIl1CZ0arq4Kc6K7iw==
+     procedure_id : 1581171463155631863
+     type_code : 12
+     code : |1-
+      // Syntax:
+      //[ <Result> = ] _Decode (<sEncodedString> [, <nFormat>])
+      //
+      // Parameters:
+      //	sEncodedString: String to decode
+      //	nFormat (default value=1): Decoding format
+      // Return value:
+      // 	Undefined type:   // 	None
+      
+      PROCEDURE RESTRICTED _Decodes(sStringEncode, nFormat = ::QuotedPrintable)
+      
+      sString is string
+      nPos    is int
+      
+      SWITCH nFormat 
+      	CASE ::QuotedPrintable
+      		
+      		// Replaces the soft breaks
+      		sString = Replace(sStringEncode, "=" + CR, "")
+      		
+      		// Searches for the encoded characters (preceded by a "=")
+      		nPos = Position(sString, "=")
+      		WHILE nPos <> 0
+      			
+      			// Replaces the encoded character
+      			sString[[nPos on 3]] = Charact(Val(sString[[nPos + 1 on 2]], "x"))
+      			
+      			// Next encoded character
+      			nPos = Position(sString, "=")	
+      		END
+      		
+      		RESULT sString
+      END
+      
+      RESULT sStringEncode
+     type : 458752
+   -
+     name : _Encodes
+     procedure_id : 1581171463155697399
+     type_code : 12
+     code : |1-
+      // Syntax:
+      //[ <Result> = ] _Encode (<sString> [, <nFormat>])
+      //
+      // Parameters:
+      //	sString: String to encode
+      //	nFormat (default value=1): Encoding format
+      // Return value:
+      // 	Undefined type:    encoded string
+      
+      PROCEDURE RESTRICTED _Encodes(sString, nFormat = ::QuotedPrintable)
+      
+      // Local variables
+      i 				is int
+      j 				is int
+      sLine 			is string
+      sEncodedLine  	is string
+      sStringEncode 	is string
+      nSize			is int // Optimization
+      
+      SWITCH nFormat
+      	CASE ::QuotedPrintable
+      		
+      		i = 1
+      		sLine = ExtractString(sString, i, CR)
+      		WHILE sLine <> EOT
+      			
+      			sEncodedLine = ""
+      			nSize = Length(sLine)
+      			FOR j = 1 TO nSize
+      				
+      				// If it is not an alphanumeric character
+      				IF sLine[[j]] <> TAB AND (Asc(sLine[[j]]) < 32 OR Asc(sLine[[j]]) = 61 OR Asc(sLine[[j]]) > 126) THEN						
+      					//:Encodes the character (=XX)
+      					sEncodedLine += "=" + NumToString(Asc(sLine[[j]]), "02X")	
+      				ELSE
+      					// Otherwise, adds the character as it is
+      					sEncodedLine += sLine[[j]]
+      				END
+      				
+      				// If the size of the line exceeds 76
+      				IF Length(sEncodedLine) = 76 THEN
+      					sStringEncode += sEncodedLine + "=" + CR
+      					sEncodedLine = ""
+      				END
+      				
+      			END				
+      			
+      			sStringEncode += sEncodedLine
+      			
+      			i ++
+      			sLine = ExtractString(sString, i, CR)
+      			IF sLine <> EOT THEN
+      				sStringEncode += "=0D=0A"
+      			END
+      		END
+      		
+      		RESULT NoSpace(sStringEncode)
+      		
+      	OTHER CASE
+      		RESULT sString		
+      		
+      END
+     type : 458752
+   -
+     name : _GenerateUID
+     internal_properties : CAAAAAgAAAA1hSpRpiPLrXBNbx7zu5y8+i0Vf15dSWwdKOa3SoO/tJ6b429TGl2GoIIZzxUH+m3r+i6s4/iHlU6Ox1FfdEUkwIiCY43eV6KvTH11+52ylbpjNM+ChDNsi07WZZi0yIGL1pQrFct9Ct98XNgnUGtqZ7mougmjfnmTnhoDYja8BVAoxZac5BZfLcQB2a8VgN+BKzfO
+     procedure_id : 1581171463155762935
+     type_code : 12
+     code : |1-
+      // Syntax:
+      //[ <Result> = ] _GenerateUID ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string:   UID
+      
+      PROCEDURE RESTRICTED _GenerateUID()
+      
+      // Local variables
+      i 			is int
+      sUID 		is string
+      sString 	is string
+      nSize		is int // Optimization
+      
+      // Generate a base for the identifier
+      sString = DateSys() + TimeSys() + fDriveInfo("C:", fdSerialNumber) + GetIdentifier()
+      
+      nSize = Length(sString)
+      FOR i=1 TO nSize
+      	sUID += NumToString(Asc(sString[[i]]), "02x")
+      END
+      
+      // Return the generated uid
+      RESULT sUID
+     type : 458752
+   -
+     name : _IfNotEmpty
+     procedure_id : 1581171463155828471
+     type_code : 12
+     code : |1+
+      // Syntaxe :
+      //[ <Résultat> = ] _IfNotEmpty (<sString>, <sCharacters>)
+      //
+      // Paramètres :
+      //	sString : String whose test must be run
+      //	sCharacters : String to return if <sString> is not empty
+      
+      // Return value:
+      // 	Undefined type:   Empty string if <sString> is empty, <sCharacters> if <sString> is not empty
+      PROCEDURE RESTRICTED _IfNotEmpty(sString, sCharacters)
+      
+      IF NOT sString ~= "" AND NOT sString ~= EOT THEN
+      	RESULT sCharacters
+      ELSE
+      	RESULT ""
+      END
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : vCard21
+resources :
+ string_res :
+  identifier : 0x15a690a23948bd5b
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

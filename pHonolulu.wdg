@@ -1,0 +1,268 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pHonolulu
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1550751e0009ef70
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of general procedures
+      
+      CONSTANT
+      	// Global notifications
+      	NOTIFICATION_CREATION 		= "NOTIFICATION_CREATION"
+      	NOTIFICATION_MODIFICATION 	= "NOTIFICATION_MODIFICATION"
+      	NOTIFICATION_DELETION 		= "NOTIFICATION_DELETION"
+      	
+      	
+      	// Modules
+      	MODULE_ORGANIZER 		= "ORGANIZER"
+      	MODULE_DIRECTORY		= "DIRECTORY"
+      	MODULE_BLOGS 			= "BLOGS"
+      	MODULE_DISCUSSION 		= "DISCUSSION"
+      	MODULE_FORUM 			= "FORUM"
+      	MODULE_LINKS 			= "LINKS"
+      	MODULE_MESSAGING 		= "MESSAGING"
+      	MODULE_SHARES 			= "SHARES"
+      	MODULE_WIKI 			= "WIKI"
+      	MODULE_MANAGEMENT 		= "MANAGEMENT"
+      	MODULE_NEWS	 			= "NEWS"
+      END
+     type : 720896
+  procedures :
+   -
+     name : DataPostDate
+     procedure_id : 1715442713462466514
+     type_code : 15
+     code : |1+
+      // Summary: Postdates the data
+      // Syntax:
+      //DataPostDate ([<nSourceYear> is int])
+      //
+      // Parameters:
+      // 	nSourceYear (integer - default value=2009): Source year of data
+      // Return value:
+      // 	None
+      //
+      PROCEDURE DataPostDate(nSourceYear is int = 2017)
+      
+      YEAR_BASE is int = CurrentYear() - nSourceYear
+      
+      FOR EACH News
+      	IF DateTimeValid(News.CreationDateTime) THEN News.CreationDateTime..Year += YEAR_BASE
+      	HModify(News)
+      END
+      
+      FOR EACH Organizer
+      	IF DateTimeValid(Organizer.CreationDateTime) THEN Organizer.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(Organizer.StartDateTime) THEN Organizer.StartDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(Organizer.EndDateTIme) THEN Organizer.EndDateTIme..Year += YEAR_BASE
+      	HModify(Organizer)
+      END
+      
+      FOR EACH BlogPost
+      	IF DateTimeValid(BlogPost.CreationDateTime) THEN BlogPost.CreationDateTime..Year += YEAR_BASE
+      	HModify(BlogPost)
+      END
+      
+      FOR EACH Blog
+      	IF DateTimeValid(Blog.CreationDateTime) THEN Blog.CreationDateTime..Year += YEAR_BASE
+      	HModify(Blog)
+      END
+      
+      FOR EACH Comment 
+      	IF DateTimeValid(Comment.CreationDateTime) THEN Comment.CreationDateTime..Year += YEAR_BASE
+      	HModify(Comment)
+      END
+      
+      FOR EACH Recipient  
+      	IF DateTimeValid(Recipient.DateTimeAcknowledged) THEN Recipient.DateTimeAcknowledged..Year += YEAR_BASE
+      	IF DateTimeValid(Recipient.DateTimeReading) THEN Recipient.DateTimeReading..Year += YEAR_BASE
+      	HModify(Recipient)
+      END
+      
+      FOR EACH DiscussionInvitation  
+      	IF DateTimeValid(DiscussionInvitation.DateTime) THEN DiscussionInvitation.DateTime..Year += YEAR_BASE
+      	HModify(DiscussionInvitation)
+      END
+      
+      FOR EACH DiscussionMessage   
+      	IF DateTimeValid(DiscussionMessage.DateTime) THEN DiscussionMessage.DateTime..Year += YEAR_BASE
+      	HModify(DiscussionMessage)
+      END
+      
+      FOR EACH Forum   
+      	IF DateTimeValid(Forum.CreationDateTime) THEN Forum.CreationDateTime..Year += YEAR_BASE
+      	HModify(Forum)
+      END
+      
+      FOR EACH Link   
+      	IF DateTimeValid(Link.CreationDateTime) THEN Link.CreationDateTime..Year += YEAR_BASE
+      	HModify(Link)
+      END
+      
+      FOR EACH Message   
+      	IF DateTimeValid(Message.CreationDateTime) THEN Message.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(Message.OUTGOINGDATETIME) THEN Message.OUTGOINGDATETIME..Year += YEAR_BASE
+      	IF DateTimeValid(Message.ProgrammedDateTime) THEN Message.ProgrammedDateTime..Year += YEAR_BASE
+      	HModify(Message)
+      END
+      
+      FOR EACH Share   
+      	IF DateTimeValid(Share.CreationDateTime) THEN Share.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(Share.ModificationDateTime) THEN Share.ModificationDateTime..Year += YEAR_BASE
+      	HModify(Share)
+      END
+      
+      FOR EACH Attachment   
+      	IF DateTimeValid(Attachment.CreationDateTime) THEN Attachment.CreationDateTime..Year += YEAR_BASE
+      	HModify(Attachment)
+      END
+      
+      FOR EACH Post   
+      	IF DateTimeValid(Post.CreationDateTime) THEN Post.CreationDateTime..Year += YEAR_BASE
+      	HModify(Post)
+      END
+      
+      FOR EACH Spim   
+      	IF DateTimeValid(Spim.OUTGOINGDATETIME) THEN Spim.OUTGOINGDATETIME..Year += YEAR_BASE
+      	HModify(Spim)
+      END
+      
+      FOR EACH Topic   
+      	IF DateTimeValid(Topic.CreationDateTime) THEN Topic.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(Topic.LastPostDateTime) THEN Topic.LastPostDateTime..Year += YEAR_BASE
+      	HModify(Topic)
+      END
+      
+      FOR EACH User    
+      	IF DateTimeValid(User.CreationDateTime) THEN User.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(User.DateTimeConnection) THEN User.DateTimeConnection..Year += YEAR_BASE
+      	HModify(User)
+      END
+      
+      FOR EACH WIKI    
+      	IF DateTimeValid(WIKI.CreationDateTime) THEN WIKI.CreationDateTime..Year += YEAR_BASE
+      	IF DateTimeValid(WIKI.ModificationDateTime) THEN WIKI.ModificationDateTime..Year += YEAR_BASE
+      	HModify(WIKI)
+      END
+     type : 458752
+   -
+     name : WMsgBoxButtonsEx
+     procedure_id : 1715818562402234705
+     type_code : 15
+     group : 2
+     code : |1-
+      PROCEDURE WMsgBoxButtonsEx(sListButtons, sBackBrowserFunction)
+      
+      sHTMLButton is string
+      sButtons is string
+      sAButton is string
+      nID is int
+      
+      // For each button
+      sAButton = ExtractString(sListButtons, (nID + 1), CR)
+      WHILE sAButton <> EOT
+      	
+      	nID ++
+      	
+      	// Creates the code of the button
+      	sHTMLButton = Replace(Replace([
+      		<div style="float:left;margin:0 0 0 6px;min-height:22px;height:auto!important;height:22px;">
+      		<div style="min-width:80px;width:auto!important;width:80px">
+      		<table style="width:80px;border-spacing:0;height:22px;border-collapse:separate;border:0;background:none;outline:none;" id="bzBTN%id%">
+      		<tr>
+      		<td style="border:none;" id="tzBTN%id%" class="valignmiddle">
+      		<button type="button" id="BTN%id%" name="BTN%id%" style="display:block;width:100%;height:auto;min-height:22px;width:auto;min-width:80px;width:80px\9;height:auto;min-height:22px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;"
+      		onclick="if(%function%){OnClosingDialogBox();}" 
+      		class="BTN-PERSO-LIGHT wblien padding webdevclass-riche"
+      		>
+      		%caption%
+      		</button>
+      		</td>
+      		</tr>
+      		</table>
+      		</div>
+      		</div>			
+      	], CR, ""), TAB, "")
+      	
+      	// Replaces the elements
+      	sHTMLButton = Replace(sHTMLButton, "%id%", "" + nID)
+      	sHTMLButton = Replace(sHTMLButton, "%caption%", ExtractString(sAButton, 1))
+      	sHTMLButton = Replace(sHTMLButton, "%function%", sBackBrowserFunction)
+      	sHTMLButton = Replace(sHTMLButton, "%value%", ExtractString(sAButton, 2))
+      	sHTMLButton = Replace(sHTMLButton, "%web%", FolderWeb())
+      	
+      	
+      	// Adds the button
+      	IF sButtons <> "" THEN
+      		sButtons += RepeatString("&nbsp;", 2)
+      	END		
+      	sButtons += sHTMLButton
+      	
+      	sAButton = ExtractString(sListButtons, (nID + 1), CR)
+      END
+      
+      // Right alignment
+      sButtons = StringBuild([
+      	<div style="float:right">%1</div>
+      ], sButtons)
+      
+      RESULT sButtons
+     type : 458752
+   -
+     name : WMsgBoxImageEx
+     procedure_id : 1715818562402693847
+     type_code : 15
+     group : 2
+     code : |1+
+      PROCEDURE WMsgBoxImageEx(sIconImage)
+      
+      sHTML is string
+      
+      // No image
+      IF sIconImage = "" THEN RESULT ""
+      
+      IF Right(sIconImage, 3) ~= "png" _AND_ BrowserNotMSIE() = False THEN
+      	sHTML = Replace([
+      		<td width=70 height=85 align=center valign=top>
+      		<br>
+      		<img	 src="%web%images/msgbox/blank.gif" 
+      		width=48 height=48 
+      		style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale src=%image%)"
+      		/>
+      		</td>
+      	], "%image%", sIconImage)	
+      ELSE
+      	sHTML = Replace([
+      		<td width=70 height=85 align=center valign=top>
+      		<br>
+      		<img src="%image%" width=48 height=48/>
+      		</td>
+      	], "%image%", sIconImage)
+      END
+      
+      sHTML = Replace(sHTML, "%web%", "/" + FolderWeb() + "/")
+      
+      RESULT sHTML
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1550749e0001fa28
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

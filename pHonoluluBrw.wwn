@@ -1,0 +1,208 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pHonoluluBrw
+ major_version : 28
+ minor_version : 0
+ type : 65539
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561772eb0072b0
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 41
+  p_codes :
+   -
+     type : 983040
+     role : N
+   -
+     type : 983042
+     role : N
+  procedures :
+   -
+     name : GOTOURL
+     internal_properties : CAAAAAgAAACIIU0Wx8D137k666RTJ8vODWMnnmQ4RbAP8sIMXkZo2LqY7oTg0yXBPPC4imkYGxOGRkUTBuIvRgtVkhNRZd8=
+     procedure_id : 1825672481281766064
+     type_code : 15
+     code : |1-
+      PROCEDURE GOTOURL(sFullURL)
+      
+      // If this address does not contain the "http://" header...
+      IF Position(Lower(sFullURL),"http://", 1)=0 THEN
+      	//...adds the header to the current address
+      	sFullURL = "http://" + sFullURL
+      END
+      
+      // Opens the site corresponding to the link
+      BrowserOpen(sFullURL)
+     type : 458752
+     role : N
+   -
+     name : Disconnection
+     internal_properties : CAAAAAgAAADzMROxhKSJRm+YAFYjurwPA/H5f5T90sEhgeEOADpOyVm8xLtw46J0pwXRUu5wkkIzBnNiqCr61WY5TnTg
+     procedure_id : 1825672481281831600
+     type_code : 15
+     code : |1-
+      // Summary: Disconnect the user
+      // Syntax:
+      //Disconnection ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE Disconnection()
+      
+      // Disconnect the user
+      AJAXExecute(DisconnectUser)
+      
+      // Forbids the automatic login
+      CookieWrite(COOKIE_AUTOLOGIN, "NO")
+      
+      //	pagedisplay(page_login)
+     type : 458752
+     role : N
+   -
+     name : Download
+     internal_properties : CAAAAAgAAABj1rJ0w4If1OsEUTBM+oXqXgPC0qy8aJP3wM21EyI8n4CX2CsgkPifAvcKCFyfXgkR6GF2ZtfS7ChDp/y9CYICf21cFw==
+     procedure_id : 1825672481281897136
+     type_code : 15
+     code : |1-
+      PROCEDURE Download(sKey)
+      
+      FileDisplay(FolderWeb() + "UK/PAGE_ATTACH." + AWP_EXT + "?key=" + sKey + "&AWPSESSIONID=" + gsIdentifier, NewBrowser)
+     type : 458752
+     role : N
+   -
+     name : Focus
+     internal_properties : CAAAAAgAAABNX0dt0dpuIM8qXqpBEK22qCh08fCVlmYT0PrfnKLbTJZfNPe3G+Kf8tUEOkPsgnmKQpQc2O8ZQCcV9hZNh8w0dLmKR6LXHl9bAI5NBNQLb3NhTGusMxwEPeuqX92aY4obX25I7rLDI9k=
+     procedure_id : 1825672481281962672
+     type_code : 15
+     code : |1+
+      function Focus(VALIAS)
+      {
+      	var obj;
+      	obj = document.getElementById(VALIAS)
+      	
+      	if (obj) 
+      	obj.focus();
+      }
+     language : JS
+     type : 458752
+     role : N
+   -
+     name : WMsgBoxButtons
+     internal_properties : CAAAAAgAAAADdtIUY2K/dMtkcRAsWiUKvuOisozcSPOXwM010+K8n4CXuIuAcNg/opeqqDy/vulxSMGWRjcyTEgjh9xdaSKinw389w==
+     procedure_id : 1825672481282028208
+     type_code : 15
+     group : 2
+     code : |1-
+      PROCEDURE WMsgBoxButtons(sListButtons, sBackBrowserFunction)
+      
+      sHTMLButton is string
+      sButtons is string
+      sAButton is string
+      nID is int
+      
+      // For each button
+      sAButton = ExtractString(sListButtons, (nID + 1), CR)
+      WHILE sAButton <> EOT
+      	
+      	nID ++
+      	
+      	// Creates the code of the button
+      	sHTMLButton = Replace(Replace([
+      		<div style="float:left;margin:0 0 0 6px;min-height:22px;height:auto!important;height:22px;">
+      		<div style="min-width:80px;width:auto!important;width:80px">
+      		<table style="width:80px;border-spacing:0;height:22px;border-collapse:separate;border:0;background:none;outline:none;" id="bzBTN%id%">
+      		<tr>
+      		<td style="border:none;" id="tzBTN%id%" class="valignmiddle">
+      		<button type="button" id="BTN%id%" name="BTN%id%" style="display:block;width:100%;height:auto;min-height:22px;width:auto;min-width:80px;width:80px\9;height:auto;min-height:22px;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;"
+      		onclick="if(%function%){OnClosingDialogBox();}" 
+      		class="BTN-PERSO-LIGHT wblien padding webdevclass-riche"
+      		>
+      		%caption%
+      		</button>
+      		</td>
+      		</tr>
+      		</table>
+      		</div>
+      		</div>			
+      	], CR, ""), TAB, "")
+      	
+      	// Replaces the elements
+      	sHTMLButton = Replace(sHTMLButton, "%id%", "" + nID)
+      	sHTMLButton = Replace(sHTMLButton, "%caption%", ExtractString(sAButton, 1))
+      	sHTMLButton = Replace(sHTMLButton, "%function%", sBackBrowserFunction)
+      	sHTMLButton = Replace(sHTMLButton, "%value%", ExtractString(sAButton, 2))
+      	sHTMLButton = Replace(sHTMLButton, "%web%", FolderWeb())
+      	
+      	
+      	// Adds the button
+      	IF sButtons <> "" THEN
+      		sButtons += RepeatString("&nbsp;", 2)
+      	END		
+      	sButtons += sHTMLButton
+      	
+      	sAButton = ExtractString(sListButtons, (nID + 1), CR)
+      END
+      
+      // Right alignment
+      sButtons = StringBuild([
+      	<div style="float:right">%1</div>
+      ], sButtons)
+      
+      RESULT sButtons
+     type : 458752
+     role : N
+   -
+     name : WMsgBoxImage
+     internal_properties : CAAAAAgAAACIQefm+zFwQBWxm8NZP5B2hPZwUWuZMmxghNh5S00kLr4ImZAAJFsrhahRCGviPe1jMrLGAuct72X6HgPOsFuXuRqwoCxloWA=
+     procedure_id : 1825672481282093744
+     type_code : 15
+     group : 2
+     code : |1-
+      PROCEDURE WMsgBoxImage(sIconImage)
+      
+      sHTML is string
+      
+      // No image
+      IF sIconImage = "" THEN RESULT ""
+      
+      IF Right(sIconImage, 3) ~= "png" AND InFireFoxOrNetscapeBrw() = False THEN
+      	sHTML = Replace([
+      		<td width=70 height=85 align=center valign=top>
+      		<br>
+      		<img src="%web%images/msgbox/blank.gif" 
+      		width=48 height=48 
+      		style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale src=%image%)"
+      		/>
+      		</td>
+      	], "%image%", sIconImage)	
+      ELSE
+      	sHTML = Replace([
+      		<td width=70 height=85 align=center valign=top>
+      		<br>
+      		<img src="%image%" width=48 height=48/>
+      		</td>
+      	], "%image%", sIconImage)
+      END
+      
+      sHTML = Replace(sHTML, "%web%", FolderWeb())
+      
+      RESULT sHTML
+     type : 458752
+     role : N
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : NAV_CollectionNavigateur1
+resources :
+ string_res :
+  identifier : 0x1550749f0004fbdd
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

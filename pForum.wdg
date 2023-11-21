@@ -1,0 +1,1233 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pForum
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x15a24aca074f970a
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      
+      CONSTANT
+      	// Counters
+      	COUNTER_FORUM_TOPICS 			= "TotalForumTopics"
+      	COUNTER_ALL_TOPICS 				= "TotalTopics"
+      	COUNTER_FORUM_REPLIES	 		= "TotalForumReplies"
+      	COUNTER_TOPIC_REPLIES 			= "TotalTopicReplies"
+      	COUNTER_ALL_REPLIES				= "TotalReplies"
+      	COUNTER_READING 				= "TotalTopicReading"
+      	
+      	// Notifications
+      	NOTIFICATION_FORUM_TOPIC_CREATION 		= "NOTIFICATION_FORUM_TOPIC_CREATION"
+      	NOTIFICATION_FORUM_REPLY_CREATION 		= "NOTIFICATION_FORUM_REPLY_CREATION"
+      	
+      	// Constants of system forums
+      	FORUM_SHARES					= 1
+      	FORUM_WIKI						= 2
+      	FORUM_CLASSIFIEDADVERTS			= 3
+      	FORUM_OTHER					= 0
+      	FORUM_ARTICLESNEWS				= 4
+      END
+      
+      gsForumErrorInfo is string
+      
+      //
+      // Enable the triggers when adding/deleting forums, topics, posts
+      // -> used to update the counters (see the above constants)
+      // -> used to send the notifications to the administrators and to the moderators
+      //... automatically, without explicit call
+      
+      IF NOT HDescribeTrigger(Post	, "HAdd,HDelete"	, TRIGGER_AddDeletePost	, hTriggerAfter) THEN dbgAssert(False, HErrorInfo())
+      IF NOT HDescribeTrigger(Topic	, "HAdd,HDelete"	, TRIGGER_AddDeleteTopic	, hTriggerAfter) THEN dbgAssert(False, HErrorInfo())
+      IF NOT HDescribeTrigger(Forum	, "HDelete"			, TRIGGER_DeleteForum		, hTriggerBefore) THEN dbgAssert(False, HErrorInfo())
+     type : 720896
+  procedures :
+   -
+     name : TRIGGER_AddDeletePost
+     procedure_id : 1558891305430214389
+     type_code : 15
+     code : |1+
+      // Summary: HFSQL trigger called when adding/deleting a message to/from a topic (Topic/Post)
+      // Syntax:
+      //TRIGGER_AddDeletePost ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_AddDeletePost()
+      
+      GUID is string
+      
+      SWITCH H.TriggerFunction
+      
+      	// Add messages (posts)
+      	CASE ~= "HADD"
+      		
+      		GUID = HFSavePosition(Topic..Name + ";" + Forum..Name)			
+      		HReadSeekFirst(Topic, TopicID, Post.TopicID)
+      		
+      		// Ignore the first message of the topic						
+      		IF Topic.FirstPostID <> Post.PostID THEN	
+      			
+      			
+      			// Stores the last message information
+      			// The trigger of the TOPIC file does not have to be triggered
+      			HSetTrigger(False)
+      			Topic.LastPostDateTime = Post.CreationDateTime
+      			Topic.LastPostAuthorID  = Post.UserID
+      			Topic.LastPostID		   = Post.PostID
+      			HModify(Topic)
+      			// Re-enables the management of triggers
+      			HSetTrigger(True)
+      			
+      			// Increments the counter of replies for a forum
+      			CounterIncrement(COUNTER_FORUM_REPLIES + Topic.ForumID)
+      			
+      			// Increments the counter of replies for a topic
+      			CounterIncrement(COUNTER_TOPIC_REPLIES + Post.TopicID)
+      			
+      			// Increments the counter of replies
+      			CounterIncrement(COUNTER_ALL_REPLIES)
+      			
+      			// Retrieves the forum				
+      			HReadSeekFirst(Forum, ForumID, Topic.ForumID)
+      			
+      			// Notification
+      			NotificationSend(	MODULE_FORUM, ...
+      			NOTIFICATION_FORUM_REPLY_CREATION, ...
+      			<§@15a24ac8074d8e8e0000§>, ...
+      			StringBuild(<§@15a24ac8074d8e8e0001§>, GetLogin(Topic.UserID), Topic.Title, Forum.Title))
+      			
+      		END
+      		
+      		HFRestorePosition(GUID)
+      		
+      		
+      	// Delete the message (post)	
+      	CASE ~= "HDelete"
+      		
+      		GUID = HFSavePosition(Topic..Name)			
+      		HReadSeekFirst(Topic, TopicID, Post.TopicID)
+      		
+      		// Decrements the counter of replies for a forum
+      		CounterDecrement(COUNTER_FORUM_REPLIES + Topic.ForumID)
+      		
+      		// Decrements the counter of replies for a topic
+      		CounterDecrement(COUNTER_TOPIC_REPLIES + Post.TopicID)
+      		
+      		// Decrements the counter of replies
+      		CounterDecrement(COUNTER_ALL_REPLIES)
+      		
+      		__Alias is data source
+      		HAlias(Post, __Alias)
+      		HChangeName(__Alias, Post..Name)
+      		
+      		// Find the last message of the topic
+      		// The trigger of the TOPIC file does not have to be triggered
+      		HSetTrigger(False)
+      		HReadSeekLast(__Alias, TopicID, Post.TopicID)
+      		IF HFound(__Alias) THEN
+      			Topic.LastPostDateTime = __Alias.CreationDateTime
+      			Topic.LastPostAuthorID  = __Alias.UserID
+      			Topic.LastPostID  = __Alias.PostID
+      		ELSE
+      			Topic.LastPostDateTime = Topic.CreationDateTime
+      			Topic.LastPostAuthorID = Topic.UserID
+      			Topic.LastPostID = Topic.FirstPostID
+      		END
+      		HModify(Topic)
+      		// Re-enables the management of triggers
+      		HSetTrigger(True)
+      		
+      		HCancelAlias(__Alias)
+      		HCancelDeclaration(__Alias)
+      		
+      		HFRestorePosition(GUID)	
+      END
+     type : 458752
+   -
+     name : TRIGGER_AddDeleteTopic
+     procedure_id : 1558891326905121155
+     type_code : 15
+     code : |1-
+      // Summary: HFSQL trigger called when adding/deleting a topic to/from a forum (Forum/Topic)
+      // Syntax:
+      //TRIGGER_AddDeleteTopic ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_AddDeleteTopic()
+      
+      sKeyList is string
+      sKey is string
+      
+      SWITCH H.TriggerFunction
+      	// Add a topic
+      	CASE ~= "HADD"
+      		
+      		// Increments the counter of topics for a forum
+      		CounterIncrement(COUNTER_FORUM_TOPICS + Topic.ForumID)
+      		
+      		// Increments the counter of topics
+      		CounterIncrement(COUNTER_ALL_TOPICS)
+      		
+      		GUID is string = HFSavePosition(Forum..Name)			
+      		HReadSeekFirst(Forum, ForumID, Topic.ForumID)
+      		
+      		// Notification
+      		NotificationSend(	MODULE_FORUM, ...
+      		NOTIFICATION_FORUM_TOPIC_CREATION, ...
+      		<§@15a24ac8074d8e8e0002§>, ...
+      		StringBuild(<§@15a24ac8074d8e8e0003§>, GetLogin(Topic.UserID), Topic.Title, Forum.Title))
+      		
+      		HFRestorePosition(GUID)
+      		
+      	// Delete a topic (topic)
+      	CASE ~= "HDelete"
+      		
+      		// Decrements the counter of topics for a forum
+      		CounterDecrement(COUNTER_FORUM_TOPICS + Topic.ForumID)
+      		
+      		// Decrements the counter of topics
+      		CounterDecrement(COUNTER_ALL_TOPICS)
+      		
+      		// Deletes the counter of read operations for the topic
+      		ParameterDelete(COUNTER_READING + Topic.TopicID)
+      		
+      		// Deletes all the active notifications for the topic
+      		sKeyList = ConfigureList(ForAll, NOTIFICATION_FORUM_REPLY_CREATION + "_" + MODULE_FORUM + Topic.TopicID)
+      		FOR EACH string sKey of sKeyList SEPARATED BY CR
+      			
+      			// Deletes the notification
+      			ParameterDelete(sKey)
+      			
+      		END
+      		
+      END
+     type : 458752
+   -
+     name : ForumCreate
+     procedure_id : 1559188276620361853
+     type_code : 15
+     code : |1+
+      // Summary: Creates a forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumCreate (<sTitle> [, <sDescription> [, <nParentForumID>]])
+      //
+      // Paramètres :
+      //	sTitle : Title of the forum
+      //	sDescription (valeur par défaut="") : Description of the forum
+      //	nParentForumID (valeur par défaut=-1) : Identifier of the parent forum. If this parameters is not specified, the forum will be a group of forums
+      
+      // Return value:
+      // 	boolean: True if the forum was created, False otherwise
+      PROCEDURE ForumCreate(sTitle, sDescription = "", nParentForumID = -1)
+      
+      gsForumErrorInfo = ""
+      
+      // We must be an administrator or a moderator
+      IF IsAdministratorOrModerator() = False THEN 
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0004§>
+      	RESULT False
+      END
+      
+      GUID is string = HFSavePosition(Forum..Name)
+      
+      IF nParentForumID <> -1 THEN
+      	// Checks whether the parent forum already exists
+      	HReadSeekFirst(Forum, ParentForumID, nParentForumID)
+      	IF NOT HFound(Forum) THEN
+      		gsForumErrorInfo = <§@15a24ac8074d8e8e0005§>
+      		HFRestorePosition(GUID)
+      		RESULT False
+      	END
+      END
+      
+      // Checks whether this name is not already used by another forum
+      HReadSeekFirst(Forum, Title, sTitle)
+      IF HFound(Forum) THEN
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0006§>
+      	HFRestorePosition(GUID)
+      	RESULT False
+      END
+      
+      HReset(Forum)
+      
+      // Create the forum
+      Forum.IsGroup 			= (nParentForumID = -1)
+      Forum.CreationDateTime = Today + Now
+      Forum.Description 		= sDescription
+      Forum.ParentForumID 	= nParentForumID
+      Forum.UserID 	= CurrentUser:UserID
+      Forum.Title 			= sTitle
+      HAdd(Forum)
+      
+      HFRestorePosition(GUID)
+      
+      RESULT True
+     type : 458752
+   -
+     name : ForumModify
+     procedure_id : 1559189410520697265
+     type_code : 15
+     code : |1+
+      // Summary: Creates a forum
+      // Syntaxe :
+      //[ <Résultat> = ] ForumModify (<nForumID> [, <sNewTitle> [, <sNewDescription> [, <nNewParentForumID>]]])
+      //
+      // Paramètres :
+      //	nForumID : Identifier of the forum to modify
+      //	sNewTitle (valeur par défaut="") : New title
+      //	sNewDescription (valeur par défaut="") : New description
+      //	nNewParentForumID (valeur par défaut=-2) : New parent forum
+      
+      // Return value:
+      // 	boolean: True if the forum was modified, False otherwise
+      PROCEDURE ForumModify(nForumID, sNewTitle = "", sNewDescription = "", nNewParentForumID = -2)
+      
+      gsForumErrorInfo = ""
+      
+      IF IsAdministratorOrModerator() = False THEN
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0004§>
+      	RESULT False		
+      END
+      
+      GUID is string = HFSavePosition(Forum..Name)
+      bReturn is boolean
+      
+      // Checks whether this name is not already used by another forum
+      IF sNewTitle <> "" THEN
+      	HReadSeekFirst(Forum, Title, sNewTitle)
+      	WHILE HFound(Forum)
+      		IF Forum.ForumID <> nForumID THEN
+      			gsForumErrorInfo = <§@15a24ac8074d8e8e0006§>
+      			HFRestorePosition(GUID)
+      			RESULT False
+      		END
+      		HReadNext(Forum)
+      	END
+      END
+      
+      // Checks whether the forum contains topics: if so, the forum cannot become a group
+      IF nNewParentForumID = -1 THEN
+      	HSeekFirst(Topic, ForumID, nForumID)
+      	IF HFound(Topic) THEN
+      		gsForumErrorInfo = <§@15a24ac8074d8e8e0007§>
+      		HFRestorePosition(GUID)
+      		RESULT False		
+      	END
+      END
+      
+      // Searches for the forum
+      HReadSeekFirst(Forum, ForumID, nForumID)
+      IF HFound(Forum) THEN
+      	
+      	// Modify the forum
+      	IF sNewDescription <> "" 	THEN Forum.Description 	= sNewDescription
+      	IF sNewTitle <> "" 			THEN Forum.Title 			= sNewTitle
+      	IF nNewParentForumID <> -2	THEN Forum.ParentForumID	= nNewParentForumID
+      	HModify(Forum)
+      	
+      	bReturn = True
+      	
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0008§>
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : ForumDelete
+     procedure_id : 1559190260950699137
+     type_code : 15
+     code : |1+
+      // Summary: Deletes a forum
+      // Syntax:
+      //[ <Result> = ] ForumDelete (<nForumID>)
+      //
+      // Parameters:
+      //	nForumID: Identifier of the forum to delete
+      // Return value:
+      // 	boolean: True if the forum was deleted, False otherwise
+      //
+      PROCEDURE ForumDelete(nForumID)
+      
+      gsForumErrorInfo = ""
+      
+      GUID is string = HFSavePosition(Forum..Name)
+      bReturn is boolean
+      
+      // Searches for the forum
+      HReadSeekFirst(Forum, ForumID, nForumID)
+      IF HFound(Forum) THEN	
+      	
+      	// If it's a group, delete all the forums from the group
+      	IF Forum.IsGroup THEN
+      		FOR EACH Forum WHERE ParentForumID = nForumID
+      			ForumDelete(Forum.ForumID)
+      		END
+      	END
+      	
+      	// Deletes all the topics
+      	FOR EACH Topic WHERE ForumID = nForumID
+      		IF NOT TopicDelete(Topic.TopicID)	THEN
+      			RESULT False
+      		END
+      	END
+      	
+      	// Delete
+      	HReadSeekFirst(Forum, ForumID, nForumID)
+      	HDelete(Forum)		
+      	bReturn = True		
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0008§>
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : TRIGGER_DeleteForum
+     procedure_id : 1559190583075353500
+     type_code : 15
+     code : |1-
+      // Summary: Trigger called when deleting a forum
+      // Syntax:
+      //TRIGGER_DeleteForum ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_DeleteForum()
+      
+      sKeyList is string
+      sKey is string
+      
+      // The topics and the messages will be deleted from the forum
+      FOR EACH Topic WHERE ForumID = Forum.ForumID
+      	
+      	// Deletes the counters associated with the topic
+      	ParameterDelete(COUNTER_READING + Topic.TopicID)	
+      	ParameterDelete(COUNTER_TOPIC_REPLIES + Topic.TopicID)			
+      	
+      END	
+      
+      // Deletes the counters associated with the forum
+      ParameterDelete(COUNTER_FORUM_TOPICS + Forum.ForumID)	
+      ParameterDelete(COUNTER_FORUM_REPLIES + Forum.ForumID)	
+      
+      // Deletes all the active notifications from the forum
+      sKeyList = ConfigureList(ForAll, NOTIFICATION_FORUM_TOPIC_CREATION + "_" + MODULE_FORUM + Forum.ForumID)
+      FOR EACH string sKey of sKeyList SEPARATED BY CR
+      	
+      	// Deletes the notification
+      	ParameterDelete(sKey)
+      	
+      END
+     type : 458752
+   -
+     name : TopicCreate
+     procedure_id : 1559192021901659665
+     type_code : 15
+     code : |1+
+      // Summary: Creates a topic in a forum
+      // Syntaxe :
+      //[ <Résultat> = ] TopicCreate (<sTitle>, <nForumID>, <sFirstMessage> [, <sDescription> [, <nAuthorID> [, <bPinned>]]])
+      //
+      // Paramètres :
+      //	sTitle : Title of the topic
+      //	nForumID : Identifier of the forum into which the topic is registered
+      //	sFirstMessage : Content of the first message of the topic
+      //	sDescription (valeur par défaut="") : Optional description of the topic
+      //	nAuthorID : <specify the role of nAuthorID>
+      //	bPinned (valeur par défaut=0) : <specify the role of bPinned>
+      
+      // Return value:
+      // 	integer: Identifier of the topic
+      PROCEDURE TopicCreate(sTitle, nForumID, sFirstMessage, sDescription = "", nAuthorID = CurrentUser:UserID, bPinned = False)
+      
+      gsForumErrorInfo = ""
+      
+      GUID is string = HFSavePosition(Forum..Name + ";" + Topic..Name)
+      nTopicID is int
+      
+      // Checks whether the parent forum already exists
+      HSeekFirst(Forum, ForumID, nForumID)
+      IF NOT HFound(Forum) THEN
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0008§>
+      	HFRestorePosition(GUID)
+      	RESULT 0
+      END
+      
+      HReset(Topic)
+      
+      // Create the topic
+      Topic.CreationDateTime = Today + Now
+      Topic.Description		= sDescription
+      Topic.IsPinned		= bPinned
+      Topic.ForumID			= nForumID
+      Topic.UserID		= nAuthorID
+      Topic.Title				= sTitle
+      HAdd(Topic)
+      
+      // Create the first message
+      Post.CreationDateTime  = Topic.CreationDateTime
+      Post.Content			= sFirstMessage
+      Post.TopicID			= Topic.TopicID
+      Post.UserID		= nAuthorID
+      HAdd(Post)
+      
+      // Associates the message with the topic
+      Topic.FirstPostID		= Post.PostID
+      HModify(Topic)
+      
+      nTopicID = Topic.TopicID
+      
+      HFRestorePosition(GUID)
+      
+      RESULT nTopicID
+     type : 458752
+   -
+     name : TopicModify
+     procedure_id : 1559192021901725279
+     type_code : 15
+     code : |1+
+      // Summary: Modifies a topic
+      // Syntaxe :
+      //[ <Résultat> = ] TopicModify (<nTopicID> [, <nIsPinned> [, <nNewForumID> [, <sNewTitle> [, <sNewDescription> [, <nIsClosed>]]]]])
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic to modify
+      //	nIsPinned (valeur par défaut=-1) : True to pin the topic, False otherwise. -1 to avoid modifying
+      //	nNewForumID (valeur par défaut=-1) : Forum into which the topic must be inserted or -1 to avoid modifying
+      //	sNewTitle (valeur par défaut="") : New title of the topic or -1 to avoid modifying
+      //	sNewDescription (valeur par défaut="") : New description of the topic or -1 to avoid modifying
+      //	nIsClosed (valeur par défaut=-1) : True to close the topic, False otherwise. -1 to avoid modifying
+      
+      // Return value:
+      PROCEDURE TopicModify(nTopicID, nIsPinned = -1, nNewForumID = -1, sNewTitle = "", sNewDescription = "", nIsClosed = -1)
+      
+      gsForumErrorInfo = ""
+      
+      // We must be an administrator or a moderator
+      IF IsAdministratorOrModerator() = False THEN 
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0004§>
+      	RESULT False
+      END
+      
+      GUID is string = HFSavePosition(Forum..Name + ";" + Topic..Name)
+      bReturn is boolean
+      
+      // Searches for the forum
+      IF nNewForumID <> -1 THEN
+      	HSeekFirst(Forum, ForumID, nNewForumID)
+      	IF NOT HFound(Forum) THEN
+      		gsForumErrorInfo = <§@15a24ac8074d8e8e0008§>
+      		HFRestorePosition(GUID)
+      		RESULT False
+      	END
+      END
+      
+      // Searches for the topic
+      HReadSeekFirst(Topic, TopicID, nTopicID)
+      IF HFound(Topic) THEN
+      	
+      	// Modifies the characteristics of the topic
+      	IF nNewForumID <> -1 		THEN Topic.ForumID 	= nNewForumID
+      	IF sNewTitle <> "" 			THEN Topic.Title 		= sNewTitle
+      	IF sNewDescription <> "" 	THEN Topic.Description = sNewDescription
+      	IF nIsPinned <> -1 			THEN Topic.IsPinned 	= nIsPinned
+      	IF nIsClosed <> -1 			THEN Topic.IsClosed 	= nIsClosed
+      	
+      	HModify(Topic)
+      	
+      	bReturn = True
+      	
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0009§>
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : TopicDelete
+     procedure_id : 1559192021901790893
+     type_code : 15
+     code : |1+
+      // Summary: Deletes a forum
+      // Syntaxe :
+      //[ <Résultat> = ] TopicDelete (<nTopicID>)
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic to delete
+      
+      // Return value:
+      PROCEDURE TopicDelete(nTopicID)
+      
+      gsForumErrorInfo = ""
+      
+      // We must be an administrator or a moderator
+      IF IsAdministratorOrModerator() = False THEN 
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0004§>
+      	RESULT False
+      END
+      
+      GUID is string = HFSavePosition(Topic..Name)
+      bReturn is boolean
+      
+      // Searches for the topic
+      HReadSeekFirst(Topic, TopicID, nTopicID)
+      IF HFound(Topic) THEN	
+      	
+      	// Deletes all the messages
+      	FOR EACH Post WHERE TopicID = Topic.TopicID
+      		// Delete
+      		HDelete(Post)			
+      	END
+      	
+      	// Check whether the topic is linked 
+      	sListBox is string
+      	sOneParameter is string
+      	
+      	// Deletes all the associations between the topic and the shares
+      	sListBox = ConfigureList(ForAll, "TOPIC_SHARE_", True)
+      	FOR EACH string sOneParameter of sListBox SEPARATED BY CR
+      		IF Val(ExtractString(sOneParameter, 2)) = nTopicID THEN
+      			ParameterDelete(ExtractString(sOneParameter, 1))
+      		END
+      	END
+      	
+      	// Deletes all the associations between the topic and the WIKI
+      	sListBox = ConfigureList(ForAll, "TOPIC_WIKIID_", True)
+      	FOR EACH string sOneParameter of sListBox SEPARATED BY CR
+      		IF Val(ExtractString(sOneParameter, 2)) = nTopicID THEN
+      			ParameterDelete(ExtractString(sOneParameter, 1))
+      		END
+      	END
+      	
+      	// Deletes all the associations between the topic and the news
+      	sListBox = ConfigureList(ForAll, "TOPIC_NEWS_", True)
+      	FOR EACH string sOneParameter of sListBox SEPARATED BY CR
+      		IF Val(ExtractString(sOneParameter, 2)) = nTopicID THEN
+      			ParameterDelete(ExtractString(sOneParameter, 1))
+      		END
+      	END		
+      	
+      	// Delete
+      	HDelete(Topic)		
+      	bReturn = True		
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0009§>
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : ForumUpdate
+     procedure_id : 1559194482950606225
+     type_code : 15
+     code : |1-
+      // Summary: Updates the counters of forums
+      // Syntax:
+      //ForumUpdate ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED ForumUpdate()
+      
+      gsForumErrorInfo = ""
+      
+      GUID is string = HFSavePosition(Forum..Name + ";" + Topic..Name + ";" + Post..Name)
+      
+      // Deletes the counters
+      ForumCountersDelete()
+      
+      // For all the forums
+      FOR EACH Forum
+      	
+      	// TOTAL OF MESSAGES FOR A FORUM
+      	QRY_Forum_TotalForumMessages.pForumID = Forum.ForumID
+      	HExecuteQuery(QRY_Forum_TotalForumMessages)
+      	
+      	// Saves the counter
+      	ParameterWrite(COUNTER_FORUM_REPLIES + Forum.ForumID, QRY_Forum_TotalForumMessages.Total)
+      	
+      	// TOTAL OF TOPICS FOR A FORUM
+      	QRY_Forum_TotalForumTopics.pForumID = Forum.ForumID
+      	HExecuteQuery(QRY_Forum_TotalForumTopics)
+      	
+      	// Saves the counter
+      	ParameterWrite(COUNTER_FORUM_TOPICS + Forum.ForumID, QRY_Forum_TotalForumTopics.Total)
+      	
+      	// TOTAL OF TOPICS FOR ALL THE FORUMS
+      	CounterIncrement(COUNTER_ALL_TOPICS, QRY_Forum_TotalForumMessages.Total)
+      	
+      	// For all the topics of the forum
+      	FOR EACH Topic WHERE ForumID = Forum.ForumID
+      		
+      		// TOTAL OF MESSAGES FOR A TOPIC
+      		QRY_Forum_TotalTopicMessages.pTopicID = Topic.TopicID
+      		HExecuteQuery(QRY_Forum_TotalTopicMessages)
+      		
+      		// Saves the counter
+      		ParameterWrite(COUNTER_TOPIC_REPLIES + Topic.TopicID, QRY_Forum_TotalTopicMessages.Total)
+      		
+      		// TOTAL OF MESSAGES FOR ALL THE TOPICS AND FORUMS
+      		CounterIncrement(COUNTER_ALL_REPLIES, QRY_Forum_TotalTopicMessages.Total)
+      		
+      		// Update the last post
+      		HSetTrigger(False)
+      		HReadSeekLast(Post, TopicID, Topic.TopicID)
+      		IF HFound(Post) THEN
+      			Topic.LastPostAuthorID = Post.UserID
+      			Topic.LastPostDateTime = Post.CreationDateTime
+      			Topic.LastPostID = Post.PostID
+      		ELSE
+      			Topic.LastPostAuthorID = Topic.UserID
+      			Topic.LastPostDateTime = Topic.CreationDateTime
+      			Topic.LastPostID = Topic.FirstPostID
+      		END
+      		HModify(Topic)
+      		HSetTrigger(True)
+      	END
+      	
+      END	
+      
+      HFRestorePosition(GUID)
+     type : 458752
+   -
+     name : ForumNotificationActivate
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559219015977023556
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Checks whether a notification of topic creation on a forum is enabled for a user
+      // Syntaxe :
+      //[ <Résultat> = ] ForumNotificationActivate (<nForumID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nForumID : Identifier of the forum
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	Undefined type: True if a notification is active, False otherwise
+      PROCEDURE ForumNotificationActivate(nForumID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      RESULT Val(ParameterRead(NOTIFICATION_FORUM_TOPIC_CREATION + "_" + MODULE_FORUM + nForumID + "_" + nUserID, ForAll, "0"))
+     type : 458752
+   -
+     name : TopicNotificationActivate
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559219698891465545
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Checks whether a notification of reply creation on a topic is enabled for a user
+      // Syntaxe :
+      //[ <Résultat> = ] TopicNotificationActivate (<nTopicID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic
+      //	nUserID : Identifier of the user
+      
+      PROCEDURE TopicNotificationActivate(nTopicID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      RESULT Val(ParameterRead(NOTIFICATION_FORUM_REPLY_CREATION + "_" + MODULE_FORUM + nTopicID + "_" + nUserID, ForAll, "0"))
+     type : 458752
+   -
+     name : ForumNotificationDelete
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559220867139160708
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Deletes a notification of topic creation on a forum for a user
+      // Syntaxe :
+      //ForumNotificationDelete (<nForumID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nForumID : Identifier of the forum
+      //	nUserID : Identifier of the user// Return value:
+      
+      PROCEDURE ForumNotificationDelete(nForumID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterDelete(NOTIFICATION_FORUM_TOPIC_CREATION + "_" + MODULE_FORUM + nForumID + "_" + nUserID)
+     type : 458752
+   -
+     name : TopicNotificationDelete
+     procedure_id : 1559221111956417234
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Deletes a notification of answer creation on a topic for a user
+      // Syntaxe :
+      //TopicNotificationDelete (<nTopicID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic
+      //	nUserID : Identifier of the user
+      
+      PROCEDURE TopicNotificationDelete(nTopicID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterDelete(NOTIFICATION_FORUM_REPLY_CREATION + "_" + MODULE_FORUM + nTopicID + "_" + nUserID)
+     type : 458752
+   -
+     name : ForumNotificationCreate
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559221339596028175
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Creates a notification of topicreation on a forum for a user
+      // Syntaxe :
+      //ForumNotificationCreate (<nForumID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nForumID : Identifier of the forum
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE ForumNotificationCreate(nForumID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterWrite(NOTIFICATION_FORUM_TOPIC_CREATION + "_" + MODULE_FORUM + nForumID + "_" + nUserID, "1")
+     type : 458752
+   -
+     name : TopicNotificationCreate
+     procedure_id : 1559221477039141665
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Creates a notification of answer creation on a topic for a user
+      // Syntaxe :
+      //TopicNotificationCreate (<nTopicID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic
+      //	nUserID : Identifier of the user
+      
+      PROCEDURE TopicNotificationCreate(nTopicID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterWrite(NOTIFICATION_FORUM_REPLY_CREATION + "_" + MODULE_FORUM + nTopicID + "_" + nUserID, "1")
+     type : 458752
+   -
+     name : ReplyDelete
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1559310043145084119
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Deletes an reply
+      // Syntaxe :
+      //[ <Résultat> = ] ReplyDelete (<nReplyID>)
+      //
+      // Paramètres :
+      //	nReplyID : Identifier of the reply
+      
+      PROCEDURE ReplyDelete(nReplyID)
+      
+      gsForumErrorInfo = ""
+      
+      // We must be an administrator or a moderator
+      IF IsAdministratorOrModerator() = False THEN 
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0004§>
+      	RESULT False
+      END
+      
+      GUID is string = HFSavePosition(Post..Name)
+      bReturn is boolean
+      
+      // Searches for the topic
+      HReadSeekFirst(Post, PostID, nReplyID)
+      IF HFound(Post) THEN	
+      	
+      	HReadSeekFirst(Topic, TopicID, Post.TopicID)
+      	IF HFound(Topic) THEN
+      		
+      		// Deletes the topic
+      		IF Post.PostID = Topic.FirstPostID THEN
+      			bReturn = TopicDelete(Topic.TopicID)
+      		ELSE
+      			// Delete
+      			HDelete(Post)	
+      			
+      			bReturn = True						
+      		END
+      		
+      	ELSE
+      		// Delete
+      		HDelete(Post)		
+      		bReturn = True				
+      	END
+      	
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e000a§>
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : ForumCountersDelete
+     procedure_id : 1559931924609375092
+     type_code : 15
+     code : |1-
+      // Summary: Deletes all the counters associated with the forum
+      // Syntax:
+      //ForumCountersDelete ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED ForumCountersDelete()
+      
+      gsForumErrorInfo = ""
+      
+      sKeyList is string
+      sKey is string
+      nTopicID is int
+      
+      // Retrieves all the counters saved
+      sKeyList = ConfigureList(ForAll, COUNTER_FORUM_TOPICS, False)
+      sKeyList += [CR] + ConfigureList(ForAll, COUNTER_FORUM_REPLIES, False)
+      sKeyList += [CR] + ConfigureList(ForAll, COUNTER_TOPIC_REPLIES, False)
+      
+      // Deletes all the counters
+      FOR EACH string sKey of sKeyList SEPARATED BY CR		
+      	// Deletes the counter
+      	ParameterDelete(sKey)
+      END
+      
+      // For each read counter, checks whether the topic still exists
+      sKeyList = ConfigureList(ForAll, COUNTER_READING)
+      FOR EACH string sKey of sKeyList SEPARATED BY CR		
+      	
+      	// Retrieves the identifier of the topic
+      	nTopicID = Replace(sKey, COUNTER_READING, "")
+      	
+      	// If the topic does not exist anymore
+      	HSeekFirst(Topic, TopicID, nTopicID)
+      	IF NOT HFound(Topic) THEN
+      		// Deletes the counter
+      		ParameterDelete(sKey)
+      	END
+      	
+      END
+      
+      // Deletes the global counters
+      ParameterDelete(COUNTER_ALL_TOPICS)
+      ParameterDelete(COUNTER_ALL_REPLIES)
+     type : 458752
+   -
+     name : GetIDSharesForum
+     procedure_id : 1560337416533622727
+     type_code : 15
+     code : |1-
+      // Summary: Returns the identifier of the shares forum
+      // Syntax:
+      //[ <Result> = ] GetIDSharesForum ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	integer: Identifier of the forum
+      //
+      PROCEDURE GetIDSharesForum()
+      
+      sGUID is string = HFSavePosition(Forum..Name)
+      nForumID is int
+      
+      FOR EACH Forum WHERE "IsProtected=1 AND Type=" + FORUM_SHARES
+      	nForumID = Forum.ForumID
+      	BREAK
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nForumID
+     type : 458752
+   -
+     name : GetWIKIIDForum
+     procedure_id : 1560337511023973549
+     type_code : 15
+     code : |1-
+      // Summary: Returns the identifier of the WIKI forum
+      // Syntaxe :
+      //[ <Résultat> = ] GetWIKIIDForum ()
+      //
+      // Paramètres :
+      //	Aucun
+      
+      // Return value:
+      // 	integer: identifier of the forum
+      PROCEDURE GetWIKIIDForum()
+      
+      sGUID is string = HFSavePosition(Forum..Name)
+      nForumID is int
+      
+      FOR EACH Forum WHERE "IsProtected=1 AND Type=" + FORUM_WIKI
+      	nForumID = Forum.ForumID
+      	BREAK
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nForumID
+     type : 458752
+   -
+     name : GetIDAdvertsForum
+     procedure_id : 1560337532498881002
+     type_code : 15
+     code : |1-
+      // Summary: Returns the identifier of the ad forum
+      // Syntax:
+      //[ <Result> = ] GetIDAdvertsForum ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	integer: Identifier of the forum
+      //
+      PROCEDURE GetIDAdvertsForum()
+      
+      sGUID is string = HFSavePosition(Forum..Name)
+      nForumID is int
+      
+      FOR EACH Forum WHERE "IsProtected=1 AND Type=" + FORUM_CLASSIFIEDADVERTS
+      	nForumID = Forum.ForumID
+      	BREAK
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nForumID
+     type : 458752
+   -
+     name : GetIDNewsForum
+     procedure_id : 1561782802015224443
+     type_code : 15
+     code : |1-
+      // Summary: Returns the identifier of the news forum
+      // Syntax:
+      //[ <Result> = ] GetIDNewsForum ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	integer: Identifier of the news forum
+      //
+      PROCEDURE GetIDNewsForum()
+      
+      sGUID is string = HFSavePosition(Forum..Name)
+      nForumID is int
+      
+      FOR EACH Forum WHERE "IsProtected=1 AND Type=" + FORUM_ARTICLESNEWS
+      	nForumID = Forum.ForumID
+      	BREAK
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nForumID
+     type : 458752
+   -
+     name : ForumCaption
+     procedure_id : 1561809555473076047
+     type_code : 15
+     code : |1-
+      // Summary: Returns the caption of a forum
+      // Syntax:
+      //[ <Result> = ] ForumCaption (<nIDForum>)
+      //
+      // Parameters:
+      //	nForumID: Identifier of the forum
+      // Return value:
+      // 	string: Title of the forum
+      //
+      PROCEDURE ForumCaption(nForumID)
+      
+      gsForumErrorInfo = ""
+      
+      sCaption is string
+      sGUID is string = HFSavePosition(Forum..Name)
+      
+      HReadSeekFirst(Forum, ForumID, nForumID)
+      IF HFound(Forum) THEN
+      	sCaption = Forum.Title
+      ELSE
+      	gsForumErrorInfo = <§@15a24ac8074d8e8e0008§>
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT sCaption
+     type : 458752
+   -
+     name : TopicCaption
+     procedure_id : 1561811737349935351
+     type_code : 15
+     code : |1-
+      // Summary: Returns the caption of a topic
+      // Syntaxe :
+      //[ <Résultat> = ] TopicCaption (<nTopicID> [, <nForumID>])
+      //
+      // Paramètres :
+      //	nTopicID : Identifier of the topic
+      //	nForumID (valeur par défaut=0) : Return identifier of the forum
+      
+      // Return value:
+      PROCEDURE TopicCaption(nTopicID, nForumID = 0)
+      
+      sCaption is string
+      sGUID is string = HFSavePosition(Topic..Name)
+      
+      HReadSeekFirst(Topic, TopicID, nTopicID)
+      IF HFound(Topic) THEN
+      	sCaption = Topic.Title
+      	nForumID = Topic.ForumID
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT sCaption
+     type : 458752
+   -
+     name : ForumErrorInfo
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1570392163495547577
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] ForumErrorInfo ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: //  	 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE ForumErrorInfo()
+      
+      RESULT gsForumErrorInfo
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15a24ac8074d8e8e
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Notification about the reply to a topic
+     index : 0
+   -
+     text :
+      en-GB : "%1 has written a reply in the topic to which you are registered.\r\nTitle of the topic: %2\r\nIn the forum: %3\r\n\t\t\t\t\t\t\t\t\t"
+     index : 1
+   -
+     text :
+      en-GB : Notification about the creation of a topic
+     index : 2
+   -
+     text :
+      en-GB : "%1 created a topic in the forum to which you are registered.\r\nTitle of topic: %2\r\nIn the forum: %3\r\n\t\t\t\t\t\t\t\t"
+     index : 3
+   -
+     text :
+      en-GB : This operation must be performed by an administrator or by a moderator
+     index : 4
+   -
+     text :
+      en-GB : The specified forum group does not exist
+     index : 5
+   -
+     text :
+      en-GB : This forum already exists
+     index : 6
+   -
+     text :
+      en-GB : A forum containing topics cannot become a group of forums
+     index : 7
+   -
+     text :
+      en-GB : This forum does not exist
+     index : 8
+   -
+     text :
+      en-GB : This topic does not exist
+     index : 9
+   -
+     text :
+      en-GB : This message does not exist
+     index : 10
+   -
+     text :
+      en-GB : You are already notified when a topic is created in this forum.
+     index : 11
+   -
+     text :
+      en-GB : Do you want to delete this notification?
+     index : 12
+   -
+     text :
+      en-GB : " \"Delete\""
+     index : 13
+   -
+     text :
+      en-GB : No action
+     index : 14
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

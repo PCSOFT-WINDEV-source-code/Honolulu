@@ -1,0 +1,367 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pHTMLEdit
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1956177bec6b9480
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of procedures for transforming the HHCode (to text or HTML)
+      gaaHTMLCharacters is ASSOCIATIVE ARRAY of strings
+      
+      // Create the records of the associative array
+      _FillHTMLArray()
+     type : 720896
+  procedures :
+   -
+     name : HHCodeToHTML
+     internal_properties : CAAAAAgAAADz1wzrv7Z+ggWxYAlz83RFQK8zvhm1mYX+e4Z47P+wH8htkZ2Sr3gWmlvqAmeZcuKk6qapnEIPyZfb2+dCrgIuuUCC55jUQiylVFxZNIbflMrmn7f4J0mI4Cl9yhZFj3kLt6zuUJCdC3dTyhR/uI+nDR1aQfITWqpBS2HTkyKMwUNrMarzM/fgGwIxT5F/2kEUpMAMthscgnEnWa8Cz5SXTlYZw8SSvso8D4KYyB2gLSmRji9B9EhmgU3Hb+EXEm3AmQj8x8gvIEaCYxw8VmO/TdcZGRc7G08WY29cK1ovo8csg6Ha2tA6POtWZIU158WCeqxEc7T8dC7FNbI7GT9cXaHYJm48V4Zp4RCc2A==
+     procedure_id : 1825672519960269952
+     type_code : 15
+     code : |1-
+      // Summary: Returns the HTML code corresponding to the HH Code
+      // Syntax:
+      //[ <Result> = ] HHCodeToHTML (<sHHCode> [, <bForEmail>])
+      //
+      // Parameters:
+      //	sHHCode: HHCode to convert
+      //	bForEmail (default value=0): True to generate a code used in an HTML email, False otherwise
+      // Return value:
+      // 	string: Result HTML code
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE HHCodeToHTML(sHHCode, bForEmail = False)
+      
+      // Local variables
+      sHTML 		is string
+      
+      // Initially, the HTML code corresponds to HHCode
+      sHTML = sHHCode
+      
+      // CR characters
+      sHTML = Replace(sHTML, CR, "<br/>")
+      
+      // Replaces the tags for font size
+      sHTML = Replace(sHTML, "<SIZE=", "<font size=", IgnoreCase)
+      sHTML = Replace(sHTML, "</SIZE>", "</font>", IgnoreCase)
+      
+      // Replaces the URL tags
+      sHTML = Replace(sHTML, "<URL=", "[[@<a target=_blank href=", IgnoreCase)
+      sHTML = Replace(sHTML, "</URL>", "</a>@]]", IgnoreCase)
+      
+      // Replaces the image tags
+      IF bForEmail THEN
+      	sHTML = Replace(sHTML, "<IMG=""", "[[@<img src=""", IgnoreCase)
+      ELSE
+      	
+      	// To be displayed in an HTML area
+      	
+      
+      <SI CibleExécution=ApplicationWindows OU CibleExécution=Webservice OU CibleExécution=AssemblageDotNet OU CibleExécution=Java OU CibleExécution=ApplicationLinux32>
+      	
+      	// In Windows mode, replace the <IMG=" tags by <img src="
+      	sHTML = Replace(sHTML, "<IMG=""", "[[@<img src=""", IgnoreCase)
+      <SINON SI CibleExécution=Site OU CibleExécution=SitePHP>
+      	
+      	// Replace the images by their source
+      	sHTML = Replace(sHTML, "<IMG=""", "[[@<img src=""/" + FolderWeb() + "/UK/PAGE_ATTACH." + AWP_EXT + "?AWPSESSIONID=" + gsIdentifier + "&key=", IgnoreCase)	
+      <FIN>
+      
+      	END	
+      	
+      	// Replaces the tags for font color
+      	sHTML = Replace(sHTML, "<COLOR=", "<font color=", IgnoreCase)
+      	sHTML = Replace(sHTML, "</COLOR>", "</font>", IgnoreCase)
+      	
+      	nPosQUOTE is int
+      	nEndQUOTE is int
+      	sEntQUOTE is string
+      	
+      	// Searches for all the citations
+      	FOR ALL POSITION nPosQUOTE of "<QUOTE" IN sHTML IgnoreCase
+      		
+      		// End of citation
+      		nEndQUOTE = Position(sHTML, ">", nPosQUOTE)	
+      		sEntQUOTE = sHTML[[nPosQUOTE TO nEndQUOTE - 1]] + " >"
+      		
+      		// Extracts the date and the initial author
+      		sAuthor is string = ExtractString(ExtractString(sEntQUOTE, 2, "AUTHOR="), 1, " ")
+      		sDate   is string = ExtractString(ExtractString(sEntQUOTE, 2, "DATE="), 1, " ")		
+      		sAuthor = Replace(sAuthor, EOT, "")
+      		sDate 	= Replace(sDate, EOT, "")
+      		
+      		sReplacement is string
+      		SWITCH True
+      			CASE sDate ~= "" AND sAuthor ~= ""
+      			// No replace operation
+      			CASE sDate ~= "" AND sAuthor <> ""
+      				sReplacement = StringBuild("<span class=Simple-Bold><img src=/%1/ext/link.gif> %2 wrote:</span><br>", FolderWeb(), sAuthor)
+      			CASE sDate <> "" AND sAuthor ~= ""			
+      				sReplacement = StringBuild("<span class=Simple-Bold><img src=/%1/ext/link.gif> %2</span><br>", FolderWeb(), DateToString(sDate[[TO 8]]) + " " + TimeToString(sDate[[9 TO]], "HH:MM AP"))
+      			OTHER CASE
+      				sReplacement = StringBuild("<span class=Simple-Bold><img src=/%1/ext/link.gif> %2, %3</span><br>", FolderWeb(), sAuthor, DateToString(sDate[[TO 8]]) + " " + TimeToString(sDate[[9 TO]], "HH:MM AP"))
+      		END
+      		
+      		sHTML[[nPosQUOTE TO nEndQUOTE]] = StringBuild([
+      			<div style="padding-left:10;padding-top:4px">
+      			<div style="background-color:#fafafa;border:1px solid #cdcdcd;font-size:9pt;word-wrap:break-word;padding:4px">
+      			%1
+      		], sReplacement)
+      		
+      	END
+      	
+      	// End of citations
+      	sHTML = Replace(sHTML, "</QUOTE>", "</div></div>", IgnoreCase)	
+      	
+      	// Searches for the automatic URLs
+      	sHTML = ReplaceURL(sHTML, "http")
+      	sHTML = ReplaceURL(sHTML, "https")
+      	sHTML = ReplaceURL(sHTML, "ftp")
+      	
+      	sHTML = Replace(sHTML, "[[@", "")
+      	sHTML = Replace(sHTML, "@]]", "")
+      	
+      	// The header must be complete to be used in an HTML email
+      	IF bForEmail THEN
+      		sHTML = "<html><body><span style=""font-family:'Trebuchet MS', Tahoma, Arial, Helvetica, sans-serif;font-size:11px;"">" + sHTML + "</span></body></html>"
+      	ELSE
+      		sHTML = "<span class=""Simple"">" + sHTML + "</span>"
+      END
+      
+      // Return the HTML string	
+      RESULT sHTML
+     type : 458752
+   -
+     name : _FillHTMLArray
+     internal_properties : CAAAAAgAAAChEInZsbabxLbrkA17enyL8ojpyIXg0kmax3JRkbmyTRUY3pyZMHC+5Y+Es09pPD9pwVCSf4j4qeEaL6afM0Mt8/5kOjXCRicN9afADJrzThYVUxdBrESX8zUeRmjs57Ds0Iau26LRL4Q7FVla7yrn/oKHyc0ye3C9W9CKRIzkqOtXPLEhNn3EiYK5aezmQ3pu4VknJ+GlxTIeL31+/BU2traeQd16chJ9JPbl2UhvisogsURucvL89TnKEtm0zS4O1J/BXXIVSdULcdVFKGrbEjXBTTU3xeMYEQlDC7E8IxTRlc5zNtiL54FeNoP3mQCpIGTXjLXtlJYJy5XH7cgLtLnwlg0x+GBmAD6Y5CvxyrOXPzTBruyavWv+ZDM7PkthaQnFzGJwD3C6fuEds0bOykhcv/FtApsS270Yb2a7attyGQn5M68LIsxMcTaiXwpkvX7B6aU6A9KqHH5rm42hyV/JHPdgTWX0B5XPIs3sKe9oApfmmRFd/4Wor7K8OBqoKUHHBttdQpvbnZDGAdG6oDxAAmGW6gvPPvW/c69wCWN8/zo5eIyTYePnHlF2d0sPw3tQ0VdX+ZQOYVC5xkH7CNu7XCKvu9dIp1grrpFhsDS9r6XHvgIWPLYAQd4wJkl5c/nT6uITY/p07NRAtsxzcnjXPehC1TZ6PPXKnHQ567u3xq0VJBXWUx6IA+PszcC/B1lvbWWsei6duIppafnF2pugFFIgrOFuDdAbr65a8qROgg==
+     procedure_id : 1825672519960335488
+     type_code : 15
+     code : |1-
+      // Summary: Builds the array of HTML equivalences
+      // Syntax:
+      // _FillHTMLArray ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _FillHTMLArray()
+      
+      gaaHTMLCharacters[""""] = "&quot;" 
+      gaaHTMLCharacters["&"] = "&amp;" 
+      gaaHTMLCharacters["$"] = "&euro;" 
+      gaaHTMLCharacters["‹"] = "&lt;" 
+      gaaHTMLCharacters["›"] = "&gt;" 
+      gaaHTMLCharacters["œ"] = "&oelig;" 
+      gaaHTMLCharacters["Ÿ"] = "&Yuml;" 
+      gaaHTMLCharacters[SPC] = "&nbsp;" 
+      gaaHTMLCharacters["¡"] = "&iexcl;" 
+      gaaHTMLCharacters["¢"] = "&cent;" 
+      gaaHTMLCharacters["£"] = "&pound;" 
+      gaaHTMLCharacters["¤"] = "&curren;" 
+      gaaHTMLCharacters["¥"] = "&yen;"
+      gaaHTMLCharacters["¦"] = "&brvbar;" 
+      gaaHTMLCharacters["§"] = "&sect;" 
+      gaaHTMLCharacters["¨"] = "&uml;" 
+      gaaHTMLCharacters["©"] = "&copy;"    
+      gaaHTMLCharacters["ª"] = "&ordf;" 
+      gaaHTMLCharacters["«"] = "&laquo;" 
+      gaaHTMLCharacters["¬"] = "&not;" 
+      gaaHTMLCharacters["­"] = "&shy;" 
+      gaaHTMLCharacters["®"] = "&reg;" 
+      gaaHTMLCharacters["¯"] = "&masr;" 
+      gaaHTMLCharacters["°"] = "&deg;" 
+      gaaHTMLCharacters["±"] = "&plusmn;" 
+      gaaHTMLCharacters["²"] = "&sup2;" 
+      gaaHTMLCharacters["³"] = "&sup3;" 
+      gaaHTMLCharacters["´"] = "&acute;" 
+      gaaHTMLCharacters["µ"] = "&microphone;" 
+      gaaHTMLCharacters["¶"] = "&para;" 
+      gaaHTMLCharacters["·"] = "&middot;" 
+      gaaHTMLCharacters["¸"] = "&cedil;" 
+      gaaHTMLCharacters["¹"] = "&sup1;" 
+      gaaHTMLCharacters["º"] = "&ordm;" 
+      gaaHTMLCharacters["»"] = "&raquo;" 
+      gaaHTMLCharacters["¼"] = "&frac14;" 
+      gaaHTMLCharacters["½"] = "&frac12;" 
+      gaaHTMLCharacters["¾"] = "&frac34;" 
+      gaaHTMLCharacters["¿"] = "&iquest;" 
+      gaaHTMLCharacters["À"] = "&Agrave;" 
+      gaaHTMLCharacters["Á"] = "&Aacute;" 
+      gaaHTMLCharacters["Â"] = "&Acirc;" 
+      gaaHTMLCharacters["Ã"] = "&Atilde;" 
+      gaaHTMLCharacters["Ä"] = "&Auml;" 
+      gaaHTMLCharacters["Å"] = "&Aring;" 
+      gaaHTMLCharacters["Æ"] = "&Aelig;"
+      gaaHTMLCharacters["C"] = "&Ccedil;" 
+      gaaHTMLCharacters["È"] = "&Egrave;" 
+      gaaHTMLCharacters["É"] = "&Eacute;" 
+      gaaHTMLCharacters["Ê"] = "&Ecirc;" 
+      gaaHTMLCharacters["Ë"] = "&Euml;" 
+      gaaHTMLCharacters["I"] = "&Igrave;" 
+      gaaHTMLCharacters["Í"] = "&Iacute;" 
+      gaaHTMLCharacters["Î"] = "&Icirc;" 
+      gaaHTMLCharacters["Ï"] = "&Iuml;" 
+      gaaHTMLCharacters["Ð"] = "&eth;" 
+      gaaHTMLCharacters["Ñ"] = "&Ntilde;" 
+      gaaHTMLCharacters["Ò"] = "&Ograve;" 
+      gaaHTMLCharacters["Ó"] = "&Oacute;" 
+      gaaHTMLCharacters["Ô"] = "&Ocirc;" 
+      gaaHTMLCharacters["Õ"] = "&Otilde;" 
+      gaaHTMLCharacters["Ö"] = "&Ouml;" 
+      gaaHTMLCharacters["×"] = "&times;" 
+      gaaHTMLCharacters["Ø"] = "&Oslash;" 
+      gaaHTMLCharacters["Ù"] = "&Ugrave;" 
+      gaaHTMLCharacters["Ú"] = "&Uacute;" 
+      gaaHTMLCharacters["Û"] = "&Ucirc;" 
+      gaaHTMLCharacters["Ü"] = "&Uuml;" 
+      gaaHTMLCharacters["Ý"] = "&Yacute;" 
+      gaaHTMLCharacters["Þ"] = "&thorn;" 
+      gaaHTMLCharacters["ß"] = "&szlig;" 
+      gaaHTMLCharacters["à"] = "&agrave;" 
+      gaaHTMLCharacters["á"] = "&aacute;" 
+      gaaHTMLCharacters["â"] = "&acirc;" 
+      gaaHTMLCharacters["ã"] = "&atilde;" 
+      gaaHTMLCharacters["ä"] = "&auml;" 
+      gaaHTMLCharacters["å"] = "&aring;" 
+      gaaHTMLCharacters["æ"] = "&aelig;" 
+      gaaHTMLCharacters["c"] = "&ccedil;" 
+      gaaHTMLCharacters["è"] = "&egrave;" 
+      gaaHTMLCharacters["é"] = "&eacute;" 
+      gaaHTMLCharacters["ê"] = "&ecirc;" 
+      gaaHTMLCharacters["ë"] = "&euml;" 
+      gaaHTMLCharacters["I"] = "&igrave;" 
+      gaaHTMLCharacters["í"] = "&iacute;" 
+      gaaHTMLCharacters["î"] = "&icirc;" 
+      gaaHTMLCharacters["ï"] = "&iuml;" 
+      gaaHTMLCharacters["ð"] = "&eth;" 
+      gaaHTMLCharacters["ñ"] = "&ntilde;" 
+      gaaHTMLCharacters["ò"] = "&ograve;" 
+      gaaHTMLCharacters["ó"] = "&oacute;" 
+      gaaHTMLCharacters["ô"] = "&ocirc;" 
+      gaaHTMLCharacters["õ"] = "&otilde;" 
+      gaaHTMLCharacters["ö"] = "&ouml;" 
+      gaaHTMLCharacters["÷"] = "&divide;" 
+      gaaHTMLCharacters["ø"] = "&oslash;" 
+      gaaHTMLCharacters["ù"] = "&ugrave;" 
+      gaaHTMLCharacters["ú"] = "&uacute;" 
+      gaaHTMLCharacters["û"] = "&ucirc;" 
+      gaaHTMLCharacters["ü"] = "&uuml;" 
+      gaaHTMLCharacters["ý"] = "&yacute;" 
+      gaaHTMLCharacters["þ"] = "&thorn;" 
+      gaaHTMLCharacters["ÿ"] = "&yuml;" 
+     type : 458752
+   -
+     name : ReplaceURL
+     internal_properties : CAAAAAgAAACpk6vAVdM4+IGDYU6DdusQd6D8iR/wjLu4uqgHM4jsEN8HqhYbun2CyTXWlACEEfhM7IBsA2HDj+D8aUllM3UOccQiCDIErWzkmxCw97CBiZf6d6jKIZvZrNAK6/8GKzNcEbgzFpv20Sw4Mn4+5q7yvnbMfq61LfKSlugFk01mvnTxM1FsbtefaEfR8uUlLEC6fjFxDsNMMqxybwgSVeqY70FVqtWFLYExxArN0FAsC9l2mg==
+     procedure_id : 1825672519960401024
+     type_code : 15
+     code : |1-
+      PROCEDURE ReplaceURL(sText, sProtocol, sDefaultDestination = "_blank")
+      
+      sResponseCap	is string = sText
+      sURL		is string
+      sAHREF		is string
+      
+      nPosHTTP is int
+      nEndHTTP_SPC is int
+      nEndHTTP_CR is int
+      nEndHTTP_34 is int
+      nEndHTTP_F is int
+      nEndHTTP_O is int
+      nEndHTTP_C is int
+      nEndHTTP is int
+      
+      // Retrieves the position of the first occurrence of an URL with the specified protocol
+      nPosHTTP = Position(sResponseCap, sProtocol + "://")
+      WHILE nPosHTTP <> 0		
+      	
+      	
+      	// Searches for the first possible end delimiter
+      	
+      	nEndHTTP_SPC = Position(sResponseCap, " ", nPosHTTP)
+      	nEndHTTP_CR  = Position(sResponseCap, CR, nPosHTTP)
+      	nEndHTTP_34  = Position(sResponseCap, """", nPosHTTP)
+      	nEndHTTP_F   = Position(sResponseCap, ")", nPosHTTP)
+      	nEndHTTP_O   = Position(sResponseCap, "(", nPosHTTP)
+      	nEndHTTP_C   = Position(sResponseCap, "<", nPosHTTP)
+      	
+      	IF nEndHTTP_O = 0 THEN nEndHTTP_O = 999999
+      	IF nEndHTTP_F = 0 THEN nEndHTTP_F = 999999
+      	IF nEndHTTP_34 = 0 THEN nEndHTTP_34 = 999999
+      	IF nEndHTTP_CR = 0 THEN nEndHTTP_CR = 999999
+      	IF nEndHTTP_SPC = 0 THEN nEndHTTP_SPC = 999999
+      	IF nEndHTTP_C = 0 THEN nEndHTTP_C = 999999
+      	
+      	nEndHTTP = Min(...
+      	nEndHTTP_O , ...
+      	nEndHTTP_F , ...
+      	nEndHTTP_34, ...
+      	nEndHTTP_CR , ...
+      	nEndHTTP_C , ...
+      	nEndHTTP_SPC  ...
+      	)
+      	
+      	// If there is an end to the URL, transform it
+      	IF nEndHTTP <> 0 AND nEndHTTP <> 999999 THEN
+      		
+      		nPosLT is int = Position(sResponseCap, "[[@", Length(sResponseCap)-nPosHTTP, FromEnd)
+      		
+      		// Checks whether the URL is not enclosed in brackets
+      		IF nPosLT < nPosHTTP AND (Position(sResponseCap, "@]]", nPosLT + 1) > nEndHTTP OR  Position(sResponseCap, ">", nPosLT + 1) > 1) THEN
+      			// Don't take into account
+      		ELSE
+      			// Retrieves the URL
+      			sURL = sResponseCap[[nPosHTTP TO nEndHTTP - 1]]
+      			nSizeToRemove is int = 0
+      			
+      			// If the URL ends with ".", delete it
+      			IF sURL[[Length(sURL)]] = "." THEN
+      				sURL[[Length(sURL)]] = ""
+      				nSizeToRemove  = 1
+      			END
+      			
+      			// Generates the link
+      			sAHREF = "<a id=""a_link"" title=""" + StringBuild(<§@1551e00603beacab0000§>, sURL) + """ target=""" + sDefaultDestination + """ href=""" + sURL + """>" + sURL + "</a>"
+      			// Replaces the URL by the generated link
+      			sResponseCap[[nPosHTTP TO nEndHTTP - (1 + nSizeToRemove)]] = sAHREF
+      		END	
+      	END
+      	
+      	// Searches for the next occurrence
+      	nPosHTTP = Position(sResponseCap, sProtocol + "://", nPosHTTP + Length(sAHREF) + 1)
+      END
+      
+      RESULT sResponseCap
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1551e00603beacab
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "External document: %1"
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

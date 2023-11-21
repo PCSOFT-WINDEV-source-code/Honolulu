@@ -1,0 +1,1946 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pWikiSyntax
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1463167f0024f760
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAABTsi4WO3pZzg3EgRPu+n+dCCgrrzvfKfub/1C83cTTFtv7vyEK16eZPyL7x++ieCYTuyNd94Z1RVNc/z3fh+u/wNOmEcsUTCCtR/oFkF+zUywDLhBwvkwjMbnvEwyPMERzsGTM2LqUzC+/II7+HRSew+atw6fwznbl1oKPkngZoFXkv9aKwP+w1BUfU5VgGJUKKg9YswWw0dZO/gWq1Y4cXZw/p/9/Re1I3yE5ehKDewKhq58aoDXmYDysSwV6U/jHARGaoIv8pFrde/Pv93cTot1U0nTDeng/s/ZhZ++bkm7KyB8o9+cnbI15TP71RTE8cyUrKSXbjb7rBej6xeWOzE4RS5fMxw50z28XSmuPbnjpOD6DbYRTIQLsw26dBMo9F6+A/DPr1s7p/xHcgr0k1neyXB+ds1kp3ER/O20rrYf7n2c/KXfhJM4ExMd5D7tmog==
+  type_code : 31
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAABFpUc1nJRbU/J4ZCec+nu0ucv+2X+ZyJ4YpKgEGZPPE67uAP2wmSYD1gZkwhzeMbT1CvYuByXjr9lJvCDowGuLm4+iBu7Qu3FvsCfC6lccSDr3WadnJqGlSI5yfIbK4kGr/v9FtIM3cfiaVb/vEdnNCwvFSjU3tcj2Xlb4TZUB239JOZWWI1PnMhUgIYt9DtwEn6CmEwUCJu8Nil6kUQEARGlXQLbEw0z0DhmQ35hkpxvvr4aHiUbJhhrJP2XmeU2Ppro=
+     code : |1+
+      // Set of procedures for managing the WIKI
+      
+      
+      CONSTANT
+      	
+      	NOTIFICATION_WIKI_DELETION = "NOTIFICATION_WIKI_DELETION"	
+      	NOTIFICATION_WIKI_MODIFICATION = "NOTIFICATION_WIKI_MODIFICATION"
+      	NOTIFICATION_WIKI_CREATION = "NOTIFICATION_WIKI_CREATION"
+      	
+      	CS_STYLE_WIKI_GLOBAL = [
+      		<style type='text/css'>
+      		.floatright {float:right;clear:right;position:relative;margin:0 0 .5em .5em;border:0}
+      		.floatleft {float:left;position:relative;margin:0 .5em .5em 0;border:0}
+      		ul {line-height: 1.5em;list-style-type: square;margin: .3em 0 0 1.5em;padding: 0;}
+      		ol {line-height: 1.5em;margin: .3em 0 0 3.2em;padding: 0;list-style-image: none;}	
+      		li {padding:0;margin-bottom: 0;}
+      		dt {font-weight: bold;margin-bottom: .1em;}
+      		dl {margin-top: .2em;margin-bottom: .5em;}
+      		dd {line-height: 1.5em;margin-left: 2em;margin-bottom: .1em;}	
+      		code {background-color: #f9f9f9;}
+      		pre {padding: 1em;border: 1px dashed #2f6fab;color: black;background-color: #f9f9f9;line-height: 1.1em;width:97%}
+      		hr {width:98%;height:1px}							
+      		a {text-decoration:none;}
+      		a:hover {text-decoration:none;}
+      		a:visited {text-decoration:none;}
+      		.a_ext {background: url(%1/modules/wiki/lien_ext.svg) center right no-repeat;padding-right: 13px}
+      		</style>
+      	]
+      	
+      	CS_STYLE_WIKI_BLOCK = <§@1463155b001c84b40007§>
+      	
+      	CS_DIV_TITLE_MODIFICATION = <§@1463155b001c84b40008§>
+      	
+      	
+      END
+      
+      // Global variables of WIKI
+      gbAutomaticCreationWikiURL 		is boolean = True
+      gclWIKIDocument 				is cWIKIDocument
+      gsCurrentDocument 				is string
+      gbPrint 						is boolean
+     type : 720896
+   -
+     code : |1-
+      
+     type : 720898
+  procedures :
+   -
+     name : WIKILoad
+     internal_properties : CAAAAAgAAAAeQeZWqR4YD9gNuw5ISpse4q5d4YfQh8vxSSLWonylqfGpzXAstIQfjtu5yNZJ9N/c91UXiZv53fcJCNn0zKQH2jXtD1BPimLproJX87E+1RbRiyhFUUvyPW0p6P5mipLcRRthNLb+/G4cHMU2fOcWaLmnLrlIMic+6HTcyeP/rQgO
+     procedure_id : 1469062334892339333
+     type_code : 15
+     code : |1-
+      // Summary: Loads a WIKI document and converts it into HTML (this procedure can be called in browser code via AjaxExecute)
+      // Syntax:
+      //[ <Result> = ] WIKILoad (<sWIKISource> [, <sTitle> [, <sIdentifier>]])
+      //
+      // Parameters:
+      //	sWIKISource: Source string of the document in WIKI format
+      //	sTitle (default value=""): Title of the WIKI document
+      //	sIdentifier (default value=""): Identifier of the WIKI document
+      // Return value:
+      // 	string: Destination string in HTML format
+      //// Automatic process of exceptions:   run CASE EXCEPTION:
+      //
+      
+      PROCEDURE WIKILoad(LOCAL sWIKISource, LOCAL sTitle = "", LOCAL sIdentifier = "")
+      
+      // Local variables
+      sSourceWIKIOrg  is string = sWIKISource
+      sHTMLSource 	is string
+      sSummary 		is string
+      
+      // Store the document
+      gsCurrentDocument = sTitle
+      
+      // Reset the current document
+      gclWIKIDocument:ResetDocument()
+      
+      // Detects the position of the first block
+      WIKIDetectFirstBlock(sWIKISource, gclWIKIDocument:m_sPreamble)
+      
+      // HTML conversion of preamble
+      WIKIToHTML(gclWIKIDocument:m_sPreamble, gclWIKIDocument:m_sHTMLPreamble)
+      
+      // Extraction and HTML conversion of the blocks
+      WIKIAnalyzeBlocks(sWIKISource, gclWIKIDocument:m_arrBlocks)
+      
+      // Build the summary
+      sSummary = _BuildSummary()
+      
+      // Build the base HTML (title, summary if necessary, ...)
+      sHTMLSource = _BuildHTML(sIdentifier, sTitle, sSummary, sSourceWIKIOrg)
+      
+      // Fill the Wiki with the blocks 
+      // Caution, the variable is passed by address, it is modified in the procedure
+      _FillWithTheBlocks(sHTMLSource, sIdentifier)
+      
+      // Specific CSS styles
+      sHTMLSource = StringBuild(CS_STYLE_WIKI_GLOBAL, "/" + FolderWeb() + "/ext/") + sHTMLSource
+      
+      // Don't generate the links in printout mode
+      IF pWikiSyntax.gbPrint = True THEN
+      	// No link for a print
+      	sHTMLSource = ReplaceWildcard(sHTMLSource, "<A*>","",IgnoreCase)
+      	sHTMLSource = ReplaceWildcard(sHTMLSource, "</A>","",IgnoreCase)	
+      END
+      
+      // Returns the HTML code
+      RESULT sHTMLSource
+      
+      CASE EXCEPTION:
+      dbgAssert(False,<§@1463155b001c84b40000§>+ExceptionInfo())
+      RESULT ""
+     type : 458752
+   -
+     name : WIKIDetectFirstBlock
+     internal_properties : CAAAAAgAAAAogJ3REd+aUzYhhMLLev+sY4a5t1qlbh2EhHhUl1ee9+4exjbNpnzYJnS1ioL/48kooWeqnfmxDGuO+kS01gocZ5tYPZT1CT3EI1Ux938X75jblBwoI6xLK0B7iyDJXXgS0Woq35I69SWoMyzdPxT1MAYcNYPEw1gNgvExLuaai/YYyjqLSLUQ/tPl01ZSM5G1+54HCtaMsqMKgGbptOZ7EdL6Vs7L
+     procedure_id : 1469065362844333591
+     type_code : 15
+     code : |1-
+      // Summary: Detects the position of the first block in a WIKI document
+      // Syntax:
+      //WIKIDetectFirstBlock (<sWIKISource>, <sPreamble>)
+      //
+      // Parameters:
+      //	sWIKISource: WIKI source
+      //	sPreamble: Preamble to specify
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED WIKIDetectFirstBlock(sWIKISource, sPreamble)
+      
+      // Local variables
+      nPos, nEnd are int
+      
+      //
+      // A block is defined as follows:
+      // ==<space>Text of the block title<space>==<carriage return>
+      //	
+      
+      DetectFirstBlock:
+      
+      nPos = Position(sWIKISource, "== ", nPos + 1)
+      IF nPos > 0 THEN		
+      	// If no escape character is found
+      	IF sWIKISource[[nPos - 1]] <> "\" THEN			
+      		// Detects the end of the first block
+      		nEnd = Position(sWIKISource, " ==" + CR, nPos)
+      		IF nEnd > 0 THEN
+      			// Extracts the presentation text
+      			sPreamble = sWIKISource[[TO nPos - 1]]
+      			// Extracts the rest of the document
+      			sWIKISource = sWIKISource[[nPos TO]]
+      		ELSE
+      			// This is not a block
+      			// Therefore, there is only one preamble
+      			sPreamble = sWIKISource
+      			sWIKISource = ""
+      		END
+      	ELSE
+      		GOTO DetectFirstBlock
+      	END
+      ELSE
+      	// There is a single preamble
+      	sPreamble = sWIKISource
+      	sWIKISource = ""
+      END
+     type : 458752
+   -
+     name : WIKISummary
+     procedure_id : 1469066024269319790
+     type_code : 15
+     code : |1-
+      // Summary: Creates a summary for a WIKI document
+      // Syntax:
+      //[ <Result> = ] WIKISummary (<arrBlocks> [, <sNumber> [, <sEndNumber> [, <nLevel> [, <sNumberCaption>]]]])
+      //
+      // Parameters:
+      //	arrBlocks: List of blocks in the WIKI document
+      //	sNumber (default value=""): Indentation number
+      //	sEndNumber (default value=""): <specify the role of sEndNumber>
+      //	nLevel (default value=1): <specify the role of nLevel>
+      // 	sNumberCaption (default value=""): <specify the role of sNumberCaption>
+      // Return value:
+      // 	string: HTML string of the summary
+      //
+      PROCEDURE RESTRICTED WIKISummary(arrBlocks, sNumber = "", sEndNumber = "", nLevel = 1, sNumberCaption = "")
+      
+      // Local variables
+      sSummary 		is string
+      pclABlock 		is cWIKIBlock dynamic
+      i 				is int	
+      
+      // Browse the blocks
+      FOR ALL ELEMENT pclABlock of arrBlocks
+      	i ++		
+      	sSummary += "<a href='#" + pclABlock:m_sAnchor + "'>" + sNumber + i + ". " + pclABlock:m_sCaption + "</a>" + "<br style='clear:both'>"
+      	
+      	// Generates the summary of this block
+      	IF Dimension(pclABlock:m_arrBlocks) > 0 THEN
+      		sSummary += WIKISummary(pclABlock:m_arrBlocks, "<dl><dd>" + sNumberCaption + i + ".", "</dd></dl>", (nLevel + 1), sNumberCaption + i + ".")
+      	END
+      	
+      	sSummary += sEndNumber
+      END
+      
+      // Returns the summary	
+      RESULT sSummary
+     type : 458752
+   -
+     name : WIKIToHTML
+     internal_properties : CAAAAAgAAACKO/EE9f2W1p/H5V0eZyktDbyDsGCAH5YmCwj1XokYXWGny3L8PxHSXodYOm7W5V74E7GGyJ8dck+a+9UZQYzATE3MSOWvjB0Rc0J1fTHT2thsbL6wQNgHsaj/kfmAR6MMNJulsKOyLiiYWri76CLej1K3m9OULjMsMK+mPMeu7iI2ezE8lGk74W6x8JsMkVh+GJusgR2g+hv6Memn48WUwuUPK231qRTOazyr6InS7OT6MYBorrQNeDKFXCgz9+NxVqe0JvnsraFcAc24IHosgV9+yA/9QQji
+     procedure_id : 1469069567617705395
+     type_code : 15
+     code : |1-
+      // Summary: Converts the WIKI markers into HTML markers
+      // Syntax:
+      //WIKIToHTML (<sWIKISource>, <sHTMLSource> [, <bSubElement> [, <pclABlock>]])
+      //
+      // Parameters:
+      //	sWIKISource: WIKI text to convert
+      //	sHTMLSource: Converted HTML text
+      //	bSubElement (default value=0): <specify the role of bSubElement>
+      //	pclABlock: Block currently browsed
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED WIKIToHTML(LOCAL sWIKISource, sHTMLSource, bSubElement = False, pclABlock = Null)
+      
+      // Local variables
+      sLine 							is string
+      sLastLine 						is string
+      sWIKILastLine 				is string
+      sMustStartWith 				is string
+      sEndingIfBlockContinue 		is string
+      sEndingIfNotBlockContinue 	is string
+      sExtract 						is string
+      sExtractHTML 					is string
+      bModifiedLine 					is boolean
+      bUnescape 						is boolean
+      nLevel 						is int
+      i 								is int
+      pclSubBlock 					is cWIKIBlock dynamic
+      
+      // Reset the HTML
+      sHTMLSource = ""
+      
+      // Don't process the empty strings
+      IF sWIKISource = "" THEN RETURN
+      
+      // Saves the block
+      pclSubBlock = pclABlock
+      
+      // Remove all the scripts (for security reasons)
+      sWIKISource = ReplaceWildcard(sWIKISource,"<script*</script>","",IgnoreCase)
+      sWIKISource = Replace(sWIKISource, "%SESSIONID%", "AWPSESSIONID=" + gsIdentifier, IgnoreCase)
+      
+      // Browse each line of the WIKI source code
+      FOR EACH string sLine of sWIKISource SEPARATED BY CR
+      	
+      	IF sLine[[1]] = Charact(10) THEN sLine[[1]] = ""
+      	
+      	// Ends the tags started in the previous lines
+      	IF sMustStartWith <> "" THEN
+      		IF Replace(sLine[[TO Length(sMustStartWith)]], SPC, " ") = sMustStartWith THEN
+      			sHTMLSource += sEndingIfBlockContinue
+      		ELSE
+      			sHTMLSource += sEndingIfNotBlockContinue
+      		END			
+      	END		
+      	
+      	sMustStartWith = ""
+      	sEndingIfBlockContinue = ""
+      	sEndingIfNotBlockContinue = ""
+      	bModifiedLine = False
+      	
+      	IF bSubElement = False THEN
+      		IF _ProcessElement(sHTMLSource,sLine,bUnescape,bModifiedLine,sWIKILastLine) = False THEN
+      			CONTINUE
+      		END
+      	END
+      	
+      	// Start of tag that must not be processed by the parser
+      	IF WIKINoWIKI(sLine, sHTMLSource) THEN
+      		bModifiedLine = True
+      		CONTINUE
+      	END				
+      	
+      	// Replaces in the text of the block all the terms contained in the WIKI dictionary
+      	IF bSubElement  = False AND NOT bUnescape AND NOT NoSpace(sLine)[[1]] = "=" THEN
+      		_RecreateAutomaticWIKI(sLine)
+      	END		
+      	
+      	//
+      	// PAGE LAYOUT
+      	//
+      	
+      	// Titles (up to 4 levels are allowed) (only if it is not a sub-element)
+      	IF NOT bUnescape THEN
+      		IF bSubElement = False THEN
+      			IF sLine[[1]] = "=" THEN
+      				sWIKILastLine = ""
+      				FOR i=1 TO 5
+      					
+      					nLevel ++			
+      					
+      					IF Left(sLine, 2 + i) = RepeatString("=", i) + "= " AND Right(sLine, 2 + i) = " =" + RepeatString("=", i) THEN
+      						
+      						// Extracts the text
+      						sExtract = sLine[[3 + i TO Length(sLine) - (2 + i)]]
+      						sExtractHTML = ""
+      						
+      						// Convert the text into HTML						
+      						WIKIToHTML(sExtract, sExtractHTML, True)						
+      						
+      						// Title of the block
+      						sHTMLSource += "<br><br><a name=""" + WIKIClean(sExtract, True) + """></a><span align=left class=wikiBlockSubtitle" + i + " style='border-bottom:none;position: relative;''>" + sExtractHTML + "</span><br><hr align=left style='opacity:" + (100 - (20 * (i + 1))) + ";filter:Alpha(opacity=" + (100 - (20 * (i + 1))) + ")'>"
+      						bModifiedLine = True
+      					END
+      				END
+      				IF bModifiedLine THEN CONTINUE
+      			END
+      		END
+      	END
+      	
+      	// Lists (up to 4 levels are allowed) (only if it is not a sub-element)
+      	IF NOT bUnescape THEN
+      		IF bSubElement = False THEN	
+      			
+      			// Non-arranged list
+      			IF sLine[[1]] = "*" AND Right(ExtractString(sLine, 1, " "), 1) = "*" THEN
+      				
+      				// If the last line was not a list element
+      				IF sWIKILastLine <> "<ul>" THEN				
+      					sWIKILastLine = "<ul>"
+      					sHTMLSource += "<ul>"
+      				END				
+      				sMustStartWith = "*"
+      				
+      				FOR i=1 TO 4
+      					IF (Left(sLine, (1 + i)) = RepeatString("*", i) + " ") THEN
+      						
+      						// Extracts the text
+      						sExtract = sLine[[(1 + i) TO]]
+      						sExtractHTML = ""
+      						
+      						// Convert the text into HTML
+      						WIKIToHTML(sExtract, sExtractHTML, True)				
+      						
+      						sHTMLSource += RepeatString("<ul>", (i - 1)) + "<li>" + sExtractHTML
+      						
+      						// The tags must be ended on the next line
+      						sEndingIfBlockContinue = "</li>" + RepeatString("</ul>", (i - 1))
+      						
+      						bModifiedLine = True
+      					END
+      				END		
+      				
+      				// If the next line does not correspond, the list must be ended		
+      				sEndingIfNotBlockContinue = sEndingIfBlockContinue + "</ul>"
+      				IF bModifiedLine THEN CONTINUE
+      			END							
+      			
+      			// Arranged list (4 levels)	
+      			IF sLine[[1]] = "#" THEN
+      				
+      				// If the last line was not a list element
+      				IF sWIKILastLine <> "<ol>" THEN				
+      					sWIKILastLine = "<ol>"
+      					sHTMLSource += "<ol>"
+      				END	
+      				
+      				sMustStartWith = "#"
+      				
+      				FOR i=1 TO 4							
+      					IF Left(sLine, (1 + i)) = RepeatString("#", i) + " " THEN
+      						
+      						// Extracts the text
+      						sExtract = sLine[[(2 + i) TO]]
+      						sExtractHTML = ""
+      						
+      						// Convert the text into HTML
+      						WIKIToHTML(sExtract, sExtractHTML, True)				
+      						
+      						sHTMLSource += RepeatString("<ol>", (i - 1)) + "<li>" + sExtractHTML
+      						bModifiedLine = True
+      						
+      						// The tags must be ended on the next line
+      						sEndingIfBlockContinue = "</li>" + RepeatString("</ol>", (i - 1))						
+      					END			
+      				END
+      				
+      				// If the next line does not correspond, the list must be ended		
+      				sEndingIfNotBlockContinue = sEndingIfBlockContinue + "</ol>" 
+      				IF bModifiedLine THEN CONTINUE
+      			END
+      			
+      			// Indented list (4 levels)
+      			IF sLine[[1]] = ":" THEN
+      				
+      				// If the last line was not a list element
+      				IF sWIKILastLine <> "<dl>" THEN				
+      					sWIKILastLine = "<dl>"
+      					sHTMLSource += "<dl><dd>"
+      				END	
+      				sMustStartWith = ":"
+      				
+      				FOR i=1 TO 4						
+      					IF Left(sLine, (1 + i)) = RepeatString(":", i) + " " THEN
+      						
+      						// Extracts the text
+      						sExtract = sLine[[(2 + i) TO]]
+      						sExtractHTML = ""
+      						
+      						// Convert the text into HTML
+      						WIKIToHTML(sExtract, sExtractHTML, True)				
+      						
+      						sHTMLSource += RepeatString("<dl><dd>", (i - 1)) + sExtractHTML
+      						bModifiedLine = True
+      						
+      						// The tags must be ended on the next line
+      						sEndingIfBlockContinue = RepeatString("</dd></dl>", (i - 1))							
+      					END
+      				END		
+      				
+      				// If the next line does not correspond, the list must be ended		
+      				sEndingIfNotBlockContinue = sEndingIfBlockContinue + "</dd></dl>"	
+      				IF bModifiedLine THEN CONTINUE		
+      			END
+      			
+      			// Definition list (1 level only)
+      			IF sLine[[TO 2]] = "; " AND Position(sLine, " : ") > 0 THEN
+      				
+      				// Title of the definition
+      				sExtract = sLine[[3 TO Position(sLine, " : ") - 1]]
+      				sExtractHTML = ""
+      				
+      				// Convert the text into HTML
+      				WIKIToHTML(sExtract, sExtractHTML, True)	
+      				
+      				sHTMLSource += "<strong>" + sExtractHTML + "</strong><br>"
+      				
+      				// Text of the definition
+      				sExtract = sLine[[Position(sLine, " : ") + 3 TO]]
+      				sExtractHTML = ""
+      				
+      				// Convert the text into HTML
+      				WIKIToHTML(sExtract, sExtractHTML, True)					
+      				sHTMLSource += "<dl><dd>" + sExtractHTML + "</dd></dl>"
+      				bModifiedLine = True
+      			END
+      		END
+      	END
+      	
+      	// Horizontal line
+      	IF NOT bUnescape THEN
+      		IF sLine = "----" THEN
+      			sHTMLSource += "<hr align=left>"
+      			bModifiedLine = True
+      		END
+      	END
+      	
+      	// 
+      	// FORMATTED TEXT
+      	// 
+      	
+      	
+      	// Emphases
+      	
+      	// Very strong emphasis
+      	IF NOT bUnescape THEN
+      		IF WIKIExtractEmphasis(sLine, "'''''", "<strong><em>", "</strong></em>", sHTMLSource) = False THEN
+      			// Strong emphasis
+      			IF WIKIExtractEmphasis(sLine, "'''", "<strong>", "</strong>", sHTMLSource) = False THEN
+      				// Simple emphasis
+      				IF WIKIExtractEmphasis(sLine, "''", "<em>", "</em>", sHTMLSource) = True THEN
+      					bModifiedLine = True
+      				END
+      			ELSE
+      				bModifiedLine = True
+      			END
+      		ELSE
+      			bModifiedLine = True
+      		END
+      	END
+      	
+      	IF NOT bModifiedLine THEN
+      		IF NOT bUnescape THEN
+      			// Subscripts and internal link if valid
+      			IF WIKIExtractSubscript(sLine, sHTMLSource) THEN
+      				bModifiedLine = True
+      			END
+      			
+      			// Links
+      			IF WIKIExtractLink(sLine, sHTMLSource) THEN
+      				bModifiedLine = True
+      			END
+      			
+      			// Images
+      			IF WIKIExtractImage(sLine, sHTMLSource) THEN
+      				bModifiedLine = True
+      			END				
+      		END
+      	END
+      	
+      	// If the line contains no WIKI marker, copy it as it is
+      	IF bModifiedLine = False THEN
+      		
+      		// Case of simple line feeds without space
+      		IF NOT bUnescape THEN
+      			IF sLastLine[[Length(sLastLine)]] <> " " AND sLastLine <> "" THEN
+      				sLine = " " + sLine
+      			END
+      		END
+      		
+      		sHTMLSource += sLine
+      	END
+      	
+      	// Saves the line		
+      	sLastLine = sLine
+      END
+     type : 458752
+   -
+     name : WIKIAnalyzeBlocks
+     internal_properties : CAAAAAgAAABiRIfdyip6Odtc0Ej/2P9jwOiDZjbB92W9rLr3f9H88MzxjWqCJUdPu/mfKKU6uFLppHS921DFM3b8T2rdQGgqpxkVUeQxaN3pEiIqqGcLMeOVzEzvfnZWdaZvaOMqAwn2eMAWFufuZs/mH8vyTOzIEKuYa2ztcdslro9Yc9kmbmvgYY0poIgyfe6CkejOmkQFZtrzQw==
+     procedure_id : 1469069743711404765
+     type_code : 15
+     code : |1-
+      // Summary: Analyzes the blocks of a WIKI document
+      // Syntax:
+      //[ <Result> = ] WIKIAnalyzeBlocks (<sWIKISource>, <arrBlocks> [, <sIDStartBlock> [, <sIDEndBlock> [, <nLevel>]]])
+      //
+      // Parameters:
+      //	sWIKISource: Source of the WIKI document
+      //	arrBlocks: List of the blocks for the document to create
+      //	sIDStartBlock (default value="== "): <specify the role of sIDStartBlock>
+      //	sIDEndBlock (default value=" =="): <specify the role of sIDEndBlock>
+      //	nLevel (default value=0): <specify the role of nLevel>
+      // Return value:
+      // 	integer: // 	None
+      //
+      PROCEDURE RESTRICTED WIKIAnalyzeBlocks(sWIKISource, arrBlocks, sIDStartBlock = "== ", sIDEndBlock = " ==", nLevel = 0)
+      
+      // Local variables
+      nPos, nEnd 			are int
+      nBlockStart 			is int
+      nRealBlockStart 		is int
+      bCurrentBlock 		is boolean
+      pclABlock 			is cWIKIBlock dynamic
+      i 					is int
+      
+      // Browse the WIKI
+      nPos = Position(sWIKISource, sIDStartBlock)
+      WHILE nPos > 0
+      	
+      	// If no escape character is found
+      	IF sWIKISource[[nPos - 1]]  <> "\" THEN
+      		// The block must be preceded by a carriage return or it must be the first text
+      		IF sWIKISource[[nPos - 2 on 2]] = CR OR nPos = 1 THEN
+      			
+      			// Detects the end of the block title
+      			nEnd = Position(sWIKISource, sIDEndBlock + CR, nPos)
+      			IF nEnd > 0 THEN
+      				
+      				// A carriage return is found so the block title is not valid
+      				IF Position(sWIKISource[[nPos TO nEnd + 3]], CR) > 0 THEN
+      					nPos = Position(sWIKISource, sIDStartBlock, nPos + 1)	
+      					CONTINUE
+      				END
+      				
+      				IF bCurrentBlock THEN
+      					// Ends the current block
+      					pclABlock:m_sContent = sWIKISource[[nRealBlockStart TO nPos - 1]]
+      					
+      					WIKIAnalyzeBlocks(pclABlock:m_sContent[[(nBlockStart - nRealBlockStart) TO]], pclABlock:m_arrBlocks, "=" + sIDStartBlock, sIDEndBlock + "=", (nLevel + 1))
+      					
+      					// HTML conversion
+      					WIKIToHTML(pclABlock:m_sContent[[(nBlockStart - nRealBlockStart) TO]], pclABlock:m_sHTMLContents, False, pclABlock)
+      					
+      					// Saves the block
+      					ArrayAdd(arrBlocks, pclABlock)	
+      					i ++						
+      				END
+      				
+      				// The block can be started
+      				bCurrentBlock = True
+      				nRealBlockStart = nPos
+      				nBlockStart = nEnd + 5
+      				
+      				pclABlock = new cWIKIBlock
+      				
+      				// Initializes the block
+      				pclABlock:m_sCaption 	  = WIKIClean(NoSpace(ExtractString(sWIKISource[[nPos TO nEnd + Length(sIDEndBlock)]], 2, NoSpace(sIDStartBlock))))					
+      				pclABlock:m_sID      	  = nLevel + NumToString((Dimension(arrBlocks) + 1), "05d")
+      				
+      				// Only for the first-level blocks
+      				pclABlock:m_sAnchor   = WIKIClean(pclABlock:m_sCaption, True)
+      				
+      				// HTML conversion of the caption
+      				bAutoWIKICreation is boolean = gbAutomaticCreationWikiURL
+      				gbAutomaticCreationWikiURL = False
+      				WIKIToHTML(NoSpace(ExtractString(sWIKISource[[nPos TO nEnd + 3]], 2, NoSpace(sIDStartBlock))), pclABlock:m_sHTMLSTATIC)
+      				gbAutomaticCreationWikiURL = bAutoWIKICreation
+      			END
+      		END			
+      	END	
+      	
+      	// Next Block?
+      	nPos = Position(sWIKISource, sIDStartBlock, nPos + 1)	
+      END
+      
+      // Last block
+      IF bCurrentBlock THEN
+      	// Ends the current block
+      	pclABlock:m_sContent = sWIKISource[[nRealBlockStart TO]]
+      	
+      	// Adds 2 CR characters
+      	IF Right(pclABlock:m_sContent, 4) <> CR+CR THEN
+      		pclABlock:m_sContent += CR+CR
+      	END		
+      	
+      	WIKIAnalyzeBlocks(pclABlock:m_sContent[[(nBlockStart - nRealBlockStart) TO]], pclABlock:m_arrBlocks, "=" + sIDStartBlock, sIDEndBlock + "=", (nLevel + 1))
+      	
+      	// HTML conversion
+      	WIKIToHTML(pclABlock:m_sContent[[(nBlockStart - nRealBlockStart) TO]], pclABlock:m_sHTMLContents, False, pclABlock)
+      	
+      	// Saves the block
+      	ArrayAdd(arrBlocks, pclABlock)	
+      	i ++
+      END	
+      //
+      //if i = 0 and nlevel < 5 THEN
+      //	i = WIKIAnalyzeBlocks(sWIKIsource, arrBlocks, "=" + sIDStartBlock, sIDEndBlock + "=", (nLevel + 1))
+      //END
+      
+      RESULT i
+     type : 458752
+   -
+     name : WIKIClean
+     procedure_id : 1469075335758946697
+     type_code : 15
+     code : |1-
+      // Summary: Used to remove the "forbidden" characters from a text
+      // Syntax:
+      //[ <Result> = ] WIKIClean (<sText> [, <bForAnchor>])
+      //
+      // Parameters:
+      //	sText: Text to clean
+      // 	bForAnchor (default value=0): True to clean the string for an anchor, False to delete the WIKI markers
+      // Return value:
+      // 	string: Cleaned text
+      //
+      PROCEDURE RESTRICTED WIKIClean(sText, bForAnchor = False)
+      
+      // Local variables
+      sTextCleaned is string
+      
+      // Initialization
+      sTextCleaned = sText
+      
+      IF bForAnchor THEN
+      	// Deletes the spaces, the accented characters and the uppercase characters
+      	sTextCleaned = NoSpace(NoAccent(Lower(sTextCleaned)))
+      	
+      	// Deletes the special characters	
+      	sTextCleaned = Replace(sTextCleaned, " ", "_")
+      	sTextCleaned = Replace(sTextCleaned, "-", "_")
+      	sTextCleaned = Replace(sTextCleaned, "/", "_")
+      	sTextCleaned = Replace(sTextCleaned, "\", "_")
+      	sTextCleaned = Replace(sTextCleaned, "#", "_")
+      	sTextCleaned = Replace(sTextCleaned, "*", "_")
+      ELSE
+      	// Deletes all the WIKI markers
+      	
+      END
+      
+      
+      RESULT sTextCleaned
+     type : 458752
+   -
+     name : WIKIExtractEmphasis
+     internal_properties : CAAAAAgAAAB2wbKEkvp4WTSki6mWaLPqhbK+8gbFoebOMHDJGa4ih3Bt28qZ6CSZPkbyEBZ0oRp+jmYbfgRRI16aEWYM2oy9tQYQZDAMu44EjM7tVcKJ8md01OJmy7BP3fKtfTil3bgk84Q4ze7SDQE8l8ipQWxV2rjOW7W+eZ5RTo2ZXtZWxzPtFafE5/bTieaocLXRNEoYQNuSjQY=
+     procedure_id : 1469118590377578356
+     type_code : 15
+     code : |1-
+      // Summary: Used to extract an emphasis
+      // Syntax:
+      //[ <Result> = ] WIKIExtractEmphasis (<sLine>, <sEmphasis>, <sStartTag>, <sEndTag>, <sHTMLSource>)
+      //
+      // Parameters:
+      //	sLine: Text to analyze
+      //	sEmphasis: Emphasis to detect
+      //	sStartTag: Start tag to replace the emphasis
+      //	sEndTag: End tag to replace the emphasis
+      //	sHTMLSource: Modified HTML source
+      // Return value:
+      // 	boolean: True if an emphasis was found, False otherwise
+      //
+      PROCEDURE RESTRICTED WIKIExtractEmphasis(sLine, sEmphasis, sStartTag, sEndTag, sHTMLSource)
+      
+      // Local variables
+      nPos 				is int
+      nEnd 				is int
+      sExtractEmphasis 	is string
+      sExtract 			is string
+      sExtractHTML 		is string
+      
+      // Browse the line
+      nPos = Position(sLine, sEmphasis)
+      IF nPos > 0 THEN
+      	
+      	// Defines the end of the emphasis
+      	nEnd = Position(sLine, sEmphasis, nPos + Length(sEmphasis))
+      	IF nEnd = 0 THEN 
+      		nEnd = Length(sLine) + 1
+      	END
+      	
+      	// Special case for the apostrophes
+      	IF sLine[[nPos on Length(sEmphasis) + 1]] = sEmphasis + "'" THEN
+      		nPos += 1
+      	END
+      	
+      	// Extracts the text before the emphasis
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""
+      	
+      	// Converts the text before the emphasis
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	
+      	// Fills the HTML source
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts the emphasis part
+      	sExtractEmphasis = sLine[[nPos + Length(sEmphasis) TO nEnd - 1]]
+      	sExtractHTML = ""
+      	
+      	// Converts the text in the emphasis
+      	WIKIToHTML(sExtractEmphasis, sExtractHTML, True)
+      	
+      	// Fills the HTML source
+      	sHTMLSource += sStartTag + sExtractHTML + sEndTag
+      	
+      	IF nEnd <= Length(sLine) THEN
+      		
+      		// Extracts the text after the emphasis
+      		sExtract = sLine[[nEnd + Length(sEmphasis) TO]]
+      		sExtractHTML = ""
+      		
+      		// Converts the text after the emphasis
+      		WIKIToHTML(sExtract, sExtractHTML, True)
+      		
+      		// Fills the HTML source
+      		sHTMLSource += sExtractHTML
+      	ELSE
+      		sHTMLSource += " "
+      	END
+      	
+      	RESULT True
+      END
+      
+      RESULT False
+     type : 458752
+   -
+     name : WIKIExtractSubscript
+     internal_properties : CAAAAAgAAABso9ZIT11be/L0eXwArSIxLgI91I8hF7wmLGpfGF/hTwDVCHYZMdijhFj6ktNYaibHx6A9MpohNBPl/k8Yp9l/2JR9NbDzh9Dv79nnMg7rnxBI/mp1S1YXAvKPQzTod3A1AM4sK8g64ez7MJn0xPIl9/5W9vpEBxUZNbBkg9W3w9HSq2culL7BeOeO8EVX81sn8jiUmVIoJpXXQZk/ehuCpSgoExFDxJYoNqkc+w2dwKfArc350JwuqX+6YlFeO7rLliPapj+YV5ij8181gP05QIs7NcdcDWo6bnWz9R7hNrne0FM5HGs=
+     procedure_id : 1469133768792063059
+     type_code : 15
+     code : |1-
+      // Summary: used to write characters in exponent in an internal URL block
+      // Syntax:
+      //[ <Result> = ] WIKIExtractSubscript (<sLine>, <sHTMLSource>)
+      //
+      // Parameters:
+      //	sLine: Line to analyze
+      //	sHTMLSource: Modified HTML source
+      // Return value:
+      // 	boolean: True if a subscript block was found, False otherwise
+      //
+      PROCEDURE RESTRICTED WIKIExtractSubscript(sLine, sHTMLSource)
+      
+      // This procedure is used to write 'st', 'nd', 'rd', 'th' in superscript in an internal URL block
+      // Example: 
+      // 1st, 2nd, XVIth...
+      
+      // Local variables
+      i, j 									is int
+      nPos 									is int
+      nEnd 									is int	
+      sExtract, sExtractHTML, sExtractBlock 	are strings
+      sURL 									is string
+      nSize									is int	// Optimization
+      
+      // Start marker
+      nPos = Position(sLine, "{{")
+      IF nPos > 0 THEN
+      	
+      	// End marker
+      	nEnd = Position(sLine, "}}", nPos)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1
+      	
+      	// Extracts the text before the block
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""
+      	
+      	// Converts the text before the block
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	
+      	// Fills the HTML source
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts the bordered part
+      	sExtractBlock = sLine[[nPos + 2 TO nEnd - 1]]
+      	sURL = sExtractBlock
+      	sExtractHTML = ""
+      	
+      	// Write the digits in superscript
+      	nSize = Length(sExtractBlock)
+      	FOR i = 1 TO nSize
+      		// Continue if it is a roman character
+      		IF sExtractBlock[[i]] IN ("X", "V", "I", "D", "L", "M", Val(sExtractBlock[[i]])) THEN
+      			IF i = nSize THEN
+      				// At this point, nothing was written in superscript, so write everything in superscript
+      				IF IsNumeric(sExtractBlock) _OR_ NoAccent(Lower(sExtractBlock)) IN ("e", "st", "er", "em", "eme") THEN
+      					sExtractBlock = "<del>" + sExtractBlock + "</del>"
+      					nSize = Length(sExtractBlock)
+      					BREAK
+      				END
+      			END
+      		ELSE
+      			// Retrieves the position of the first space
+      			j = Position(sExtractBlock, " ", i)
+      			IF j = 0 THEN j = Length(sExtractBlock) + 1
+      			
+      			// Writes the text found after in superscript (X V I D L M and the digits) 
+      			sExtractBlock = sExtractBlock[[TO i - 1]] + ...
+      			"<del>" + sExtractBlock[[i TO j - 1]] + "</del>" + ...
+      			sExtractBlock[[j TO]]
+      			nSize = Length(sExtractBlock)			   
+      			
+      			BREAK
+      		END
+      	END
+      	
+      	// Checks whether the word of the URL is known
+      	IF sURL <> "" THEN
+      		nDocPos is int = HSavePosition(WIKI)
+      		HReadSeekFirst(WIKI,Title,sURL)
+      		IF HFound(WIKI) THEN
+      			// If so, transform the string into link to access it
+      			sExtractBlock = "<a href='Javascript:DisplayWiki(" + URLEncode(sURL) + ");'>" + sExtractBlock + "</a>"
+      			nSize = Length(sExtractBlock)	
+      			
+      		END
+      		HRestorePosition(nDocPos)
+      	END
+      	
+      	// Converts the text in the block
+      	WIKIToHTML(sExtractBlock, sExtractHTML, True)
+      	
+      	// Fills the HTML source
+      	sHTMLSource += sExtractHTML
+      	
+      	IF nEnd <= Length(sLine) THEN
+      		
+      		// Extracts the text after the block
+      		sExtract = sLine[[nEnd + 2 TO]]
+      		sExtractHTML = ""
+      		
+      		// Converts the text after the block
+      		WIKIToHTML(sExtract, sExtractHTML, True)
+      		
+      		// Fills the HTML source
+      		sHTMLSource += sExtractHTML
+      	END
+      	
+      	RESULT True			
+      END
+      
+      
+      RESULT False
+     type : 458752
+   -
+     name : WIKIExtractLink
+     internal_properties : CAAAAAgAAAAt8mKxWF+3sCpYKWYsSnNDaDKCPNH/3DP0hH6DVYo6ngL6WqrlO3+lW/yCGz+fYRaDSdByfLeFld7EILPO8J1dHeSpvAgXhy8M3kzk6BlSlAbezkRkiqB91sPVmfZKowh5WfqEd+ixLk1A4/kaVuW1L4Zr+ijvyvpetHNEsYoA5nTmo7ojZHDRHG8CkTzBuSu8xpDKCe2FABI0OvFLaXl0hx/4FuFUxfpQZ2iCaBsLZO+d4tY98gTq1ZsYusK6b9LZSuuu4rvxzuBF0iTO7NwdeNEjRawgujJNyB2oZBhS
+     procedure_id : 1469361977579436483
+     type_code : 15
+     code : |1-
+      // Summary: Extract a link
+      // Syntax:
+      //[ <Result> = ] WIKIExtractLink (<sLine>, <sHTMLSource>)
+      //
+      // Parameters:
+      //	sLine: Line to analyze
+      //	sHTMLSource: Modified HTML source
+      // Return value:
+      // 	boolean: True if a link was found
+      //
+      PROCEDURE RESTRICTED WIKIExtractLink(sLine, sHTMLSource)
+      
+      // Local variables
+      nPos is int
+      nEnd is int
+      sCaption is string
+      sExtract is string
+      sExtractHTML is string
+      
+      // The links can be:
+      // [[link]]				-> internal links
+      // [url http]			-> external links
+      // http://url			-> external links
+      
+      //
+      // INTERNAL LINKS
+      //
+      
+      // Start tag
+      nPos = Position(sLine, "[[")
+      IF nPos > 0 THEN
+      	
+      	// End tag
+      	nEnd = Position(sLine, "]]", nPos)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1
+      	
+      	// It is an image and not a link
+      	IF sLine[[nPos on 8]] ~= "[[image:" THEN RESULT False
+      	
+      	// Extracts and converts the text before the link
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts the link
+      	sExtract = sLine[[nPos + 2 TO nEnd - 1]]
+      	sExtractHTML = ""		
+      	
+      	// Extracts the caption of the link if there is one
+      	sCaption = ExtractString(sExtract, 2, "|")
+      	sExtract = ExtractString(sExtract, 1, "|")		
+      	IF sCaption = EOT THEN sCaption = sExtract
+      	
+      	// If the link does not only contain alphanumeric characters
+      	IF NOT MatchRegularExpression(sExtract, "[a-zA-Z0-9 ]*") THEN
+      		// Don't processes it
+      		sExtract = sCaption
+      	ELSE
+      		// Checks whether the link exists
+      		nDocPos is int = HSavePosition(WIKI)
+      		HReadSeekFirst(WIKI,Title,sExtract)
+      		IF HFound(WIKI) THEN
+      			sExtract = "<a href=Javascript:DisplayWiki(""" + URLEncode(sExtract) + """)>" + sCaption + "</a>"	
+      		ELSE
+      			sExtract = "<a href=Javascript:DisplayWiki(""" + URLEncode(sExtract) + """)><font color=#dd0000>" + sCaption + "</font></a>"
+      		END
+      		HRestorePosition(nDocPos)			
+      	END
+      	
+      	// Analyzes the link
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	// Extracts and converts the text after the link
+      	sExtract = sLine[[nEnd + 2 TO]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	RESULT True	
+      END
+      
+      //
+      // EXTERNAL LINKS
+      //
+      
+      // Start tag
+      nPos = Position(sLine, "[")
+      IF nPos > 0 THEN
+      	
+      	// End tag
+      	nEnd = Position(sLine, "]", nPos)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1
+      	
+      	// Extracts and converts the text before the link
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts the link
+      	sExtract = sLine[[nPos + 1 TO nEnd - 1]]
+      	sExtractHTML = ""		
+      	
+      	// Extracts the caption of the link if there is one
+      	IF Position(sExtract, "|") > 0 THEN
+      		sCaption = ExtractString(sExtract, 2, "|")
+      		sExtract = ExtractString(sExtract, 1, "|")		
+      	ELSE
+      		sCaption = sExtract[[Position(sExtract, " ") + 1 TO]]
+      		sExtract = sExtract[[TO Position(sExtract, " ") - 1]]		
+      	END
+      	IF sCaption = EOT THEN sCaption = sExtract
+      	IF sExtract = "" THEN sExtract = sCaption
+      	
+      	IF Position(sExtract,"Javascript",0,IgnoreCase+WholeWord) THEN
+      		// Builds the link
+      		sExtract = "<a class=a_ext href=""" + URLEncode(sExtract) + """>" + sCaption	 + "</a>"		
+      	ELSE
+      		// Builds the link
+      		sExtract = "<a class=a_ext target=""_blank"" href=""" + URLEncode(sExtract) + """>" + sCaption	 + "</a>"	
+      	END
+      	
+      	
+      	// Analyzes the link
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts and converts the text after the link
+      	sExtract = sLine[[nEnd + 1 TO]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	RESULT True	
+      END
+      
+      // If no [ ] was found, try to find the http://, https:// or ftp://
+      IF NOT WIKIExtractManualLink(sLine, sHTMLSource, "http://") THEN
+      	IF NOT WIKIExtractManualLink(sLine, sHTMLSource, "https://") THEN
+      		RESULT WIKIExtractManualLink(sLine, sHTMLSource, "ftp://")
+      	ELSE
+      		RESULT True
+      	END
+      ELSE
+      	RESULT True		
+      END
+     type : 458752
+   -
+     name : WIKIExtractManualLink
+     internal_properties : CAAAAAgAAADrgLQsWQLWz7dkAHqgPPr2WSiam2TcUPX1vwJ1gTjvO1o+PSO9rdHrv7jEtwatYUfI5cqHsYLaU7SgL6YhsPn86/BJw8uWkMkNU8uE6gjGiWPYzBaGe8WvfKu1QL3XG0bI+7lotPSkOxyVRS86ZWpbYPqdCd4G19Bq8Yueke5a9/4FcO7qW1WpUFCgzzUWAs9C5maCQNCumPjZpAnicARYDJw3R7G1zmQKBI6bNQRKmNWRRnE=
+     procedure_id : 1469373977718823157
+     type_code : 15
+     code : |1-
+      // Summary: Extract an HTTP link
+      // Syntax:
+      //[ <Result> = ] WIKIExtractManualLink (<sLine>, <sHTMLSource> [, <sProtocol>])
+      //
+      // Parameters:
+      //	sLine: <specify the role of sLine>
+      //	sHTMLSource: <specify the role of sHTMLSource>
+      //	sProtocol (default value="http://") ://") ://"): <specify the role of sProtocol>
+      // Return value:
+      // 	boolean: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED WIKIExtractManualLink(sLine,sHTMLSource,sProtocol = "http://")
+      
+      // Local variables
+      nPos, nEnd 					are int
+      sExtract, sExtractHTML 		are strings
+      
+      nPos = Position(sLine, sProtocol)
+      IF nPos > 0 THEN
+      	nEnd = Position(sLine, " ", nPos)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1
+      	
+      	// If we are positioned in a A or IMG tag
+      	IF sLine[[nPos - 6 TO nPos - 1]] = "href=""" THEN RESULT False
+      	IF sLine[[nPos - 2 TO nPos - 1]] = "=""" THEN RESULT False
+      	
+      	WHILE sLine[[nEnd - 1]] IN (",", ":", ";", ".", "!", "?", "=")
+      		nEnd --
+      	END
+      	
+      	// Extracts and converts the text before the link
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	// Extracts the link
+      	sExtract = sLine[[nPos TO nEnd - 1]]
+      	sExtractHTML = ""		
+      	
+      	// Builds the link
+      	sExtract = "<a class=a_ext target=""_blank"" href=""" + URLEncode(sExtract) + """>" + sExtract + "</a>"	
+      	
+      	// Analyzes the link
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts and converts the text after the link
+      	sExtract = sLine[[nEnd TO]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	RESULT True			
+      END
+      
+      RESULT False
+     type : 458752
+   -
+     name : WIKIExtractImage
+     internal_properties : CAAAAAgAAAAJ64II1OQ8RlP6OfqFVlLfzrPyQ1cB736vbEL/Q+IyV2Iy8jIE6SmoMrWSFZNf+bFIMOUqkW4ivtqDzBJu4VuWGtHpSCSBtCorBYrI072PFDidiPMCzyb0KNts/Gax/ZGJ6vLrWcTf243VjSficNwPjzUPIgoIIXd8eZXf1Uzz4zjTc0a51fmQBNICxFbd1khap/gRjkVphb2tUwyb2wmW0CiGW80CW5+DL/H8ZCe0m1W1/BHIoXCkt4GVIJZgLVA+LqozBbd7e68vllozsSOVJIX7GN2acy1f6vziCPRW9Q==
+     procedure_id : 1469380042213008595
+     type_code : 15
+     code : |1-
+      // Summary: Extract an image
+      // Syntax:
+      //[ <Result> = ] WIKIExtractImage (<sLine>, <sHTMLSource>)
+      //
+      // Parameters:
+      //	sLine: Line to analyze
+      //	sHTMLSource: Modified HTML source
+      // Return value:
+      // 	boolean: True if images have been found
+      //
+      PROCEDURE RESTRICTED WIKIExtractImage(sLine,sHTMLSource)
+      
+      // Local variables
+      nPos, nEnd 													are int
+      sExtract, sExtractHTML 										are strings	
+      sTmp 														is string
+      sImageSource, sImageAlign, sImageDim, sLegend, sOptions 	are strings
+      
+      // Start tag
+      nPos = Position(sLine, "[[Image:", 0, IgnoreCase)
+      IF nPos > 0 THEN
+      	
+      	// End tag
+      	nEnd = Position(sLine, "]]", nPos)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1 
+      	
+      	// Extracts and converts the text before the image
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	// Extracts the declaration of the image
+      	sExtract = sLine[[nPos + 8 TO nEnd - 1]]
+      	sExtractHTML = ""
+      	
+      	// Extracts the image information
+      	sImageSource = ExtractString(sExtract, firstRank, "|")
+      	
+      	// First option
+      	sTmp = ExtractString(sExtract, nextRank, "|")
+      	WHILE sTmp <> EOT
+      		
+      		// Deletes the possible spaces
+      		sTmp = NoSpace(sTmp)
+      		
+      		// Defines the specified option
+      		IF Right(sTmp, 2) ~= "px" THEN
+      			// The dimension was specified
+      			sImageDim = sTmp
+      		ELSE
+      			IF Lower(sTmp) IN ("right", "left") THEN
+      				// The locations was specified
+      				sImageAlign = Lower(sTmp)
+      			ELSE
+      				IF Lower(sTmp) IN ("frame", "thumb") THEN
+      					// The options were specified
+      					sOptions = Lower(sTmp)
+      				ELSE
+      					// It is the legend of the image
+      					sLegend = sTmp
+      				END
+      			END
+      		END
+      		
+      		// Next option
+      		sTmp = ExtractString(sExtract, nextRank, "|")
+      	END	
+      	
+      	// Builds the HTML to view the image
+      	sExtractHTML = "<img src=""" + sImageSource + """ border=0 align=absmiddle"
+      	
+      	// Dimensions
+      	IF sImageDim <> "" THEN
+      		sExtractHTML += " width=" + sImageDim
+      	END
+      	
+      	// Legend
+      	IF sLegend <> "" THEN
+      		sExtractHTML += " alt=""" + sLegend + """>"
+      	ELSE
+      		sExtractHTML += ">"
+      	END
+      	
+      	// Options
+      	IF sOptions <> "" THEN
+      		sExtractHTML = "<div style='border:1px solid #c0c0c0;background-color:#f0f0f0;margin:4px;width:115'><div align=center style='border:1px solid #c0c0c0;background-color:#ffffff;width:115'>" + sExtractHTML + "</div><div style='margin:4px;' class=wikiText>" + sLegend + "</div></div>"
+      	END
+      	
+      	// Alignment
+      	IF sImageAlign <> "" THEN
+      		sExtractHTML = "<div class=float" + sImageAlign + ">" + sExtractHTML + "</div>"
+      	END
+      	
+      	// Fills the HTML source
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts and converts the text after the link
+      	sExtract = sLine[[nEnd + 2 TO]]
+      	sExtractHTML = ""		
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML		
+      	
+      	RESULT True	
+      END
+      
+      
+      
+      RESULT False
+     type : 458752
+   -
+     name : WIKINoWIKI
+     internal_properties : CAAAAAgAAAAn717oF6+yA3B1Y1rAa+hpq0Y7343SSSrA/03jJY2Iod9SihCF/Q2iU/hbNWqz+EiZwOvlRcpDh6FzBx63OI0MyKkjavV8neW7B4Fln8yT/aLpT5QMEuW0nwVl0fYWxzLlBfY38JcjzN5ZJGcQ6j1kEQcDvgB1FCvUwUAqr5EZxAmppezh08evRZMWrsgKRr/tk76vXp60un0UKoRnTBgwLGAGHDs75tm9AC/kzMIYazJ5ctsoyqnsqCZEi7YhzRiYtFRk+KM=
+     procedure_id : 1469395658714915178
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] WIKINoWIKI (<sLine>, <sHTMLSource>)
+      //
+      // Parameters:
+      //	sLine: Line to analyze
+      //	sHTMLSource: Modified HTML source
+      // Return value:
+      // 	boolean: True if <nowiki> was detected
+      //
+      PROCEDURE RESTRICTED WIKINoWIKI(sLine, sHTMLSource)
+      
+      // Local variables
+      nPos, nEnd 					are int
+      sExtract, sExtractHTML 		are strings
+      
+      // Start tag
+      nPos = Position(sLine, "<nowiki>", 0, IgnoreCase)
+      IF nPos > 0 THEN
+      	
+      	// End tag
+      	nEnd = Position(sLine, "</nowiki>", nPos, IgnoreCase)
+      	IF nEnd = 0 THEN nEnd = Length(sLine) + 1
+      	
+      	// Extracts and converts the text before "<nowiki>"
+      	sExtract = sLine[[TO nPos - 1]]
+      	sExtractHTML = ""
+      	WIKIToHTML(sExtract, sExtractHTML)
+      	sHTMLSource += sExtractHTML
+      	
+      	// Extracts the 'no wiki' text
+      	sExtract = sLine[[nPos + 8 TO nEnd - 1]]
+      	sHTMLSource += XMLToText(sExtract)
+      	
+      	// Extracts and converts the text after "<nowiki>"
+      	sExtract = sLine[[nEnd + 9 TO]]
+      	sExtractHTML = ""
+      	WIKIToHTML(sExtract, sExtractHTML, True)
+      	sHTMLSource += sExtractHTML
+      	
+      	RESULT True
+      END
+      
+      RESULT False
+     type : 458752
+   -
+     name : WIKISearchBlock
+     procedure_id : 1470493478124211789
+     type_code : 15
+     code : |1+
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] WIKISearchBlock (<sBlockID> [, <arrBlocks> [, <pclModificationBlock> is WIKIBlock dynamic]])
+      //
+      // Parameters:
+      //	sBlockID: Identifier of the block
+      //	arrBlocks: Array of blocks for the search
+      //	pclModificationBlock (WIKIBlock dynamic): Block to modify
+      // Return value:
+      // 	string: Content of the block
+      //
+      PROCEDURE RESTRICTED WIKISearchBlock(sBlockID, arrBlocks = gclWIKIDocument:m_arrBlocks, pclModificationBlock is cWIKIBlock dynamic = Null)
+      
+      // Local variables
+      pclABlock 			is cWIKIBlock dynamic
+      sContents 			is string
+      sContentSubBlock 	is string
+      
+      // Extracts the content of the block and defines the block to modify
+      FOR ALL ELEMENT pclABlock of arrBlocks
+      	IF pclABlock:m_sID = sBlockID THEN
+      		pclModificationBlock = pclABlock
+      		BREAK
+      	ELSE
+      		
+      		// Checks in the sub-blocks whether there is one that corresponds
+      		sContentSubBlock = WIKISearchBlock(sBlockID, pclABlock:m_arrBlocks, pclModificationBlock)
+      		
+      		// A block was found
+      		IF sContentSubBlock <> "" THEN
+      			BREAK
+      		END
+      	END
+      END
+      
+      IF pclModificationBlock <> Null THEN
+      	// Retrieves the content of the block
+      	sContents = pclModificationBlock:m_sContent
+      END
+      
+      RESULT sContents
+     type : 458752
+   -
+     name : WIKIRebuildSource
+     procedure_id : 1470520459109083375
+     type_code : 15
+     code : |1-
+      // Summary: Rebuilds the source code of WIKI from the object in memory
+      // Syntax:
+      //WIKIRebuildSource (<sWIKISource>)
+      //
+      // Parameters:
+      // 	sWIKISource: WIKI source that must be rebuilt from the current WIKIDocument
+      // Return value:
+      // 	None
+      //
+      PROCEDURE WIKIRebuildSource(sWIKISource)
+      
+      // Local variables
+      pclABlock is cWIKIBlock dynamic
+      
+      // Re-initialize the source code
+      sWIKISource = ""
+      
+      // Preamble
+      sWIKISource = gclWIKIDocument:m_sPreamble
+      
+      // Sections
+      FOR ALL ELEMENT pclABlock of gclWIKIDocument:m_arrBlocks		
+      	sWIKISource += pclABlock:m_sContent		
+      END
+     type : 458752
+   -
+     name : ReplaceSensitive
+     procedure_id : 1475761092376922222
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] ReplaceSensitive (<sText>, <sSearch>, <sReplace> [, <bSensitive>])
+      //
+      // Parameters:
+      //	sText: Source
+      //	sSearch: String to find
+      //	sReplace: Replacement format
+      // 	bSensitive (default value=1): <specify the role of bSensitive>
+      // Return value:
+      // 	Undefined type: Modified text
+      //
+      PROCEDURE RESTRICTED ReplaceSensitive(LOCAL sText, sSearch, sReplace, bSensitive = True)
+      
+      // Local variables
+      nPos 			is int
+      nDec 			is int
+      nBeforeOpening, nBeforeClosing, nAfterOpening, nAfterClosing are int
+      
+      // Browse the string
+      nPos = Position(sText, sSearch, 0, WholeWord + (bSensitive ? IgnoreCase ELSE 0))
+      WHILE nPos > 0
+      	
+      	nBeforeOpening = StringCount(sText[[TO nPos]], "[")
+      	nBeforeClosing = StringCount(sText[[TO nPos]], "]")
+      	
+      	nAfterOpening = StringCount(sText[[nPos TO]], "[")
+      	nAfterClosing = StringCount(sText[[nPos TO]], "]")
+      	
+      	IF (nBeforeOpening > nBeforeClosing) OR (nAfterOpening < nAfterClosing) THEN
+      		// No action, we area already positioned in a link
+      	ELSE
+      		nDec = Length(StringBuild(sReplace, sText[[nPos on Length(sSearch)]]))
+      		sText[[nPos on Length(sSearch)]] = StringBuild(sReplace, sText[[nPos on Length(sSearch)]])		
+      		nPos += nDec
+      	END
+      	
+      	nPos = Position(sText, sSearch, nPos + 1, WholeWord + (bSensitive ? IgnoreCase ELSE 0))
+      END
+      
+      RESULT sText
+     type : 458752
+   -
+     name : _BuildSummary
+     internal_properties : CAAAAAgAAAB8x7iesZhsmSq6542KZrvyf3RcvFLzzZ4o4mzF3VSig5Z78ZzRisCl0Ii6sJ7mVV5ULMRFvg4toxDMRY4c3PQF55Dqqlzyf4KWPsqUBuc4YwDt27OvsH0aljuGuB2ucA09pDvBJvuvWFrdaJ9uqqPOV83BqCJvKlEa3w4AH+uhTFiqVJgRsN86JksN+z5GhystZvGMhww=
+     procedure_id : 1552263437531664254
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] _BuildSummary ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: //  	 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      // 	sSummary: <specify the role of sSummary>
+      PROCEDURE RESTRICTED _BuildSummary()
+      
+      // Local variables
+      sSummary is string
+      
+      // If the document contains more than 3 blocks, generate a summary
+      IF gbPrint = False THEN
+      	IF Dimension(gclWIKIDocument:m_arrBlocks) > 3 THEN			
+      		// Beginning of the summary
+      		sSummary = "<div class=wikiText style='display:block;border:1px solid #c0c0c0;background-color:#fafafa;width:300;' align=left><b>Summary</b>: " + (gbPrint = False ? "<font size=-2>[<a id=wikiToggle href='javascript:Toggle(""wikiToc"", ""wikiToggle"");'>Hide</a>]</font>" ELSE "") + "<div id=wikiToc style='width:300px; padding: 8px; overflow: hidden' align=left>"
+      		// Generation of the summary
+      		sSummary += WIKISummary(gclWIKIDocument:m_arrBlocks)
+      		// End of the summary
+      		sSummary += "</div></div>"		
+      	ELSE
+      		// No summary in the other cases
+      		sSummary = ""
+      	END
+      END
+      
+      RESULT sSummary
+     type : 458752
+   -
+     name : _BuildHTML
+     internal_properties : CAAAAAgAAABk8RhjslX7Xm4/Hl+3fk2/sSsAshnRtM7LEB9XepstXJOCSHLzqexoNQMgz87X0/flTxJPfzSn4C4ZoCmKb7/K57oQxRdRVT9m6wF7N2hjcNITvHyDLuxW73ccjnW7lhHoaCvI9jS9HUHMPwIVhsQy2AGxXh7Jgcy9jbxHHJkIxGeC17V41/5K8ns+YVTDrB51P70MNRjW8I/pvyg6jOdDZ6rrS5Erq9/itkXmmMU1ItefxralQMMApSEGIu9MPpt5Pl9TJXfqem/UgKYZCYkR+XbK8I2gZkT5/21lspP9rDVmM7mDWqe2vA==
+     procedure_id : 1552268617273390984
+     type_code : 15
+     code : |1+
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] _BuildHTML (<sIdentifier>, <sTitle>, <sSummary>, <sWIKISource>)
+      //
+      // Parameters:
+      //	sIdentifier: <specify the role of sIdentifier>
+      //	sTitle: <specify the role of sTitle>
+      //	sSummary: <specify the role of sSummary>
+      //	sWIKISource: <specify the role of sWIKISource>
+      // Return value:
+      // 	string: //  	 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _BuildHTML(sIdentifier, sTitle, sSummary, sWIKISource)
+      
+      sHTMLSource is string
+      //	sHTMLSource = (gbPrintout = False? "<hr style='color:#ffffff;height:1px'>" ELSE "") + "<div id=wikiDocument style='border:1px solid #ffffff'>"
+      
+      // Builds the HTML
+      // If we are not in printout mode, add a line before the document (top border of the document)
+      IF gbPrint THEN
+      	sHTMLSource = ""
+      ELSE
+      	// We are not in printout mode, display a line
+      	sHTMLSource = "<hr style='color:#ffffff;height:1px'>"
+      END
+      // Create the DIV that will contain the entire document WIKI
+      sHTMLSource += "<div id=wikiDocument style='border:1px solid #ffffff'>"
+      
+      // Create the DIV and the title
+      sHTMLSource += "<div id=wikiTitle align=left class=wikiTitle>" + sTitle
+      
+      // Title
+      //	sSourceHTML += "<div id=wikiTitle align=left class=wikiTitle>" + sTitle + (gbPrint = False? "<span class=wikiLink style='float:right;padding-right:20;'>[<a href='javascript:WIKIModDoc(""" + sIdentifier + """);' onmouseover='document.getElementById(""wikiDocument"").style.border=""1px dashed #ffaaaa"";' onmouseout='document.getElementById(""wikiDocument"").style.border=""1px solid #ffffff"";'>modify</a>]</span>" ELSE "") + "</div><hr align=left>"
+      // If we are in printout mode
+      IF gbPrint THEN
+      	sHTMLSource += ""
+      ELSE
+      	// Create the modification link
+      	sHTMLSource += StringBuild(CS_DIV_TITLE_MODIFICATION, sIdentifier)
+      END
+      
+      // End the title and add a line (separation between the title and the content)
+      sHTMLSource += "</div><hr align=left>"
+      
+      // Preamble & summary
+      sHTMLSource += "<div id=wikiPreamble class=wikiText style='position: relative;'>"
+      sHTMLSource += gclWIKIDocument:m_sHTMLPreamble
+      
+      // To prevent from generating the summary
+      IF Position(sWIKISource, "__NOTOC__") = 0 THEN
+      	sHTMLSource += sSummary
+      ELSE
+      	// Places the summary at the requested position
+      	IF Position(sHTMLSource, "__TOC__") > 0 THEN
+      		sHTMLSource = Replace(sHTMLSource, "__TOC__", sSummary)
+      	ELSE
+      		sHTMLSource = Replace(sHTMLSource, "__NOTOC__", "")
+      	END		
+      END
+      
+      
+      
+      // End of preamble & summary
+      sHTMLSource += "</div>"
+      
+      RESULT sHTMLSource
+     type : 458752
+   -
+     name : _FillWithTheBlocks
+     internal_properties : CAAAAAgAAACc5DH9pINECXKdivjFDjFqnwL9I4+RSyf0ZNr2/bvsPc4+Hsa/SrICAmDTtGgT4af4GaeSHxV3xpe6fD4iEriuT/OsaWLNO4Mci5t7fXvRXaSXvCcnKr/MXnM+3H94+pvZGCdN5im17iDTbumoQgnwh83BSIbfmsGIdTQ6MRHXTg3Hd8Xm2+TRpcoszEEtVK/fmDmcV5NtFdg3DdGWGZ2sPoYmump3
+     procedure_id : 1552269536402373699
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //_FillWithTheBlocks (<sHTMLSource>, <sIdentifier>)
+      //
+      // Parameters:
+      //	sHTMLSource: <specify the role of sHTMLSource>
+      //	sIdentifier: <specify the role of sIdentifier>
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _FillWithTheBlocks(sHTMLSource, sIdentifier)
+      
+      pclWIKIBlock is cWIKIBlock dynamic
+      
+      // Blocks
+      FOR ALL ELEMENT pclWIKIBlock of gclWIKIDocument:m_arrBlocks
+      	// Fills the HTML source
+      	sHTMLSource += "<br><div id=wikiBloc" + pclWIKIBlock:m_sID + " style='position: relative;border:1px solid #ffffff' class=wikiText>"
+      	
+      	// Anchor
+      	sHTMLSource += "<a name='" + pclWIKIBlock:m_sAnchor + "'></a>"
+      	
+      	// Title of the block
+      	sHTMLSource += "<div id=wikiBlockTitle" + pclWIKIBlock:m_sID + " align=left class=wikiBlockTitle>" + pclWIKIBlock:m_sHTMLSTATIC 
+      	IF gbPrint = False THEN
+      		sHTMLSource += StringBuild(CS_STYLE_WIKI_BLOCK, sIdentifier,pclWIKIBlock:m_sID)
+      	END
+      	
+      	sHTMLSource += "</div><hr align=left>"
+      	
+      	// Content of the block
+      	sHTMLSource += pclWIKIBlock:m_sHTMLContents
+      	
+      	// End of the block
+      	sHTMLSource += "</div>"
+      END
+      
+      // End of document
+      sHTMLSource += "</div>"
+     type : 458752
+   -
+     name : _ProcessElement
+     internal_properties : CAAAAAgAAAAmDRsbbm/bVXUDVt1o9/Zl3cdrC3SuCsDRthwAnWFeHEs8xd238vNdEYQftT7FALMIX2J562YYmpBIrOkcJAhjOUNEEXRgr3frWizQOGyHvpIw9Yln6ws4Czn+lWxGhSNvmvZ4Xn1ptgrhIUh+kv3IgTOMF4r1vHcguT0jO7W1fKwr9EeFG0+jPY/fizTQcJbVTgEPX4M5n76CTJ+LwHOi1LHGINi04QEq0ir/3OAnDTzTOIekjODbavGbbnVS
+     procedure_id : 1556959974508249470
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] _ProcessElement (<sHTMLsource>, <sLine>, <bUnescape>, <bModifiedLine>, <sWIKILastLine>)
+      //
+      // Parameters:
+      //	sHTMLSource: <specify the role of sHTMLSource>
+      //	sLine: <specify the role of sLine>
+      //	bUnescape: <specify the role of bUnescape>
+      //	bModifiedLine: <specify the role of bModifiedLine>
+      //	sWIKILastLine: <specify the role of sWIKILastLine>
+      // Return value:
+      // 	boolean: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _ProcessElement(sHTMLSource,sLine,bUnescape,bModifiedLine,sWIKILastLine)
+      
+      // Any line starting by a space will be displayed as it is
+      // (only if it is not a sub-element)
+      IF sLine[[1]] = " " THEN
+      	IF bUnescape = False THEN
+      		IF NoSpace(sLine)[[1]] <> "<" THEN	
+      			sHTMLSource += sLine[[2 TO]] + CR
+      			bModifiedLine = True	 			
+      			RESULT False
+      		END
+      	END
+      END	 		
+      
+      // If the line is empty, generate a carriage return (two CR characters are required to make one)
+      // (only if it is not a sub-element)
+      IF sLine = "" THEN
+      	sWIKILastLine = ""
+      	sHTMLSource += "<BR>"
+      	bModifiedLine = True
+      	RESULT False
+      END
+      
+      // PRE start tag
+      IF sLine[[TO 5]] ~= "<pre>" THEN
+      	bUnescape = True
+      	sHTMLSource += "<pre>"
+      	bModifiedLine = True				
+      	RESULT False
+      END
+      
+      // PRE end tag
+      IF sLine[[TO 6]] ~= "</pre>" THEN
+      	bUnescape = False
+      	sHTMLSource += "</pre>"
+      	bModifiedLine = True				
+      	RESULT False
+      END	
+      
+      // If we are positioned in a PRE tab, nothing must be interpreted as HTML text
+      IF bUnescape THEN
+      	sLine = TextToHTML(sLine) + CR
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : _RecreateAutomaticWIKI
+     procedure_id : 1556960352469326220
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //_RecreateAutomaticWIKI (<sLine>)
+      //
+      // Parameters:
+      //	sLine: <specify the role of sLine>
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _RecreateAutomaticWIKI(sLine)
+      
+      IF gbAutomaticCreationWikiURL THEN
+      	nDocPos is int = HSavePosition(WIKI)
+      	HReadFirst(WIKI)
+      	WHILE NOT HOut(WIKI)
+      		IF WIKI.Title <> gsCurrentDocument THEN
+      			sLine = ReplaceSensitive(sLine, WIKI.Title, "[[%1]]", False)
+      		END
+      		HReadNext(WIKI)		
+      	END
+      	HRestorePosition(nDocPos,hRPKeep)
+      END
+     type : 458752
+   -
+     name : WikiDiscuss
+     procedure_id : 1560376157254349413
+     type_code : 15
+     code : |1+
+      // Summary: Used to display the forum that discusses about this wiki => if no topic is defined, it is automatically created
+      // Syntax:
+      //WikiDiscuss (<nWIKIID>)
+      //
+      // Parameters:
+      // 	nWIKIID: Identifier of the Wiki about which we want to discuss
+      PROCEDURE WikiDiscuss(nWIKIID)
+      
+      nTopicID is int
+      
+      sGUID is string = HFSavePosition(WIKI..Name + ";" + WIKIAttach..Name)
+      
+      // Checks whether a topic was created for this WIKI
+      nTopicID = ParameterRead("TOPIC_WIKIID_" + nWIKIID, ForAll, 0)
+      
+      // If no topic was created yet
+      IF nTopicID = 0 THEN
+      	
+      	// Creates the topic
+      	nTopicID = TopicCreate(WIKI.Title, GetWIKIIDForum(), <§@1463155b001c84b40003§> + WIKI.Title, <§@1463155b001c84b40004§> + WIKI.Title + "'")
+      	
+      	// Saves the identifier of the topic associated with this WIKI
+      	ParameterWrite("TOPIC_WIKIID_" + nWIKIID, nTopicID, ForAll)
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      // Displays the topic in the forum
+      PageDisplay(PAGE_Forum_Messages, nTopicID)
+      
+      
+      
+     type : 458752
+   -
+     name : WIKIDelete
+     procedure_id : 1560386959448723938
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to delete a wiki
+      // Syntax:
+      //[ <Result> = ] WIKIDelete (<nWIKIID>)
+      //
+      // Parameters:
+      //	nWikiID: Identifier of the wiki to delete
+      // Return value:
+      // 	boolean: True if the wiki was deleted, False otherwise
+      //
+      PROCEDURE WIKIDelete(nWIKIID)
+      
+      
+      sGUID is string = HFSavePosition(WIKI..Name + ";" + WIKIAttach..Name)
+      bReturn is boolean
+      nTopicID is int
+      nOwnerID is int
+      sTitle is string
+      
+      
+      HReadSeekFirst(WIKI, WIKIID,nWIKIID)
+      IF HFound(WIKI) = False THEN RESULT False
+      
+      // Start deleting all the attachments
+      FOR EACH WIKIAttach WHERE WIKIID = WIKI.WIKIID
+      	
+      	// Delete the attachment
+      	ATTACHDelete(WIKIAttach.Key)
+      	
+      	// Delete the corresponding record
+      	HDelete(WIKIAttach)	
+      	
+      END
+      
+      // Save the owner of the wiki
+      nOwnerID = WIKI.UserID
+      sTitle = WIKI.Title
+      
+      // Delete the wiki itself
+      bReturn = HDelete(WIKI)
+      
+      HFRestorePosition(sGUID)
+      
+      // Deletes the affected topic (if necessary)
+      nTopicID = ParameterRead("TOPIC_WIKIID_" + nWIKIID, ForAll, 0)
+      IF nTopicID <> 0 THEN
+      	
+      	// There is a topic about this wiki
+      	// delete it
+      	TopicDelete(nTopicID)
+      END
+      
+      IF nOwnerID <> CurrentUser:UserID THEN
+      	
+      	// Sends the notifications
+      	NotificationSend(MODULE_WIKI,NOTIFICATION_WIKI_DELETION,StringBuild(<§@1463155b001c84b40005§>, sTitle), StringBuild(<§@1463155b001c84b40006§>, GetUserName(CurrentUser:UserID), sTitle))
+      	
+      END
+      
+      
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : WIKICreateNotification
+     procedure_id : 1562640176266275629
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to save a notification (addition or modification) for a WIKI
+      // Syntaxe :
+      //WIKICreateNotification (<sDocid> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sDocid : Identifier of the document
+      //	nUserID : Identifier of the user for whom the parameter must be written
+      
+      PROCEDURE WIKICreateNotification(sDocid, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      IF sDocid ~= "" THEN
+      	ParameterWrite(NOTIFICATION_WIKI_CREATION + "_" + MODULE_WIKI + "0_" + nUserID, "1")
+      ELSE
+      	ParameterWrite(NOTIFICATION_WIKI_MODIFICATION + "_" + MODULE_WIKI + sDocid + "_" + nUserID, "1")
+      END
+     type : 458752
+   -
+     name : WIKINotificationEnabled
+     procedure_id : 1562640386720836620
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to find out whether a notification is active 
+      // Syntaxe :
+      //[ <Résultat> = ] WIKINotificationEnabled (<sDocID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sDocID : Identifier of the wiki or "" for the global notification
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE WIKINotificationEnabled(sDocID, nUserID = CurrentUser:UserID)
+      
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      IF sDocID ~= "" THEN
+      	RESULT Val(ParameterRead(NOTIFICATION_WIKI_CREATION + "_" + MODULE_WIKI + "0_" + nUserID, ForAll,"0"))	
+      ELSE
+      	RESULT Val(ParameterRead(NOTIFICATION_WIKI_MODIFICATION + "_" + MODULE_WIKI + sDocID + "_" + nUserID, ForAll, "0"))
+      END
+     type : 458752
+   -
+     name : WIKINotificationDelete
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1562640446851571990
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to delete a notification
+      // Syntaxe :
+      //WIKINotificationDelete (<sDocid>, <sNotification> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sDocid : Identifier of the affected WIKI
+      //	sNotification : Affected notification => NOTIFICATION_WIKI_CREATION, NOTIFICATION_WIKI_MODIFICATION
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE WIKINotificationDelete(sDocid, sNotification,nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      // If the document is empty, it's the global wiki
+      IF sDocid~= "" THEN
+      	ParameterDelete(sNotification + "_" + MODULE_WIKI + "0_" + nUserID)	
+      ELSE
+      	ParameterDelete(sNotification + "_" + MODULE_WIKI + sDocid + "_" + nUserID)
+      END
+      
+      
+     type : 458752
+   -
+     name : WIKIGetTitle
+     procedure_id : 1569323648423349985
+     type_code : 15
+     code : |1-
+      // Summary: Returns the title of a WIKI
+      // Syntax:
+      //[ <Result> = ] WIKIGetTitle (<nWIKIID>)
+      //
+      // Parameters:
+      //	nWIKIID: Identifier of the WIKI
+      // Return value:
+      // 	string: Title of the requested WIKI
+      //
+      PROCEDURE WIKIGetTitle(nWIKIID)
+      
+      sGUID is string = HFSavePosition(WIKI..Name)
+      
+      HReadSeekFirst(WIKI, WIKIID, nWIKIID)
+      IF HFound(WIKI) THEN
+      	RETURN = WIKI.Title
+      ELSE
+      	RETURN = ""
+      END
+      
+      END:	
+      HFRestorePosition(sGUID)
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1463155b001c84b4
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "Error detected while loading WIKI: "
+     index : 0
+   -
+     text :
+      en-GB : "Don't hesitate to ask your questions on WIKI "
+     index : 3
+   -
+     text :
+      en-GB : Discussion about WIKI  '
+     index : 4
+   -
+     text :
+      en-GB : Deletion of %1 wiki
+     index : 5
+   -
+     text :
+      en-GB : "%1 deleted your WIKI (<%2>)"
+     index : 6
+   -
+     text :
+      en-GB : "<span class=wikiLink style='float:right;padding-right:20;background-color: #ffffff'>[<a href='javascript:WIKIEDITBLOCK(\"%1\",\"%2\");' onmouseover='document.getElementById(\"wikiBlock%2\").style.border=\"1px dashed #ffaaaa\";' onmouseout='document.getElementById(\"wikiBlock%2\").style.border=\"1px solid #ffffff\";'>modify</a>]</span>"
+     index : 7
+   -
+     text :
+      en-GB : "<span class=wikiLink style='float:right;padding-right:20;background-color: #ffffff'>[<a href='javascript:WIKIEDITDOC(\"%1\");' onmouseover='document.getElementById(\"wikiDocument\").style.border=\"1px dashed #ffaaaa\";' onmouseout='document.getElementById(\"wikiDocument\").style.border=\"1px solid #ffffff\";'>modify</a>]</span>"
+     index : 8
+   -
+     text :
+      en-GB : You are already notified when a topic is created in this forum.
+     index : 9
+   -
+     text :
+      en-GB : Do you want to delete this notification?
+     index : 10
+   -
+     text :
+      en-GB : " \"Delete\""
+     index : 11
+   -
+     text :
+      en-GB : No action
+     index : 12
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

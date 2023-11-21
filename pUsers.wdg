@@ -1,0 +1,1056 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pUsers
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1956177aec398fed
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of procedures for managing the users
+      
+      CONSTANT
+      	LOGIN_SYSTEM = "SYSTEM"
+      END
+     type : 720896
+  procedures :
+   -
+     name : GetUserName
+     procedure_id : 1825672515662024685
+     type_code : 15
+     code : |1+
+      // Summary: Returns the user name
+      // Syntax:
+      // [ <Result> = ] GetUserName (<nID>)
+      //
+      // Parameters:
+      // 	nID: Identifier of the user
+      // Return value:
+      // 	string: Name of the user
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE GetUserName(nID)
+      
+      // Local variables
+      sDisplayedName is string
+      sGUID 		is string
+      
+      IF nID = CurrentUser:UserID THEN
+      	
+      	// Retrieve the name to display
+      	sDisplayedName = CurrentUser:DisplayedName
+      	
+      	IF sDisplayedName ~= "" THEN
+      		// The name displayed is empty, take name + first name
+      		sDisplayedName = CurrentUser:Name + " " + CurrentUser:FirstName
+      		IF sDisplayedName ~= "" THEN
+      			// Name + first name is empty, take the login
+      			sDisplayedName = CurrentUser:Login
+      		END
+      	END
+      	
+      ELSE
+      	
+      	// Save the context
+      	sGUID = HFSavePosition(User..Name)
+      	
+      	HReadSeekFirst(User,UserID,nID)
+      	IF HFound(User) THEN
+      		
+      		// Retrieve the name to display
+      		sDisplayedName = User.DisplayedName
+      		IF sDisplayedName ~= "" THEN
+      			// The name displayed is empty, take name + first name
+      			sDisplayedName = User.Name + " " + User.FirstName
+      			IF sDisplayedName ~= "" THEN
+      				// Name + first name is empty, take the login
+      				sDisplayedName = User.Login
+      			END
+      		END
+      	END
+      	
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      	
+      END
+      
+      RESULT sDisplayedName
+     type : 458752
+   -
+     name : IsAdministrator
+     procedure_id : 1825672515662090221
+     type_code : 15
+     code : |1-
+      // Summary: Used to find out whether a user is administrator
+      // Syntaxe :
+      //[ <Résultat> = ] IsAdministrator ( [<nUserID> [, <bNoReading>]])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	bNoReading (valeur par défaut=0) : Pass True to avoid reading the record again (optimization: to use once the calling code is checked)
+      
+      // Return value:
+      // 	Undefined type: True if the user is administrator, False otherwise
+      PROCEDURE IsAdministrator(nUserID = CurrentUser:UserID, bNoReading = False)
+      
+      // Local variables
+      bIsAdministrator 	is boolean
+      sGUID 				is string
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT CurrentUser:IsAdministrator
+      END
+      
+      // Optimization: return the current status directly
+      IF bNoReading = True THEN RESULT User.IsAdministrator
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	bIsAdministrator = User.IsAdministrator
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bIsAdministrator
+     type : 458752
+   -
+     name : IsModerator
+     procedure_id : 1825672515662155757
+     type_code : 15
+     code : |1-
+      // Summary: Used to find out whether a user is moderator
+      // Syntaxe :
+      //[ <Résultat> = ] IsModerator ( [<nUserID> [, <bNoReading>]])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	bNoReading (valeur par défaut=0) : Pass True to avoid reading the record again (optimization: to use once the calling code is checked)
+      
+      // Return value:
+      // 	Undefined type: True if the user is moderator, False otherwise
+      PROCEDURE IsModerator(nUserID = CurrentUser:UserID, bNoReading = False)
+      
+      // Local variables
+      bIsModerator 	is boolean
+      sGUID 			is string
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT CurrentUser:IsModerator
+      END
+      
+      // Optimization: return the current status directly
+      IF bNoReading = True THEN RESULT User.IsModerator
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	bIsModerator = User.IsModerator
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bIsModerator
+     type : 458752
+   -
+     name : IsAdministratorOrModerator
+     procedure_id : 1825672515662221293
+     type_code : 15
+     code : |1-
+      // Summary: Used to find out whether a user is administrator and/or moderator
+      // Syntaxe :
+      //[ <Résultat> = ] IsAdministratorOrModerator ( [<nUserID> [, <bNoReading>]])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	bNoReading (valeur par défaut=0) : Pass True to avoid reading the record again (optimization: to use once the calling code is checked)
+      
+      // Return value:
+      // 	boolean: True if the user has the rights, False otherwise
+      PROCEDURE IsAdministratorOrModerator(nUserID = CurrentUser:UserID, bNoReading = False)
+      
+      // Local variables
+      bIsUserWithPower 	is boolean
+      sGUID 						is string
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT (CurrentUser:IsModerator OR CurrentUser:IsAdministrator)
+      END
+      
+      // Optimization: return the current status directly
+      IF bNoReading = True THEN RESULT (User.IsModerator OR User.IsAdministrator)
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	bIsUserWithPower = User.IsModerator OR User.IsAdministrator
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bIsUserWithPower
+     type : 458752
+   -
+     name : IsOwner
+     procedure_id : 1825672515662286829
+     type_code : 15
+     code : |1-
+      // Summary: Used to find out whether a user is the owner of a record in a file
+      // Syntaxe :
+      //[ <Résultat> = ] IsOwner (<sWHAT>, <nWhatID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sWHAT : File
+      //	nWhatID : Identifier of the record to test
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE IsOwner(sWHAT, nWhatID, nUserID = CurrentUser:UserID)
+      
+      // Local variables
+      bIsOwner 	is boolean
+      sGUID 				is string
+      
+      // Save the context
+      sGUID = HFSavePosition(sWHAT)
+      
+      // Protect the indirection
+      WHEN EXCEPTION
+      	ExceptionEnable()
+      	HFRestorePosition(sGUID)
+      	RESULT False
+      END
+      
+      // Generic search of the owner of an element
+      HReadSeekFirst(sWHAT, sWHAT + "ID", nWhatID)
+      IF HFound(User) THEN
+      	bIsOwner = ({sWHAT + ".UserID", indItem} = nUserID)
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bIsOwner
+     type : 458752
+   -
+     name : GetLogin
+     procedure_id : 1825672515662352365
+     type_code : 15
+     code : |1+
+      // Summary: Retrieves the login of a user
+      // Syntax:
+      //[ <Result> = ] GetLogin (<nID> [, <bNoReading>])
+      //
+      // Parameters:
+      //	nID: Identifier of the user
+      //	bNoReading (default value=0): Pass True to avoid reading the record again (optimization: to use once the calling code is checked)
+      // Return value:
+      // 	Undefined type: login of the user
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE GetLogin(nID, bNoReading = False)
+      
+      // Local variables
+      sName 		is string
+      sGUID 		is string
+      
+      // If he is the current user
+      IF nID = CurrentUser:UserID THEN
+      	RESULT CurrentUser:Login
+      END
+      
+      // Optimization: return the current status directly
+      IF bNoReading = True THEN RESULT User.Login
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,UserID,nID)
+      IF HFound(User) THEN
+      	sName = User.Login
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      RESULT sName
+      
+     type : 458752
+   -
+     name : ListGroupMembers
+     procedure_id : 1825672515662417901
+     type_code : 15
+     code : |1-
+      // Summary: Returns the list of users found in a group
+      // Syntaxe :
+      //[ <Résultat> = ] ListGroupMembers (<nUserID>, <sGroupTitle>)
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	sGroupTitle : Name of the group
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	string: list of users
+      PROCEDURE ListGroupMembers(nUserID, sGroupTitle)
+      
+      // Local variables
+      sListBox 		is string
+      sGUID 		is string
+      
+      // Save the context
+      sGUID = HFSavePosition(Group..Name)
+      
+      // Search for the group
+      HReadSeekFirst(Group,TitleByUser,[sGroupTitle,nUserID])
+      IF HFound(Group) = False THEN
+      	// Generic search
+      	HReadSeekFirst(Group,TitleByUser,[sGroupTitle,ForAll])
+      	IF HFound(Group) = False THEN
+      		dbgAssert(False,<§@1551c1ed018e1ac40000§>)
+      		RESULT ""
+      	END	
+      END
+      
+      // Store the list
+      sListBox = Group.List
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // Return the list
+      RESULT sListBox
+     type : 458752
+   -
+     name : GetEmailParametersSMTP
+     procedure_id : 1825672515662483437
+     type_code : 15
+     code : |1-
+      // Summary: Returns the parameters for sending emails for a user
+      // Syntaxe :
+      //[ <Résultat> = ] GetEmailParametersSMTP (<nUserID>, <sSenderAddress>, <sEmailSender>, <sUserSMTP>, <sSMTPPWD>, <sSMTPServer>, <nSMTPport>)
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	sSenderAddress : Full address of the sender
+      //	sEmailSender : Email of the sender
+      //	sUserSMTP : SMTP user name
+      //	sSMTPPWD : SMTP password
+      //	sSMTPServer : SMTP server
+      //	nSMTPport : SMTP port
+      
+      // Return value:
+      // 	boolean: True if the user has the rights to send emails and if his setting is performed, False otherwise
+      PROCEDURE GetEmailParametersSMTP(nUserID, sSenderAddress, sEmailSender, sUserSMTP, sSMTPPWD, sSMTPServer, nSMTPport)
+      
+      // Local variables
+      bReturn 	is boolean
+      sGUID 		is string
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Checks whether the user can receive/send emails
+      bEmailAllowed is boolean
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	bEmailAllowed = CurrentUser:EmailAllowed
+      ELSE
+      	// Search for the user 
+      	HReadSeekFirst(User, UserID, nUserID)
+      	IF HFound(User) THEN	
+      		bEmailAllowed = User.EmailAllowed
+      	END
+      END
+      
+      // If the user has the rights to receive/send emails
+      IF bEmailAllowed THEN
+      	
+      	// Setting
+      	HReadSeekFirst(EmailParameter, UserID, nUserID)
+      	IF HFound(EmailParameter) THEN
+      		
+      		// Sender
+      		sEmailSender 		= EmailParameter.Email
+      		sSenderAddress 		= EmailParameter.DisplayedName + " <" + EmailParameter.Email + ">"				
+      		sUserSMTP 	 		= EmailParameter.UserSMTP
+      		sSMTPPWD 	 		= Uncrypt(EmailParameter.SMTPPWD, csEncryptionPwd, cryptSecure, True)
+      		sSMTPServer 		= EmailParameter.SMTPSERVER
+      		nSMTPport 	 		= EmailParameter.SMTPPORT				
+      		
+      		IF sSMTPServer <> "" THEN
+      			bReturn = True		
+      		END
+      	END				
+      	
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : GetEmailParametersPOP
+     procedure_id : 1825672515662548973
+     type_code : 15
+     code : |1-
+      // Summary: Returns the parameters for receiving emails for a user
+      // Syntaxe :
+      //[ <Résultat> = ] GetEmailParametersPOP (<nUserID>, <sUserEmail>, <sUserPOP>, <sPwdPOP>, <sPOPServer>, <nPortPOP>)
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	sUserEmail : <specify the role of sUserEmail>
+      //	sUserPOP : POP user name
+      //	sPwdPOP : POP password
+      //	sPOPServer : POP server
+      //	nPortPOP : POP port
+      
+      // Return value:
+      // 	boolean: True if the user has the rights to receive emails and if his setting is valid, False otherwise
+      PROCEDURE GetEmailParametersPOP(nUserID, sUserEmail, sUserPOP, sPwdPOP, sPOPServer, nPortPOP)
+      
+      // Local variables
+      bReturn 	is boolean	
+      sGUID 		is string
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Checks whether the user can receive/send emails
+      bEmailAllowed is boolean
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	bEmailAllowed = CurrentUser:EmailAllowed
+      ELSE
+      	// Search for the user 
+      	HReadSeekFirst(User, UserID, nUserID)
+      	IF HFound(User) THEN	
+      		bEmailAllowed = User.EmailAllowed
+      	END
+      END
+      
+      // If the user has the rights to receive/send emails
+      IF bEmailAllowed THEN
+      	
+      	// Setting
+      	HReadSeekFirst(EmailParameter, UserID, nUserID)
+      	IF HFound(EmailParameter) THEN
+      		
+      		sUserPOP 	= EmailParameter.UserPOP
+      		sPwdPOP 	= Uncrypt(EmailParameter.PwdPOP, csEncryptionPwd, cryptSecure, True)
+      		sPOPServer = EmailParameter.POPServer
+      		nPortPOP 	= EmailParameter.PortPOP	
+      		sUserEmail = EmailParameter.Email			
+      		
+      		IF sPOPServer <> "" THEN
+      			bReturn = True		
+      		END
+      	END			
+      	
+      END	
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : GetID
+     procedure_id : 1825672515662614509
+     type_code : 15
+     code : |1-
+      // Summary: Finds the identifier of a user via his login
+      // Syntax:
+      // [ <Result> = ] GetID (<sLogin>)
+      //
+      // Parameters:
+      // 	sLogin: Login of the user
+      // Return value:
+      // 	integer: Identifier of the user
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE GetID(sLogin)
+      
+      // Local variables
+      nID 		is int
+      sGUID 		is string
+      
+      // If he is the current user
+      IF sLogin = CurrentUser:Login THEN
+      	RESULT CurrentUser:UserID
+      END
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,Login,sLogin)
+      IF HFound(User) THEN
+      	nID = User.UserID
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      RESULT nID
+     type : 458752
+   -
+     name : IsConnected
+     procedure_id : 1825672515662680045
+     type_code : 15
+     code : |1-
+      // Summary: Define whether a user is connected
+      // Syntaxe :
+      //[ <Résultat> = ] IsConnected ( [<nUserID>])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	boolean: True if the user is connected, False otherwise
+      PROCEDURE IsConnected(nUserID = CurrentUser:UserID)
+      
+      // Local variables
+      bConnected is boolean
+      sGUID 		is string
+      
+      IF CurrentUser:UserID = 0 THEN RESULT False
+      
+      // If he is the current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT True
+      END
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	bConnected = User.IsConnected
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bConnected
+     type : 458752
+   -
+     name : DisconnectUser
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672515662745581
+     type_code : 15
+     code : |1-
+      // Summary: Disconnects a user
+      // Syntaxe :
+      //[ <Résultat> = ] DisconnectUser ( [<nUserID>])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	boolean: True if the user was disconnected, False otherwise
+      PROCEDURE DisconnectUser(nUserID = CurrentUser:UserID)
+      
+      // Local variables
+      bReturn 	is boolean
+      sGUID 		is string
+      
+      // Don't disconnect in AWP mode
+      IF InAWPMode() = True THEN RESULT False
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	User.IsConnected = False
+      	HModify(User)
+      	bReturn = True
+      ELSE
+      	bReturn = False
+      END
+      
+      // Update the current user
+      FileToMemory(CurrentUser, User)
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      <SI CibleExécution=ApplicationWindows OU CibleExécution=Webservice OU CibleExécution=AssemblageDotNet OU CibleExécution=Java OU CibleExécution=ApplicationLinux32>
+      	
+      <SINON SI CibleExécution=SiteWindows>
+      	
+      	// Cleaning	
+      	DiscussionDisconnectUser()	
+      	SPIMDeleteMessage()
+      	
+      <FIN>
+      
+      
+      
+      // Empty the bin
+      BinDeleteAll()
+      
+      // Reset
+      VariableReset(CurrentUser)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : GetAvatar
+     procedure_id : 1825672515662811117
+     type_code : 15
+     code : |1-
+      // Summary: Returns the avatar of a user
+      // Syntax:
+      //[ <Result> = ] GetAvatar (<nID>)
+      //
+      // Parameters:
+      //	nID: Identifier of the user
+      // Return value:
+      // 	buffer: Avatar
+      //
+      PROCEDURE GetAvatar(nID)
+      
+      // Local variables
+      bufImage 		is buffer
+      bIsDeleted 	is boolean
+      sGUID 			is string
+      
+      IF nID = CurrentUser:UserID THEN
+      	bufImage = CurrentUser:Avatar
+      ELSE
+      	// Save the context
+      	sGUID = HFSavePosition(User..Name)
+      	
+      	// Search for the user	
+      	HReadSeekFirst(User,UserID,nID)
+      	IF HFound(User) THEN
+      		bufImage = User.Avatar
+      		bIsDeleted = User.IsDeleted
+      	END
+      	
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      END
+      
+      // Loads the default avatar
+      IF bufImage ~="" THEN
+      	bufImage = fLoadText(CompleteDir(fWebDir()) + "ext\default-avatar" + (bIsDeleted ? "-delete" ELSE "") + ".gif")
+      END
+      
+      RESULT bufImage
+     type : 458752
+   -
+     name : GetGroup
+     procedure_id : 1825672515662876653
+     type_code : 15
+     code : |1-
+      // Summary: Returns the default group of the user
+      // Syntax:
+      //[ <Result> = ] GetGroup (<nID>)
+      //
+      // Parameters:
+      //	nID: Identifier of the user
+      // Return value:
+      // 	string: Belonging group
+      //
+      PROCEDURE GetGroup(nID)
+      
+      // Local variables
+      sGUID 			is string
+      bReading		is boolean
+      
+      IF nID = CurrentUser:UserID
+      	// Save the context
+      	sGUID = HFSavePosition(User..Name)
+      	
+      	// Optimization: Search for the user
+      	HReadSeekFirst(User,UserID,nID)
+      	
+      	bReading = True
+      ELSE
+      	bReading = False
+      END
+      
+      // Defines the group of the user
+      SWITCH True
+      	CASE IsAdministrator(nID, bReading)
+      		RETURN = "Administrator"
+      		
+      	CASE IsModerator(nID, bReading)
+      		RETURN = "Moderator"
+      		
+      	CASE GetLogin(nID, bReading) <> ""
+      		RETURN = "Member"
+      		
+      	OTHER CASE
+      		RETURN = "Guest"
+      END
+      
+      END:
+      IF bReading THEN
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      END
+     type : 458752
+   -
+     name : ListMembersWithPower
+     procedure_id : 1825672515662942189
+     type_code : 15
+     code : |1-
+      // Summary: Returns the list of users with power
+      // Syntax:
+      //[ <Result> = ] ListMembersWithPower ([<bAdministrators> [, <bModerators>]])
+      //
+      // Parameters:
+      //	bAdministrators (default value=1): True if the administrators must be listed
+      //	bModerators (default value=1): True if the moderators must be listed
+      // Return value:
+      // 	string: List of users with power
+      //
+      PROCEDURE ListMembersWithPower(bAdministrators = True, bModerators = True)
+      
+      // Local variables
+      sCondition 	is string
+      sListBox 		is string
+      
+      // The administrators must be listed
+      IF bAdministrators THEN
+      	sCondition = "IsAdministrator=1"
+      END
+      
+      // The administrators must also be listed
+      IF bModerators THEN
+      	sCondition +=  [" OR "] + "IsModerator=1"
+      END
+      
+      // Retrieves the affected users
+      FOR EACH User WHERE sCondition
+      	// Don't take the deletes users
+      	IF User.IsDeleted = False THEN
+      		// Take the administrators and the moderators who do not want to receive the system notifications
+      		IF Val(ParameterRead("NOTIFICATIONS_INACTIVE", User.UserID, "0")) = 0 THEN
+      			sListBox += [CR] + User.UserID	
+      		END
+      	END		
+      END
+      
+      RESULT sListBox
+     type : 458752
+   -
+     name : IsDeleted
+     procedure_id : 1825672515663007725
+     type_code : 15
+     code : |1-
+      // Summary: Used to define whether a user was deleted
+      // Syntaxe :
+      //[ <Résultat> = ] IsDeleted (<nUserID>)
+      //
+      // This procedure is used to find out whether the user is deleted or not
+      
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	boolean: True if the user is deleted, False otherwise
+      PROCEDURE IsDeleted(nUserID)
+      
+      // Local variables
+      bIsDeleted 	is boolean
+      sGUID 		is string
+      
+      // Current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT CurrentUser:IsDeleted
+      END
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user
+      HReadSeekFirst(User,UserID,nUserID)
+      IF HFound(User) THEN
+      	bIsDeleted = User.IsDeleted
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      RESULT bIsDeleted
+     type : 458752
+   -
+     name : ListGroupMembersByGroupID
+     procedure_id : 1825672515663073261
+     type_code : 15
+     code : |1-
+      // Summary: Returns the list of members found in a group
+      // Syntaxe :
+      //[ <Résultat> = ] ListGroupMembersByGroupID (<nGroupID>)
+      //
+      // This procedure is used to retrieve the list of users belonging to a group
+      //
+      // Paramètres :
+      //	nGroupID : Identifier of the group whose members are requested
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	string: List of user IDs separated by ';'
+      PROCEDURE ListGroupMembersByGroupID(nGroupID)
+      
+      // Local variables
+      sListMembers 	is string
+      sGUID 			is string
+      
+      // Save the context
+      sGUID = HFSavePosition(Group..Name)
+      
+      // search for the group
+      HReadSeekFirst(Group, GroupID, nGroupID)
+      IF HFound(Group) THEN
+      	sListMembers = Group.List
+      ELSE
+      	sListMembers = Group.List
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT sListMembers
+     type : 458752
+   -
+     name : EmailAllowed
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672515663138797
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether a user has the rights to send an email
+      // Syntaxe :
+      //[ <Résultat> = ] EmailAllowed ( [<nUserID>])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	boolean: True if the user can send and receive emails from the outside, False otherwise
+      PROCEDURE EmailAllowed(nUserID = CurrentUser:UserID)
+      
+      // Local variables
+      bReturn 	is boolean
+      sGUID 		is string
+      
+      // Current user
+      IF nUserID = CurrentUser:UserID THEN
+      	RESULT CurrentUser:EmailAllowed
+      END
+      
+      // Save the context
+      sGUID = HFSavePosition(User..Name)
+      
+      // Search for the user	
+      HReadSeekFirst(User, UserID, nUserID)
+      IF HFound(User) THEN	
+      	// Can the user send and receive emails from the outside?
+      	bReturn = User.EmailAllowed	
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : GetUserSignature
+     procedure_id : 1825672515663204333
+     type_code : 15
+     code : |1+
+      // Summary: Returns the signature of a user
+      // Syntax:
+      //[ <Result> = ] GetUserSignature (<nID> [, <bHHCode>])
+      //
+      // Parameters:
+      //	nID: Identifier of the user
+      // 	bHHCode (default value=0): <specify the role of bHHCode>
+      // Return value:
+      // 	string: Signature of the user
+      //
+      PROCEDURE GetUserSignature(nID, bHHCode = False)
+      
+      // Local variables
+      sSign 		is string
+      sGUID 		is string
+      
+      // Uses the signature of the connected user if it's the case
+      IF nID = CurrentUser:UserID THEN 	
+      	sSign = CurrentUser:Signature
+      ELSE
+      	// Save the context
+      	sGUID = HFSavePosition(User..Name)
+      	
+      	// Search for the user	
+      	HReadSeekFirst(User,UserID,nID)
+      	IF HFound(User) THEN
+      		sSign = User.Signature
+      	END
+      	
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      END
+      
+      // If it's for a signature in the forum or in the messaging
+      IF bHHCode THEN
+      	// If the signature is not empty
+      	IF NOT sSign ~= "" THEN
+      		// Borders the signature with an horizontal line
+      		sSign = "<i><hr style='height:1px;border:none' color=#cecece />" + sSign + "</i>"
+      	END
+      END
+      
+      RESULT sSign
+      
+     type : 458752
+   -
+     name : HFCSEnableAdministratorRights
+     procedure_id : 1825672515663269869
+     type_code : 15
+     code : |1+
+      // Summary: Grants the HFSQLCS administrator rights to a user
+      // Syntax:
+      //HFCSEnableAdministratorRights (<cntConnection> is HFSQL connection, <sUser>)
+      //
+      // Parameters:
+      //	cntConnection (HFSQL connection): Connection
+      //	sUser: User
+      // Return value:
+      // 	None
+      //
+      PROCEDURE HFCSEnableAdministratorRights(ctConnection is connexion, sUser)
+      
+      // Grants the rights at file level
+      sListFiles is string
+      sFile	   is string
+      
+      sListFiles = HListFile(ctConnection)
+      FOR EACH string sFile of sListFiles SEPARATED BY CR
+      	HModifyFileRights(ctConnection, sUser, hRightsChangeRights , hAllowed, ctConnection..Database, sFile)
+      	HModifyFileRights(ctConnection, sUser, hRightsLock, hAllowed, ctConnection..Database, sFile)
+      END
+      
+      // Grants the management rights at database level
+      HModifyDatabaseRights(ctConnection, sUser, CS_RIGHTS_ADMIN_USERS, hAllowed, ctConnection..Database)
+      
+      // Grants the management rights at server level
+      HModifyServerRights(ctConnection, sUser, hRightsManageUser		, hAllowed)
+      HModifyServerRights(ctConnection, sUser, hRightsChangeRights				, hAllowed)
+      HModifyServerRights(ctConnection, sUser, hRightsSeeUser	, hAllowed)
+      
+      
+     type : 458752
+   -
+     name : HFCSDisableAdministratorRights
+     procedure_id : 1825672515663335405
+     type_code : 15
+     code : |1+
+      // Summary: Deletes the HFSQLCS administrator rights granted to a user
+      // Syntax:
+      //HFCSDisableAdministratorRights (<cntConnection> is HFSQL connection, <sUser>)
+      //
+      // Parameters:
+      //	cntConnection (HFSQL connection): Connection
+      //	sUser: User
+      // Return value:
+      // 	None
+      //
+      PROCEDURE HFCSDisableAdministratorRights(ctConnection is connexion, sUser)
+      
+      // Deletes the rights at file level
+      sListFiles is string
+      sFile	   is string
+      
+      sListFiles = HListFile(ctConnection)
+      FOR EACH string sFile of sListFiles SEPARATED BY CR
+      	HModifyFileRights(ctConnection, sUser, hRightsChangeRights , hForbidden, ctConnection..Database, sFile)
+      	HModifyFileRights(ctConnection, sUser, hRightsLock, hForbidden, ctConnection..Database, sFile)
+      END
+      
+      // Grants the standard rights at database level
+      HModifyDatabaseRights(ctConnection, sUser, CS_USER_RIGHTS, hAllowed, ctConnection..Database)
+      
+      // Deletes the management rights at database level
+      HModifyDatabaseRights(ctConnection, sUser, hRightsChangeRights, hForbidden, ctConnection..Database)
+      HModifyDatabaseRights(ctConnection, sUser, hRightsLock, hForbidden, ctConnection..Database)
+      
+      // Deletes the management rights at server level
+      HModifyServerRights(ctConnection, sUser, hRightsManageUser		, hForbidden)
+      HModifyServerRights(ctConnection, sUser, hRightsChangeRights				, hForbidden)
+      HModifyServerRights(ctConnection, sUser, hRightsSeeUser	, hForbidden)
+      
+      
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x1551c1ed018e1ac4
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Group not found
+     index : 0
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

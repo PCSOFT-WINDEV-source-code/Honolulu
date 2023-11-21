@@ -1,0 +1,662 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pOrganizer
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x196db91c27da4026
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Set of procedures for managing the organizer
+      
+      // Define the memory structure of a organizer event
+      STRUCT_EVENT is Structure
+      	nTaskID 				is int
+      	sTaskTitle 				is string
+      	sTaskDescription 		is string
+      	bIsRepeated 			is boolean
+      	sRepetitionPeriod 		is string
+      	dtStartDateTime 		is datetime
+      	dtEndDateTIme 			is datetime
+      	dTaskDuration 			is duration
+      	bIsDailyTask 			is boolean
+      	nPeriodicity 			is int
+      	nUserID 				is int	
+      END
+     type : 720896
+  procedures :
+   -
+     name : EventCreateGroup
+     procedure_id : 1832324153988562982
+     type_code : 15
+     code : |1-
+      // Summary: Creates an event for a group of users
+      // Syntaxe :
+      //[ <Résultat> = ] EventCreateGroup (<nGroupID>, <stEvent> est STRUCT_EVENT)
+      //
+      // Paramètres :
+      //	nGroupID : Identifier of the group of users
+      //	stEvent (STRUCT_EVENT) : Event that will be assigned to the group of users
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	boolean: True if the event was created, False otherwise
+      PROCEDURE EventCreateGroup(nGroupID, stEvent is STRUCT_EVENT)
+      
+      // Local variables
+      sUserList 		is string
+      sAUser 			is string
+      sGUID 					is string
+      
+      // Save the context
+      sGUID = HFSavePosition(Organizer..Name)
+      
+      // Retrieve all the members of the group
+      sUserList = ListGroupMembersByGroupID(nGroupID)
+      
+      // Check whether the task is possible (no other task at this time for all the users)
+      FOR EACH string sAUser of sUserList SEPARATED BY ";"
+      	
+      	IF EventPossible(Val(sAUser), stEvent) = False THEN
+      		// Event not possible for at least one user, return false
+      		RESULT False
+      	END
+      END
+      
+      // Starts a transaction
+      HTransactionStart()
+      
+      // Check whether the task is possible (no other task at this time for all the users)
+      FOR EACH string sAUser of sUserList SEPARATED BY ";"
+      	
+      	IF EventCreate(Val(sAUser), stEvent) = False THEN
+      		// Problem creating the event
+      		HTransactionCancel()		
+      		RESULT False
+      	END
+      END
+      
+      // Ends the transaction
+      HTransactionEnd()
+      
+      // Restores the context
+      HFRestorePosition(sGUID)
+      
+      // By default, the operation is performed without error
+      RESULT True
+     type : 458752
+   -
+     name : EventCreate
+     internal_properties : CAAAAAgAAAD1w1S6GB15vYaoSU7OMn1U1Tl/KQXPhTeC9N4q5d6eodp517994xktO35rxyhlL7IZYkrEpWNlhbqdhk5oqEDP9kopdf30m8rwfGuwMW+cLesfVjqsETwQGpxMn4qmpBikN5zjKqYaMHeWk/ZBQFIiDLKeIIiRwfYq/q5xP4P4zq+DNfZRXjYTKLyFam7u0q92GTOZ5Df/cTCuoxpRjhg+enmtvyGCQsENMRxqB9Ieza6ERmd1863zjq/S+Y/dD6cL5GVzh5mLsxRLG0ENhtpHqtoDD0HUKhVGUSUipSzTeJl69g==
+     procedure_id : 1832324153988628518
+     type_code : 15
+     code : |1-
+      // Summary: Creates an event for a user
+      // Syntaxe :
+      //[ <Résultat> = ] EventCreate (<nUserID>, <stEvent> est STRUCT_EVENT [, <nTaskID>])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	stEvent (STRUCT_EVENT) : Event that will be assigned to the user
+      //	nTaskID (valeur par défaut=0) : <specify the role of nTaskID>
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	boolean: True if the event was created, False otherwise
+      PROCEDURE EventCreate(nUserID, stEvent is STRUCT_EVENT, nTaskID = 0)
+      
+      // Local variables
+      duDuration 			is duration
+      sGUID 				is string
+      dhStartDateTime 	is datetime
+      dtEndDateTIme	 	is datetime
+      
+      // Save the context
+      sGUID = HFSavePosition(Organizer..Name)
+      
+      hreset(Organizer)
+      
+      // Add the event
+      Organizer.StartDateTime 		= stEvent:dtStartDateTime
+      Organizer.EndDateTIme 			= stEvent:dtEndDateTIme
+      Organizer.CreationDateTime 		= DateSys() + TimeSys()
+      Organizer.Description 			= stEvent:sTaskDescription
+      Organizer.Title 				= stEvent:sTaskTitle
+      Organizer.IsWholeDay 			= stEvent:bIsDailyTask
+      
+      IF stEvent:nPeriodicity > 1 THEN	
+      	
+      	// If the task is a recurring task, its duration must be expressed in hours
+      	dhStartDateTime 			= stEvent:dtStartDateTime
+      	dtEndDateTIme  			= stEvent:dtEndDateTIme	
+      	dtEndDateTIme..Date 	= dhStartDateTime..Date
+      	
+      	duDuration = DateTimeDifference(dhStartDateTime, dtEndDateTIme)
+      ELSE
+      	// In the other cases, the task can last several days
+      	duDuration = DateTimeDifference(stEvent:dtStartDateTime, stEvent:dtEndDateTIme)
+      END
+      
+      // Duration of the task
+      Organizer.Duration 				= StringToDuration(DurationToString(duDuration,durationMilli),durationMilli) +"0"
+      Organizer.UserID 		= nUserID
+      
+      // Update the periodicity
+      GetPeriodicity(stEvent:nPeriodicity, Organizer.IsRepeated, Organizer.RepetitionInterval)
+      
+      // Add the event
+      IF HAdd(Organizer) = False THEN	
+      	HErrorDuplicates()
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      	RESULT False
+      END
+      
+      nTaskID = Organizer.OrganizerID
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // By default, the operation is performed without error
+      RESULT True
+     type : 458752
+   -
+     name : GetPeriodicity
+     internal_properties : CAAAAAgAAADt7tmWZ6Bhv0e8MNLgPC8IKkzzp4T0DHUj9dpvi8Kp/cwkWpvVJZEbHxD0j5YN6S9I5ZLnATICi4xA5+YpiPkMM5hZS0PekMmtyzv8iqiu4ePY9Lb2yz1XhLv5PHkTd8LMr+2kiFgQnwCB6atWAUZXdE4hlSL609Q+7V/qDWpmg5L5xDr+T0GNZDzkW/GCngsWGW2t9QvtmenaA5Rrz+FLqyjjFPaZmng+ICJ34VNb9yDDQHc=
+     procedure_id : 1832324153988694054
+     type_code : 15
+     code : |1-
+      // Summary: used to retrieve a period from the value of the combo box
+      // Syntax:
+      //GetPeriodicity (<nPeriodicity>, <bIsRecurring>, <sDuration>)
+      //
+      // This procedure is used to retrieve a period from the value of the combo box
+      
+      // Parameters:
+      //	nPeriodicity: Value of the combo box
+      //	bIsRecurring: Boolean that will be set to true for a recurring task
+      //	sDuration: String that will be filled with the duration
+      
+      PROCEDURE RESTRICTED GetPeriodicity(nPeriodicity,bIsRepeated,sDuration)
+      
+      SWITCH nPeriodicity
+      
+      	CASE 1 // Sporadic
+      		bIsRepeated = False
+      		sDuration = ""
+      		
+      	CASE 2 // Every day
+      		bIsRepeated = True
+      		sDuration = "00000100000000"
+      		
+      	CASE 3 // Every week
+      		bIsRepeated = True
+      		sDuration = "00000700000000"
+      		
+      	CASE 4 // Every month
+      		bIsRepeated = True
+      		
+      		sDuration = "00010000000000"
+      		
+      	CASE 5 // Every quarter
+      		bIsRepeated = True
+      		sDuration = "00030000000000"		
+      		
+      	CASE 6 // Every semester
+      		bIsRepeated = True
+      		sDuration = "00060000000000"
+      		
+      	CASE 7 // Every year
+      		bIsRepeated = True
+      		sDuration = "01000000000000"
+      		
+      	OTHER CASE
+      		dbgAssert(False,<§@15ab501e09843bee0000§>)
+      		bIsRepeated = False
+      		sDuration = ""
+      END
+     type : 458752
+   -
+     name : EventPossible
+     internal_properties : CAAAAAgAAAACrW7IRzb5seiYNyGGBHu+uUb+ClbRHcYanPQBkeoKG0wJi7oplDBJQmo22E746a7q0uaDdmg1k5JO3Qb8rtThGRooDKgo3y4AqJIDKxAfREVKuoy8sT5dO2iTcy6zA6qqWXoqA8RoIxfCfZ5HxxpH4EZcDfust8y3PKvnDBzMARHTiwmqBUwp1/R2ftO3wiEjfJ9esdo=
+     procedure_id : 1832324153988759590
+     type_code : 15
+     code : |1-
+      // Summary: Detect whether an event can be assigned to a user
+      // Syntaxe :
+      //[ <Résultat> = ] EventPossible (<nUserID>, <stEvent> est STRUCT_EVENT)
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      //	stEvent (STRUCT_EVENT) : definition of the event
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	boolean: True if the event can be assigned to the user, False otherwise
+      PROCEDURE EventPossible(nUserID, LOCAL stEvent is STRUCT_EVENT)
+      
+      bPossible is boolean
+      
+      // Different calculation according to the type of event
+      IF stEvent:bIsDailyTask THEN
+      	
+      	// check whether the task does not interfere with another daily task
+      	// No daily event must be found in this date interval
+      	IF EventDayExist(stEvent:dtStartDateTime, stEvent:dtEndDateTIme, stEvent:nTaskID)=False THEN RESULT True
+      	
+      ELSE
+      	
+      	// -------------------
+      	// Rules for detection
+      	// -------------------
+      	//
+      	// For the specified user:
+      	// - No sporadic task must be found in the interval of the specified task
+      	// - No recurring task must have an occurrence found in the interval of the specified task
+      	// - The daily tasks must be ignored if the specified task is not a daily task
+      	// - If an existing task is specified, it is ignored
+      	// 
+      	
+      	STOrganizer is Structure
+      		OrganizerID is int
+      		UserID is int
+      		Title is string
+      		Description is string
+      		duration is duration
+      		IsRepeated is boolean
+      		RepetitionInterval is string
+      		IsWholeDay is boolean
+      		StartDateTime is datetime
+      		EndDateTIme is datetime
+      		CreationDateTime is datetime
+      	END
+      	
+      	// Defines the periodicity of the task
+      	GetPeriodicity(stEvent:nPeriodicity, stEvent:bIsRepeated, stEvent:sRepetitionPeriod)
+      	
+      	dtStartDateTimeRange is datetime
+      	dtEndDateTimeRange	  is datetime
+      	dtStartDateTimeOccurrence is datetime
+      	dtEndDateTimeOccurrence is datetime
+      	
+      	// Range for detection
+      	dtStartDateTimeRange = stEvent:dtStartDateTime
+      	dtEndDateTimeRange	  = stEvent:dtEndDateTIme
+      	dtStartDateTimeRange..Millisecond += 1
+      	dtEndDateTimeRange..Millisecond -= 1
+      	
+      	// Retrieves the existing tasks found in the specified interval
+      	QRY_Organizer_Tasks.pStartDate 			= dtStartDateTimeRange
+      	QRY_Organizer_Tasks.pEndDate 				= dtEndDateTimeRange
+      	QRY_Organizer_Tasks.pUserID 		= nUserID
+      	QRY_Organizer_Tasks.pIDTask 				= (stEvent:nTaskID <> 0 ? stEvent:nTaskID ELSE Null)
+      	QRY_Organizer_Tasks.pIsFullDay 	= False
+      	
+      	// Run the query	
+      	HExecuteQuery(QRY_Organizer_Tasks, hQueryBreakable)
+      	bPossible = NOT ErrorOccurred
+      	dbgAssert(bPossible, HErrorInfo())
+      	
+      	IF bPossible THEN
+      		
+      		n is int
+      		arrExistingTasks is array of STOrganizer
+      		arrOccurrenceSpecifiedTask is array of STOrganizer
+      		
+      		// Retrieves the list of tasks
+      		FOR EACH QRY_Organizer_Tasks
+      			
+      			// Store all the tasks included in the interval
+      			n = ArrayAdd(arrExistingTasks)
+      			
+      			// Calculate all the occurrences of the task
+      			IF QRY_Organizer_Tasks.IsRepeated THEN
+      				// First occurrence
+      				dtStartDateTimeOccurrence = QRY_Organizer_Tasks.StartDateTime
+      				dtEndDateTimeOccurrence   = dtStartDateTimeOccurrence + QRY_Organizer_Tasks.Duration
+      				
+      				WHILE dtStartDateTimeOccurrence < stEvent:dtEndDateTIme
+      					
+      					// Saves the occurrence as if it was a sporadic task
+      					n = ArrayAdd(arrExistingTasks)
+      					arrExistingTasks[n]:StartDateTime 	= dtStartDateTimeOccurrence
+      					arrExistingTasks[n]:EndDateTIme 	= dtEndDateTimeOccurrence
+      					arrExistingTasks[n]:Duration			= QRY_Organizer_Tasks.Duration
+      					arrExistingTasks[n]:OrganizerID			= QRY_Organizer_Tasks.OrganizerID
+      					
+      					// Next occurrence
+      					dtStartDateTimeOccurrence = GetNextOccurrence(dtStartDateTimeOccurrence, QRY_Organizer_Tasks.RepetitionInterval, QRY_Organizer_Tasks.EndDateTIme, True)	
+      					dtEndDateTimeOccurrence   = dtStartDateTimeOccurrence + QRY_Organizer_Tasks.Duration
+      				END
+      				
+      			ELSE			
+      				// Stores the only occurrence of the task
+      				FileToMemory(arrExistingTasks[n], QRY_Organizer_Tasks)
+      			END
+      			
+      			
+      		END
+      		
+      		// Frees the query and its results
+      		HCancelDeclaration(QRY_Organizer_Tasks)
+      		
+      		// Calculate all the occurrences of the specified task
+      		IF stEvent:bIsRepeated THEN
+      			
+      			// First occurrence
+      			dtStartDateTimeOccurrence = stEvent:dtStartDateTime
+      			dtEndDateTimeOccurrence   = dtStartDateTimeOccurrence + stEvent:dTaskDuration
+      			
+      			WHILE dtStartDateTimeOccurrence < stEvent:dtEndDateTIme
+      				
+      				// Saves the occurrence as if it was a sporadic task
+      				n = ArrayAdd(arrOccurrenceSpecifiedTask)
+      				arrOccurrenceSpecifiedTask[n]:StartDateTime 	= dtStartDateTimeOccurrence
+      				arrOccurrenceSpecifiedTask[n]:EndDateTIme 	= dtEndDateTimeOccurrence
+      				arrOccurrenceSpecifiedTask[n]:Duration			= stEvent:dTaskDuration
+      				arrOccurrenceSpecifiedTask[n]:OrganizerID			= stEvent:nTaskID
+      				
+      				// Next occurrence
+      				dtStartDateTimeOccurrence = GetNextOccurrence(dtStartDateTimeOccurrence, stEvent:sRepetitionPeriod, stEvent:dtEndDateTIme, True)	
+      				dtEndDateTimeOccurrence   = dtStartDateTimeOccurrence + stEvent:dTaskDuration
+      			END
+      			
+      		ELSE
+      			// Stores the only occurrence of the specified task
+      			n = ArrayAdd(arrOccurrenceSpecifiedTask)
+      			arrOccurrenceSpecifiedTask[n]:StartDateTime 	= stEvent:dtStartDateTime
+      			arrOccurrenceSpecifiedTask[n]:EndDateTIme 	= stEvent:dtEndDateTIme
+      			arrOccurrenceSpecifiedTask[n]:Duration			= stEvent:dTaskDuration
+      		END
+      		
+      		stTaskFound is STOrganizer
+      		stSpecifiedTask is STOrganizer		
+      		bComparison is boolean
+      		
+      		// Compares the tasks found and the occurrences of the specified task
+      		FOR ALL ELEMENT stSpecifiedTask of arrOccurrenceSpecifiedTask
+      			FOR ALL ELEMENT stTaskFound of arrExistingTasks
+      				
+      				// The occurrence of the specified task must not cross with the task found
+      				bComparison = 	(stSpecifiedTask:StartDateTime <= stTaskFound:StartDateTime <= stSpecifiedTask:EndDateTIme) _OR_ ...
+      				(stSpecifiedTask:StartDateTime <= stTaskFound:EndDateTIme <= stSpecifiedTask:EndDateTIme) _OR_ ...
+      				(stTaskFound:StartDateTime <= stSpecifiedTask:StartDateTime <= stTaskFound:EndDateTIme) _OR_ ...
+      				(stTaskFound:StartDateTime <= stSpecifiedTask:EndDateTIme <= stTaskFound:EndDateTIme)
+      				
+      				// If the comparison is true, the specified task crosses with the task found
+      				IF bComparison = True THEN
+      					// The specified task cannot be created: exit immediately
+      					bPossible = False
+      					BREAK
+      				END
+      			END		
+      			
+      			// If the specified task cannot be created anymore, exit immediately
+      			IF bPossible = False THEN
+      				BREAK
+      			END
+      		END
+      		
+      	END
+      	
+      	// Returns the result of the analysis
+      	RESULT bPossible
+      END
+      
+      // By default, the event cannot be created
+      RESULT False
+     type : 458752
+   -
+     name : EventDayExist
+     internal_properties : CAAAAAgAAAB8x7ieoDjJyKJKkaucnlloK4jIWNDjzkpV4LBZ6c4yp5DNO3qZyPQJ7oZiUJYEYcruHva7rjRxw16qEbbc2nw9VaZQ9FAMCz40TP51Xaqhiq8MfHoOcxgn9ZoV5cAtlTCsa4ww9fbahZmEXzBRySRNYtBWM53mwVYJ9vUBRuXDG/s1ZT9wb3JfCWYo/Enxy+AeZvGMhww=
+     procedure_id : 1832324153988825126
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: used to find out whether the daily tasks are already defined in a date interval
+      // Syntaxe :
+      //[ <Résultat> = ] EventDayExist (<dStartDate>, <dEndDate>, <nExcludedTaskID>)
+      //
+      // This procedure is used to find out whether the daily tasks are already defined in a date interval
+      
+      // Paramètres :
+      //	dStartDate : Start date of the search
+      //	dEndDate : End date of the search
+      //	nExcludedTaskID : Identifier of the task to exclude (in modification mode, the current task must be excluded)
+      
+      // Return value:
+      // 	boolean: True if one or more tasks exist in the specified date interval, False otherwise
+      PROCEDURE RESTRICTED EventDayExist(dStartDate, dEndDate, nExcludedTaskID)
+      
+      // Configure and run the query
+      QRY_Organizer_FindDailyTasks.pUserID 	= CurrentUser:UserID
+      QRY_Organizer_FindDailyTasks.pStartDate 		= dStartDate 	+ "000000000"
+      QRY_Organizer_FindDailyTasks.pEndDate 			= dEndDate		+ "235959999"
+      QRY_Organizer_FindDailyTasks.pIDTask 			= nExcludedTaskID
+      HExecuteQuery(QRY_Organizer_FindDailyTasks)
+      
+      // Reads the first result of the query
+      HReadFirst(QRY_Organizer_FindDailyTasks)
+      
+      // If the read operation cannot be performed, then no daily task exists in the specified interval
+      IF HOut(QRY_Organizer_FindDailyTasks) THEN
+      	RESULT False
+      ELSE
+      	// Otherwise, at least one daily task exists in the specified interval
+      	RESULT True
+      END
+     type : 458752
+   -
+     name : EventDelete
+     internal_properties : CAAAAAgAAAAIYxRyWux1sC7GDcNsEnkMT2RguNDPyrppxGzx6fJSU3xR+wKpjDDxQjoWUP5YuY6i0r7jvsitYxom1Sb0hkx5adLYtHhwjzbgiKLXX7SL+IkG5th4zbLRX3Svd7InXz4u9YYW3+Cs19se6VJb2zabJHL4SXfYm0A7uEf78Dcd6aVvF1U6eeTRu6h6toubjW4gskU46+A=
+     procedure_id : 1832324153988890662
+     type_code : 15
+     group : 3
+     code : |1-
+      // Sumary: Used to delete an event
+      // Syntax:
+      //[ <Result> = ] EventDelete (<nTaskID>)
+      //
+      // This procedure is used to delete a task
+      
+      // Parameters:
+      //	nTaskID: Identifier of the task to delete
+      
+      PROCEDURE EventDelete(nTaskID)
+      
+      // Is the user connected
+      IF IsConnected() = False THEN
+      	RESULT False	
+      END
+      
+      // Search for the event
+      HReadSeekFirst(Organizer,OrganizerID,nTaskID)
+      dbgAssert(HFound(Organizer),<§@15ab501e09843bee0001§>)
+      
+      // Delete the event
+      IF HFound(Organizer) THEN
+      	
+      	// Another check
+      	IF CurrentUser:UserID <> Organizer.UserID THEN
+      		// Only the owner of the task can delete it
+      		// We should never reach this point (via the interface) but added to ensure security during the ajax call
+      		RESULT False	
+      	END
+      	
+      	// Deletion
+      	RESULT HDelete(Organizer)
+      	
+      END
+      
+      // By default, the event is not deleted
+      RESULT False
+     type : 458752
+   -
+     name : EventModify
+     procedure_id : 1832324153988956198
+     type_code : 15
+     code : |1-
+      // Summary: used to modify an event
+      // Syntax:
+      //[ <Result> = ] EventModify (<stEvent> is STRUCT_EVENT)
+      //
+      // Parameters:
+      //	stEvent (STRUCT_EVENT): Definition of the event
+      // Return value:
+      // 	boolean: True if the event was modified, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      // 	nUserID: <specify the role of nUserID>
+      PROCEDURE EventModify(stEvent is STRUCT_EVENT)
+      
+      // Local variables
+      sGUID is string
+      sDuration is string
+      duDuration is duration
+      dhStartDateTime is datetime
+      dtEndDateTIme is datetime
+      
+      // Save the context
+      sGUID = HFSavePosition(Organizer..Name)
+      
+      // Search for the event
+      HReadSeekFirst(Organizer, OrganizerID, stEvent:nTaskID)
+      IF HFound(Organizer) = False THEN 
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      	RESULT False
+      END
+      
+      IF stEvent:nUserID <> CurrentUser:UserID THEN
+      	// We should never reach this point
+      	// return false rather than modifying a task for another user
+      	RESULT False
+      END
+      
+      // Add the event
+      Organizer.StartDateTime 			= stEvent:dtStartDateTime
+      Organizer.EndDateTIme 			= stEvent:dtEndDateTIme
+      Organizer.Description 				= stEvent:sTaskDescription
+      Organizer.Title 					= stEvent:sTaskTitle
+      Organizer.IsWholeDay 		= stEvent:bIsDailyTask
+      
+      IF stEvent:nPeriodicity > 1 THEN	
+      	
+      	// If the task is a recurring task, its duration must be expressed in hours
+      	dhStartDateTime 			= stEvent:dtStartDateTime
+      	dtEndDateTIme  			= stEvent:dtEndDateTIme	
+      	dtEndDateTIme..Date 	= dhStartDateTime..Date
+      	
+      	sDuration = DateTimeDifference(dhStartDateTime[[TO 16]], dtEndDateTIme[[TO 16]])
+      ELSE
+      	// In the other cases, the task can last several days
+      	sDuration = DateTimeDifference(stEvent:dtStartDateTime[[TO 16]], stEvent:dtEndDateTIme[[TO 16]])
+      END
+      
+      duDuration = StringToDuration(sDuration, durationCenti)
+      
+      Organizer.Duration 					= duDuration
+      Organizer.UserID			= CurrentUser:UserID
+      
+      // Update the periodicity
+      GetPeriodicity(stEvent:nPeriodicity,Organizer.IsRepeated,Organizer.RepetitionInterval)
+      
+      // Updating the database
+      IF HModify(Organizer) = False THEN
+      	// Restore the context
+      	HFRestorePosition(sGUID)	
+      	RESULT False	
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // By default, the operation is performed without error
+      RESULT True
+     type : 458752
+   -
+     name : GetNextOccurrence
+     internal_properties : CAAAAAgAAAA0j3DGSTDakcbmS2Wq6svu88CUvMJ/ea70/mAVVaAiv5IHgZypFrQ1zOSG6HaS1dr4wMRFJrJh4wQgwS7MiLxx45SqkqQeo4Iags5u2EECafqH/clx+u98GLXwKu/oqtPfNkXHeF0hytxfOgHoDF0EoYeDVqxBJDs0uTjiYdVr2rJsLpbT4kEcwBWHhTh4oSMlfplUz8Q=
+     procedure_id : 1832324153989021734
+     type_code : 15
+     code : |1-
+      // Summary: Retrieves the next occurrence in the organizer
+      // Syntax:
+      //[ <Result> = ] GetNextOccurrence (<dtStartDateTime>, <sRepetitionInterval> [, <dtMaxDateTime> [, <bAnOccurrence>]])
+      //
+      // Parameters:
+      //	dtStartDateTime: Start date
+      //	sRepetitionIntervalle: Interval
+      //	dtEndDateTime: End date
+      //	bAnOccurrence (default value=0): <specify the role of bAnOccurrence>
+      // Return value:
+      // 	datetime: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE GetNextOccurrence(dhStartDateTime, sRepetitionInterval, dtMaxDateTime = DateSys() + TimeSys(), bAnOccurrence = False)
+      
+      duDuration is duration
+      dtTaskDate is datetime
+      
+      // Retrieve the extended duration in duration format
+      duDuration = ExtendedDuration(sRepetitionInterval,dhStartDateTime)
+      dtTaskDate = dhStartDateTime
+      
+      
+      IF duDuration = 0 THEN
+      	dtTaskDate..Day ++
+      	RESULT dtTaskDate
+      END
+      
+      IF bAnOccurrence THEN
+      	dtTaskDate += duDuration
+      ELSE
+      	// As long as we are not positioned in the period that must be displayed
+      	WHILE dtTaskDate < dtMaxDateTime
+      		
+      		// retrieve the extended duration in duration format while taking the reference date into account
+      		duDuration = ExtendedDuration(sRepetitionInterval,dtTaskDate)
+      		// Increment the date
+      		dtTaskDate += duDuration
+      		
+      	END
+      END
+      
+      // Exit from the loop
+      RESULT dtTaskDate
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15ab501e09843bee
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Type of periodicity not supported
+     index : 0
+   -
+     text :
+      en-GB : Calendar not found in the database
+     index : 1
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

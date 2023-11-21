@@ -1,0 +1,1024 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pUtilities
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561781ecc8ada6
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAADtOGzl6/4J4e1pVibbt3cSM26DKfDaSMh+8dt5uLEkilSQF0VBhzwigwAl0Dw7w+BYWJISSKVpbDlyVVRJ5wPAyuzNGL41PxnE19IFJRQUP+FGd1FYO27J+if24W5rAuF3TcPhwMHWa9j2d7ohFCbGKoybnookoe9cZ7e9+zLOndLkCQtBZDEjwV04baO43INq0mh4yA==
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of utility procedures
+      
+      // Structure used to save a HFSQL position
+      STHFPosition is Structure
+      	arrHFPosition is array of 0 int
+      END
+      
+      // Structure used to manage a bin
+      STBIN is Structure
+      	sElementName  is string
+      	nElementType is int
+      END
+      
+      // Array for saving the HF positions
+      garrHFPosition is array of 0 STHFPosition
+      garrBin is array of 0 STBIN
+      
+      CONSTANT
+      	// Opening mode of an element
+      	cnCreationMode 		= 1
+      	cnModificationMode 	= 2
+      	
+      	// Size of the thumbnails
+      	thb48x48			= "48x48"
+      	thb32x32			= "32x32"
+      	thb16x16			= "16x16"
+      	
+      	// Encryption password
+      	csEncryptionPwd		= "honolulu.hfcs.wx11"
+      END
+     type : 720896
+  procedures :
+   -
+     name : Ellipsis
+     procedure_id : 1825672545736175014
+     type_code : 15
+     code : |1-
+      // Summary: Performs an ellipsis on a text
+      // Syntax:
+      //[ <Result> = ] Ellipsis (<sText>, <nMaxWidth>)
+      //
+      // Parameters:
+      //	sText: Text
+      //	nMaxWidth: Maximum width allowed
+      // Return value:
+      // 	string: Text in ellipsis
+      //
+      PROCEDURE Ellipsis(sText, nMaxWidth)
+      
+      // Local variables 
+      sEllipsisText is string
+      
+      // Initial copy of the text
+      sEllipsisText = sText
+      
+      // Arbitrary value, 9 pixels for a character
+      nNbChar is int
+      nNbChar = nMaxWidth / 9
+      
+      // Truncates the text if necessary
+      IF Length(sEllipsisText) > nNbChar THEN
+      	sEllipsisText = Truncate(sEllipsisText, nNbChar - 2) + "..."
+      END
+      
+      // Returns the text with ellipsis	
+      RESULT sEllipsisText
+     type : 458752
+   -
+     name : MIMEType
+     internal_properties : CAAAAAgAAAC0D/BG2khZWRaG603Ketue25DcXFr/Ad4cxtglbfhq10IPQeS5HrR9fDTW0PYi5UrgEIxl/pLZc0yIqc60sDT5I5w6ekQWk6rakv66ZN32ZfbbMd2V3oso5In0dqtU7o8b2vlbrCHtluhTTm00yMEgvZsX2vClYAfwrWz+faFPhs4AIurHJm1IPGlr8TRUVW6w/hnUT0Q=
+     procedure_id : 1825672545736240550
+     type_code : 15
+     code : |1-
+      // Summary: Returns a MIME type of a file
+      // Syntax:
+      //[ <Result> = ] MIMEType (<sFile>)
+      //
+      // Parameters:
+      //	sFile: Path of the file
+      // Return value:
+      // 	string: MIME type of the file
+      //
+      PROCEDURE MIMEType(sFile)
+      
+      // Local variables
+      sMIMEType 		is string
+      sExtension 		is string
+      
+      // Extracts the extension from the file name
+      sExtension = fExtractPath(sFile,fExtension)
+      
+      // Finds the MIME type associated with the extension
+      HReadSeekFirst(MIME, Extension, sExtension)
+      IF HFound(MIME) THEN
+      	sMIMEType = MIME.MIMEType
+      ELSE
+      	// MIME type unknown
+      	sMIMEType = "application/unknown"
+      END	
+      
+      RESULT sMIMEType
+     type : 458752
+   -
+     name : IconMIMEType
+     internal_properties : CAAAAAgAAAD27OS5s0RwC4Uq8wDgYisMWlj+BlZ0yYCStyvwczapv2qrR4qQcVx4p0wIknFulbxGhOAo6Sd8UcCRjIzYlpfKBQeXwNv3DbSfl8ctQcLfQL9OD8PoY8xI0kcJSEsSxHkWaKjIhV4GbgfP6pZOj/ps5M1iM5n+xY0rdZTNu14Ulont4iu8DiZLmo8SifzdVTtT+Tuc725iabXZXwSuysIBMlvUMNFxit0/yq/Qf8JVwBYQL45MaVcXGjgX3yx7gQ==
+     procedure_id : 1825672545736306086
+     type_code : 15
+     code : |1-
+      // Summary: Returns the icon associated with the MIME type of a file
+      // Syntax:
+      //[ <Result> = ] IconMIMEType (<sFile> [, <bThumbnail> [, <nThumbnailSize>]])
+      //
+      // Parameters:
+      //	sFile: Path of the file
+      //	bThumbnail (default value=0): True to retrieve a thumbnail of the icon, False to retrieve the icon
+      //	nThumbnailSize (default value="48x48"): Size of the thumbnail to retrieve (48x48, 32x32, 16x16)
+      // Return value:
+      // 	buffer: buffer of the icon
+      //
+      PROCEDURE IconMIMEType(sFile, bThumbnail = False, nThumbnailSize = thb48x48)
+      
+      // Local variables
+      bufIcon 		is buffer
+      sExtension 		is string
+      
+      // Extracts the extension from the file name
+      sExtension = fExtractPath(sFile,fExtension)
+      
+      // Finds the MIME type associated with the extension
+      HReadSeekFirst(MIME, Extension, sExtension)
+      IF HFound(MIME) THEN
+      	IF bThumbnail = False THEN
+      		
+      		// Standard size
+      		bufIcon = MIME.Icon
+      	ELSE
+      		// Thumbnail of the icon
+      		SWITCH nThumbnailSize				
+      			// 32x32
+      			CASE thb32x32
+      				bufIcon = MIME.Icon..Thumbnail[1]
+      				
+      			// 16x16
+      			CASE thb16x16
+      				bufIcon = MIME.Icon..Thumbnail[2]
+      				
+      			// Standard size
+      			OTHER CASE
+      				bufIcon = MIME.Icon
+      		END
+      	END
+      ELSE
+      	// MIME type unknown
+      	IF bThumbnail = False THEN
+      		
+      		// Standard size
+      		bufIcon = fLoadText(CompleteDir(fWebDir()) + "ext/mime/unknown.gif")
+      	ELSE
+      		SWITCH nThumbnailSize
+      			// 32x32
+      			CASE thb32x32
+      				bufIcon = fLoadText(CompleteDir(fWebDir()) + "ext/mime/unknown32x.gif")
+      			// 16x16
+      			CASE thb16x16
+      				bufIcon = fLoadText(CompleteDir(fWebDir()) + "ext/mime/unknown16x.gif")
+      				
+      			// Standard size
+      			OTHER CASE
+      				bufIcon = fLoadText(CompleteDir(fWebDir()) + "ext/mime/unknown.gif")
+      		END
+      	END
+      END	
+      
+      
+      
+      RESULT bufIcon
+     type : 458752
+   -
+     name : SYSTEMID
+     procedure_id : 1825672545736371622
+     type_code : 15
+     code : |1-
+      // Summary: Returns the ID of the system
+      // Syntax:
+      //[ <Result> = ] SYSTEMID ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	integer: Returns the ID of the system
+      //
+      PROCEDURE SYSTEMID()
+      
+      RESULT GetID(LOGIN_SYSTEM)
+     type : 458752
+   -
+     name : BrowserNotMSIE
+     procedure_id : 1825672545736437158
+     type_code : 15
+     code : |1-
+      // Summary: Define whether the browser is not Internet Explorer
+      // Syntax:
+      //[ <Result> = ] BrowserNotMSIE ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True if the browser is not Internet Explorer
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE BrowserNotMSIE()
+      
+      // The behavior of the procedure will differ according to the runtime platform
+      RESULT Position(Upper(BrowserName()), "FIREFOX") > 0 OR Position(Upper(BrowserName()), "NETSCAPE") > 0
+     type : 458752
+   -
+     name : ReplaceWildcard
+     procedure_id : 1825672545736502694
+     type_code : 15
+     code : |1-
+      // Summary: Replaces the jokers found in a string
+      // Syntax:
+      //[ <Result> = ] ReplaceWildcard (<sSourceString>, <sStringToReplace>, <sReplacementString> [, <nOptions>])
+      //
+      // Parameters:
+      //	sSourceString: String where the replacement must be performed
+      //	sStringToReplace: String that must be replaced (for example: Replace all the links: ReplaceWildcard(sSourceString,"<A*>","", IgnoreCase)
+      //	sReplacementString: String that must replace the source string
+      //	nOptions (default value=0): Options, only accepts the IgnoreCase constant at this time
+      // Return value:
+      // 	string: result string
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE ReplaceWildcard(sSourceString,sStringToReplace,sReplacementString,nOptions = 0)
+      
+      // Local variables
+      sReturnString 				is string  	// The string that will be returned
+      nPosition 					is int		// The position of the first block
+      nPositionFirstWildcard 		is int 		// The position of the first wildcard character (we only manage one at this time)
+      nPositionEndBlockSought 	is int 		// The position of the end of block (the block found after the wildcard character)
+      sStringBeforeWildcard 			is string		// The string found before the wildcard character
+      sStringAfterWildcard 			is string		// The string found after the wildcard character
+      
+      // Initialize the return string
+      sReturnString = sSourceString 
+      
+      // Searches for the wildcard character
+      nPositionFirstWildcard = Position(sStringToReplace, "*")
+      
+      // Retrieve the string found before the wildcard character
+      sStringBeforeWildcard = sStringToReplace[[ TO nPositionFirstWildcard -1]]
+      
+      // Get the string found after the wildcard character
+      sStringAfterWildcard = sStringToReplace[[nPositionFirstWildcard +1 TO ]]
+      
+      // In the source string, search for the characters found before the first wildcard character
+      nPosition = Position(sReturnString,sStringBeforeWildcard, 0, nOptions)
+      WHILE nPosition > 0
+      	
+      	// A position was found, search for the position of the string found after the wildcard character
+      	nPositionEndBlockSought = Position(sReturnString,sStringAfterWildcard, nPosition+1, nOptions)
+      	IF nPositionEndBlockSought > 0 THEN
+      		// A position was found, replace the string by the replacement string
+      		// Replace in the string
+      		sReturnString[[nPosition TO nPositionEndBlockSought + Length(sStringAfterWildcard)-1]] = sReplacementString
+      		
+      		// Recalculates the position (remove the entire block that was replaced)
+      		nPosition = Max(0, nPosition - (nPositionEndBlockSought + Length(sStringAfterWildcard)-1 - nPosition))
+      		// then add the size of the replacement string
+      		nPosition += Length(sReplacementString)
+      		
+      	END
+      	
+      	// Searches for the next position
+      	nPosition = Position(sReturnString,sStringBeforeWildcard, nPosition+1 , nOptions)	
+      END
+      
+      RESULT sReturnString
+     type : 458752
+   -
+     name : NaturalDateTime
+     internal_properties : CAAAAAgAAADhio2sN8xDE6sofP7sOK4qhczNf9RkcJVD5ervnzplodQ0qTy7hRGbbwBk7/atye/IVfL3sSISW4yABzY5uMl8Y1gJa6PekMk9mwsc6kjugUPIdGame41nxPsRJGH7/7pEVxX8INB4ByhJgdPeic7v7NaJDdoS29wGVTfSNVJu++oBzFK25+l1DGQcY9lqpiHFRzdfW31v46c0jQ6peZOhgSSHxxGFnnwiVPZ7DT2NebyHTHs=
+     procedure_id : 1825672545736568230
+     type_code : 15
+     code : |1-
+      // Summary: Returns a date/time in everyday's language (example: 15 minutes, Yesterday at 21:35, ...)
+      // Syntax:
+      //[ <Result> = ] NaturalDateTime (<dtDateTime> is datetime [, <bWithTime> [, <bDuration>]])
+      //
+      // Parameters:
+      //	dtDateTime (datetime): Date and time to transform
+      //	bWithTime (default value=0): <specify the role of bWithTime>
+      // 	bDuration (default value=0): <specify the role of bDuration>
+      // Return value:
+      // 	string: Date/Time in everyday language
+      //
+      PROCEDURE NaturalDateTime(LOCAL dtDateTime is datetime, bWithTime = False, bDuration = False)
+      
+      // Local variables
+      sSentence		 	is string
+      dtAjd 			is datetime
+      duDuration 		is duration
+      
+      // Calculates the duration 
+      dtAjd = Today + Now
+      IF NOT DateValid(dtDateTime..Date) THEN
+      	dtDateTime = dtAjd
+      END
+      duDuration = StringToDuration(DateTimeDifference(dtDateTime, dtAjd), durationCenti)
+      
+      SWITCH True
+      	// In the day
+      	CASE duDuration..Day = 0 AND dtDateTime..Day = dtAjd..Day
+      		
+      		IF bWithTime = False THEN RESULT <§@155097e8000ed2da001b§>
+      		
+      		SWITCH True
+      			// In the hour
+      			CASE duDuration..Hour = 0
+      				
+      				// Go to one minute if necessary
+      				IF duDuration..Minute = 0 THEN duDuration..Minute = 1
+      				
+      				IF duDuration..Minute < 0 THEN
+      					// The date is future
+      					sSentence = <§@155097e8000ed2da0001§> + Abs(duDuration..Minute) + StringBuild(<§@155097e8000ed2da0004§>, Abs(duDuration..Minute) > 1 ? "s" ELSE "")	
+      				ELSE
+      					// The date is passed
+      					IF bDuration THEN
+      						sSentence = "Since " + duDuration..Minute + StringBuild(<§@155097e8000ed2da0004§>, duDuration..Minute > 1 ? "s" ELSE "")	
+      					ELSE
+      						sSentence = duDuration..Minute + StringBuild(<§@155097e8000ed2da0004§>, duDuration..Minute > 1 ? "s" ELSE "") + " ago"	
+      					END
+      					
+      				END
+      				
+      				
+      			OTHER CASE
+      				IF duDuration..Hour < 0 THEN
+      					// future date
+      					sSentence = <§@155097e8000ed2da0001§> + Abs(duDuration..Hour) + StringBuild(<§@155097e8000ed2da0007§>, Abs(duDuration..Hour) > 1 ? "s" ELSE "")
+      					
+      				ELSE
+      					// Date passed
+      					IF bDuration THEN
+      						sSentence = "Since "+ duDuration..Hour + StringBuild(<§@155097e8000ed2da0007§>, duDuration..Hour > 1 ? "s" ELSE "")	
+      					ELSE
+      						sSentence = duDuration..Hour + StringBuild(<§@155097e8000ed2da0007§>, duDuration..Hour > 1 ? "s" ELSE "")	 + " ago"
+      					END
+      				END
+      				
+      				
+      		END
+      		
+      	// A day
+      	CASE duDuration..Day = 1, duDuration..Day = 0 AND dtDateTime..Day <> dtAjd..Day
+      		
+      		IF dtDateTime..Day < dtAjd..Day THEN
+      			sSentence = <§@155097e8000ed2da000a§> + TimeToString(dtDateTime..Time, "HH:MM AP")		
+      		ELSE
+      			sSentence = <§@155097e8000ed2da000b§> + TimeToString(dtDateTime..Time, "HH:MM AP")
+      		END
+      		
+      	// More than one day	
+      	CASE duDuration..Day > 1, duDuration..Day < 0
+      		
+      		// In the year
+      		IF dtDateTime..Year = dtAjd..Year THEN
+      			sSentence = DateToString(dtDateTime..Date, "DDD DD/MM")
+      		ELSE
+      			sSentence = DateToString(dtDateTime..Date, <§@155097e8000ed2da001d§>)
+      		END
+      		
+      		// Adds the hour if requested
+      		IF bWithTime THEN
+      			sSentence += <§@155097e8000ed2da000c§> + TimeToString(dtDateTime..Time, "HH:MM AP")
+      		END
+      		
+      END
+      
+      RESULT sSentence
+     type : 458752
+   -
+     name : ExtendedDuration
+     procedure_id : 1825672545736633766
+     type_code : 15
+     code : |1+
+      // Summary: Returns a duration (in hundredths of a second) according to a reference date
+      // Syntax:
+      //[ <Result> = ] ExtendedDuration (<sDuration> [, <dtReferenceDate>])
+      //
+      // Parameters:
+      //	sDuration: <specify the role of sDuration>
+      //	dtReferenceDate: <specify the role of dReferenceDate>
+      // Return value:
+      // 	duration: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE ExtendedDuration(sDuration, dtReferenceDate = Today() + Now())
+      
+      // Local variables
+      dDateTimeResult 	is datetime
+      nPosition 			is int
+      
+      // Initialization
+      dDateTimeResult 	= dtReferenceDate
+      nPosition 			= Length(sDuration)
+      
+      dDateTimeResult..Millisecond += sDuration[[nPosition-1 on 2]] + "0"
+      nPosition-=2
+      dDateTimeResult..Second += sDuration[[nPosition-1 on 2]]
+      nPosition-=2
+      dDateTimeResult..Minute += sDuration[[nPosition-1 on 2]]
+      nPosition-=2
+      dDateTimeResult..Hour += sDuration[[nPosition-1 on 2]]
+      nPosition-=2
+      dDateTimeResult..Day += sDuration[[nPosition-1 on 2]]
+      nPosition-=2
+      dDateTimeResult..Month += sDuration[[nPosition-1 on 2]]
+      nPosition-=2
+      
+      dDateTimeResult..Year += sDuration[[1 TO nPosition]]
+      
+      RESULT StringToDuration(DateTimeDifference(dtReferenceDate,dDateTimeResult),durationCenti)
+     type : 458752
+   -
+     name : LastDayOfTheWeekEx
+     procedure_id : 1825672545736699302
+     type_code : 15
+     code : |1-
+      // Summary: Returns the last day of the week for a specified date
+      // Syntax:
+      //[ <Result> = ] LastDayOfTheWeekEx (<dDate>)
+      //
+      // Parameters:
+      //	dDate: <specify the role of dDate>
+      // Return value:
+      // 	date: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE LastDayOfTheWeekEx(dDate)
+      
+      // Local variables
+      dLastDayOfWeek 	is date
+      dFirstDayOfWeek 	is date
+      
+      // Calculate the first day
+      dFirstDayOfWeek = FirstDayOfTheWeekEx(dDate)
+      
+      // Calculate the last day of the week
+      dLastDayOfWeek = dFirstDayOfWeek
+      dLastDayOfWeek..Day += 6
+      
+      RESULT dLastDayOfWeek
+     type : 458752
+   -
+     name : WeekNumberToDate
+     procedure_id : 1825672545736764838
+     type_code : 15
+     code : |1-
+      // Summary: Returns the date of the first day for the specified week number
+      // Syntax:
+      //[ <Result> = ] WeekNumberToDate (<nWeekNumber> [, <nYear>])
+      //
+      // Parameters:
+      //	nWeekNumber: <specify the role of nWeekNumber>
+      //	nYear: <specify the role of gnDisplayedYear>
+      // Return value:
+      // 	date: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE WeekNumberToDate(nWeekNumber, nYear = CurrentYear())
+      
+      // Local variables
+      dDate 		is date
+      nDay		is int
+      
+      // Position on the January 1st of this year
+      dDate..Month = 1
+      dDate..Day = 1
+      dDate..Year = nYear
+      
+      // Day of the week
+      nDay = DateToDay(dDate)
+      
+      // Position on the first Monday of the year
+      IF nDay <> 1 THEN
+      	dDate..Day += 8 - nDay
+      END
+      // Position on the 1st day of the specified week
+      dDate..Day += 7 * (nWeekNumber - 1)
+      
+      // Correction
+      LOOP
+      	IF WeekNumber(dDate) = nWeekNumber THEN BREAK	
+      	dDate..Day += 7
+      END
+      
+      RESULT dDate
+     type : 458752
+   -
+     name : FirstDayOfTheWeekEx
+     procedure_id : 1825672545736830374
+     type_code : 15
+     code : |1-
+      // Summary: Returns the date of the 1st day of the week corresponding to the specified date
+      // Syntax:
+      //[ <Result> = ] FirstDayOfTheWeekEx (<dDate>)
+      //
+      // Parameters:
+      //	ddate: <specify the role of ddate>
+      // Return value:
+      // 	date: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE FirstDayOfTheWeekEx(dDate)
+      
+      // Local variables
+      nCurrentDay 			is int
+      dFirstDayOfWeek 	is date
+      
+      // Calculate the start date of the week
+      // Retrieve the day of the week corresponding to the date that must be displayed
+      nCurrentDay = DateToDay(dDate)
+      dFirstDayOfWeek = dDate
+      
+      // subtract 1 from the day (on a Monday, to avoid going back one day)
+      nCurrentDay--
+      
+      // Subtract the number of days -1 to the current date, this brings us to the beginning of the week (date of day 1 => Monday)
+      dFirstDayOfWeek..Day -= nCurrentDay
+      
+      RESULT dFirstDayOfWeek
+     type : 458752
+   -
+     name : BinAddFile
+     procedure_id : 1825672545736895910
+     type_code : 15
+     code : |1-
+      // Summary: Adds a file to the bin
+      // Syntax:
+      //BinAddFile (<sFileName>)
+      //
+      // Parameters:
+      // 	sFileName: Path of the file that must be deleted during the disconnection
+      //
+      PROCEDURE BinAddFile(sFileName)
+      
+      // Local variables
+      nArraySubscript 		is int
+      
+      // If the file exists, add it
+      IF fFileExist(sFileName) THEN
+      	nArraySubscript = ArrayAdd(garrBin)
+      	garrBin[nArraySubscript]:nElementType = frFile
+      	garrBin[nArraySubscript]:sElementName = sFileName
+      END
+     type : 458752
+   -
+     name : BinAddDirectory
+     procedure_id : 1825672545736961446
+     type_code : 15
+     code : |1+
+      // Summary: Adds a directory to the bin
+      // Syntax:
+      //BinAddDirectory (<sDirectoryName>)
+      //
+      // This procedure is used to add a directory to the bin
+      
+      // Parameters:
+      // 	sDirectoryName: Path of the directory that must be deleted during the disconnection
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE BinAddDirectory(sDirectoryName)
+      
+      // Local variables
+      nArraySubscript 		is int
+      
+      // If the directory exists, add it
+      IF fDirectoryExist(sDirectoryName) THEN
+      	nArraySubscript = ArrayAdd(garrBin)
+      	garrBin[nArraySubscript]:nElementType = frFile
+      	garrBin[nArraySubscript]:sElementName = sDirectoryName
+      END
+     type : 458752
+   -
+     name : BinDeleteAll
+     procedure_id : 1825672545737026982
+     type_code : 15
+     code : |1+
+      // Summary: Deletes the content of the bin
+      // Syntax:
+      //BinDeleteAll ()
+      //
+      // This procedure is used to empty the bin
+      PROCEDURE BinDeleteAll()
+      
+      // Local variables
+      stElement is STBIN
+      
+      // Browse the array elements
+      FOR ALL ELEMENT stElement of garrBin
+      	IF stElement:nElementType = frFile THEN
+      		
+      		// It's a file, delete it
+      		fDelete(stElement:sElementName,frReadOnly)
+      		
+      	ELSE
+      		// It's a directory, delete it
+      		fRemoveDir(stElement:sElementName,frRecursive+frReadOnly)
+      		
+      	END
+      END
+     type : 458752
+   -
+     name : HFSavePosition
+     procedure_id : 1825672545737092518
+     type_code : 15
+     code : |1+
+      // Summary: Saves the context of one or more files
+      // Syntax:
+      //[ <Result> = ] HFSavePosition (<sListFiles>)
+      //
+      // Parameters:
+      //	sListFiles: List of files (separated by ";")
+      // Return value:
+      // 	string: GUID to keep for restoring the context
+      //
+      PROCEDURE HFSavePosition(sListFiles)
+      
+      // Local variables
+      sFile 			is string
+      sGUID 			is string
+      dtDateTime 		is datetime
+      stArrayPosition is STHFPosition
+      
+      // Initialization
+      dtDateTime = Today + Now
+      
+      // Browse the files
+      FOR EACH string sFile of sListFiles SEPARATED BY ";"
+      	
+      	// Saves the file in a list
+      	ArrayAdd(stArrayPosition:arrHFPosition, HSavePosition(sFile))
+      	
+      END
+      
+      // Saves the entire information
+      sGUID = ArrayAdd(garrHFPosition, stArrayPosition)
+      
+      RESULT sGUID
+     type : 458752
+   -
+     name : HFRestorePosition
+     procedure_id : 1825672545737158054
+     type_code : 15
+     code : |1-
+      // Summary: Restores the position saved by HFSavePosition
+      // Syntax:
+      //HFRestorePosition (<sGUID>)
+      //
+      // Parameters:
+      // 	sGUID: GUID returned by HFSavePosition
+      // Return value:
+      // 	None
+      //
+      PROCEDURE HFRestorePosition(sGUID)
+      
+      // Local variables
+      stArrayPosition 		is STHFPosition
+      nPosition 				is int
+      
+      // retrieves the list of positions saved
+      stArrayPosition = garrHFPosition[sGUID]
+      
+      // Browse the positions
+      FOR ALL ELEMENT nPosition of stArrayPosition:arrHFPosition
+      	
+      	// Restores the position
+      	HRestorePosition(nPosition)
+      	
+      END
+      
+      // Don't keep the position
+      ArrayDelete(garrHFPosition, sGUID)
+     type : 458752
+   -
+     name : CounterDecrement
+     procedure_id : 1825672545737223590
+     type_code : 15
+     code : |1-
+      // Summary: Decrements a counter
+      // Syntax:
+      //[ <Result> = ] CounterDecrement (<sCounter> [, <nIncrementValue>])
+      //
+      // Parameters:
+      //	sCounter: Counter to decrement
+      //	nIncrementValue (default value=-1): Step for decrementation
+      // Return value:
+      // 	integer: Value of the counter after decrement
+      //
+      PROCEDURE CounterDecrement(sCounter, nIncrementValue = -1)
+      
+      // Local variables
+      nResponseCounter 	is int
+      
+      // Decrement
+      nResponseCounter = CounterIncrement(sCounter, nIncrementValue)
+      
+      RESULT nResponseCounter
+     type : 458752
+   -
+     name : CounterIncrement
+     procedure_id : 1825672545737289126
+     type_code : 15
+     code : |1-
+      // Summary: Increments a counter
+      // Syntax:
+      //[ <Result> = ] CounterIncrement (<sCounter> [, <nIncrementValue>])
+      //
+      // Parameters:
+      //	sCounter: Counter to increment
+      //	nIncrementValue (default value=-1): Step for incrementation
+      // Return value:
+      // 	integer: Value of the counter after increment
+      //
+      PROCEDURE CounterIncrement(sCounter, nIncrementValue = 1)
+      
+      // Local variables
+      nResponseCounter 		is int
+      
+      // Increments the counter
+      nResponseCounter = ParameterRead(sCounter)
+      nResponseCounter += nIncrementValue
+      
+      IF nResponseCounter < 0 THEN nResponseCounter = 0
+      
+      // Saves the counter
+      ParameterWrite(sCounter, nResponseCounter)	
+      
+      RESULT nResponseCounter
+     type : 458752
+   -
+     name : ObjectCaption
+     procedure_id : 1825672545737354662
+     type_code : 15
+     code : |1+
+      // Summary: Returns the caption of an object
+      // Syntax:
+      //[ <Result> = ] ObjectCaption (<nIDObject>, <sModule> [, <nIntegerVal>])
+      //
+      // Parameters:
+      //	nObjectID: Object identifier
+      //	sModule: Name of relevant module
+      //	nIntegerVal (default value=0): Additional integer value returned
+      // Return value:
+      // 	Undefined type: // 	None
+      //
+      PROCEDURE ObjectCaption(nObjectID, sModule, nIntegerVal = 0)
+      
+      
+      SWITCH sModule
+      	CASE MODULE_NEWS
+      		RESULT NewsGetTitle(nObjectID)
+      		
+      	CASE MODULE_BLOGS
+      		RESULT BlogCaption(nObjectID)
+      		
+      	CASE MODULE_WIKI
+      		RESULT WIKIGetTitle(nObjectID)
+      		
+      	CASE MODULE_FORUM + "_FORUM"
+      		RESULT ForumCaption(nObjectID)
+      		
+      	CASE MODULE_FORUM + "_TOPIC"
+      		RESULT TopicCaption(nObjectID, nIntegerVal)
+      		
+      	OTHER CASE
+      		RESULT ""		
+      END// Syntax:
+     type : 458752
+   -
+     name : BrowserCheckCompatibility
+     internal_properties : CAAAAAgAAAC1eAL4kdXSBO79DYuoCNjmrAfXon1m51SIJdAexNG+i/9hrppy0IoODQ219VDtUxrduYgqcq9kD5l+P2loENDTUvc63pQGbDog+b+BTfBprT5LKtdKf5K0P8lzunYxj7udzAS19pWjqTkVYoizgrGf9K4nNA8GyQI1vmio/zMz/i/2b5jWyfkNoUOD96gAzKHwGW+9l1kVAyyv+Oq27SlMTCu4Pr7ycZ2AeE7jX1+VK81r5pznZXA1VonvdoAAuysvU3jCL8tbJ3MzE/tpfzJHulygjT+FXXDZeNLPQnU=
+     procedure_id : 1825672545737485734
+     type_code : 15
+     code : |1+
+      // Summary: Checks the compatibility with the browsers
+      // Syntax:
+      // BrowserCheckCompatibility ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE BrowserCheckCompatibility()
+      
+      sBrowserInfo is string
+      sBrowserInfo = ExtractString(SysEnvironment("HTTP_USER_AGENT"), 2, "=")
+      
+      rVersion is real
+      
+      // Stores the compatible version of Mozilla
+      CurrentClientBrowser:MozillaVersion = Val(ExtractString(Lower(sBrowserInfo), 2, "mozilla/"))
+      
+      // Stores the USER_AGENT
+      CurrentClientBrowser:UserAgent = sBrowserInfo
+      
+      // Internet Explorer 6.0 or later
+      IF Position(sBrowserInfo, "MSIE") > 0 THEN
+      	CurrentClientBrowser:Acronym = "MSIE"
+      	
+      	rVersion = Val(ExtractString(sBrowserInfo, 2, "MSIE"))
+      	CurrentClientBrowser:Version = rVersion
+      	
+      	IF rVersion < 6.0 THEN rVersion = 0
+      	RETURN
+      END
+      
+      // Firefox 1.5 or later
+      IF Position(sBrowserInfo, "Firefox") > 0 THEN
+      	CurrentClientBrowser:Acronym = "FIREFOX"
+      	
+      	rVersion = Val(ExtractString(sBrowserInfo, 2, "Firefox/"))
+      	CurrentClientBrowser:Version = rVersion
+      	
+      	IF rVersion < 1.5 THEN rVersion = 0
+      	RETURN
+      END	
+      
+      // Netscape 8.0 or later
+      IF Position(sBrowserInfo, "Netscape") > 0 THEN
+      	CurrentClientBrowser:Acronym = "NETSCAPE"
+      	
+      	rVersion = Val(ExtractString(sBrowserInfo, 2, "Netscape/"))
+      	CurrentClientBrowser:Version = rVersion
+      	
+      	IF rVersion < 8.0 THEN rVersion = 0
+      	RETURN
+      END	
+      
+      // Opera 9
+      IF Position(sBrowserInfo, "Opera") > 0 THEN
+      	CurrentClientBrowser:Acronym = "OPERA"
+      	
+      	rVersion = Val(ExtractString(sBrowserInfo, 2, "Opera/"))
+      	CurrentClientBrowser:Version = rVersion
+      	
+      	IF rVersion < 9.0 THEN rVersion = 0
+      	RETURN
+      END	
+      
+      // For the other browsers, Mozilla 5.0 or later
+      IF rVersion = 0 THEN
+      	IF Position(sBrowserInfo, "Mozilla") > 0 THEN
+      		CurrentClientBrowser:Acronym = "MOZILLA"
+      		
+      		rVersion = Val(ExtractString(sBrowserInfo, 2, "Mozilla/"))
+      		CurrentClientBrowser:Version = rVersion
+      		
+      		IF rVersion < 5.0 THEN rVersion = 0
+      	END
+      END
+      
+      END:
+      
+      IF rVersion = 0 THEN
+      	PageDisplay(PAGE_Error, <§@155097e8000ed2da0019§> + CR + CR + sBrowserInfo)
+      END
+     type : 458752
+   -
+     name : LogError
+     procedure_id : 1830495972102063578
+     type_code : 15
+     code : |1+
+      // Summary: Procedure for managing the errors
+      // Syntaxe :
+      //[ <Résultat> = ] LogError ()
+      //
+      // Paramètres :
+      //	Aucun
+      
+      PROCEDURE LogError()
+      
+      // Loads the status report of the error
+      sLog is string
+      sLog = fLoadText(fDataDir() + "\error.log")
+      
+      // Fills the status report of the error
+      sLog += [CR] + ...
+      "====================" + CR + ...
+      Today + TimeSys + " - IDSESSION=" + gsIdentifier + <§@155097e8000ed2da001a§> + CR + ...
+      ExceptionInfo(errFullDetails)
+      
+      // Saves the status report of the error
+      fSaveText(fDataDir() + "\error.log", sLog)
+      
+      RESULT opCancel
+      
+     type : 458752
+   -
+     name : HonoluluURL
+     procedure_id : 1830496191147609800
+     type_code : 15
+     code : |1+
+      //[ <Result> = ] URLHonolulu ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      // 	string: //  	 	None
+      PROCEDURE HonoluluURL()
+      
+      // Local variables
+      sURL is string
+      
+      // Retrieve the full address
+      sURL = PageAddress("", paFULL)
+      
+      // Add the connection string
+      sURL = sURL[[TO PositionOccurrence(sURL, "/", 5)]] + "CONNECT/HONOLULU"
+      
+      RESULT sURL
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x155097e8000ed2da
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "In "
+     index : 1
+   -
+     text :
+      en-GB : "There are "
+     index : 3
+   -
+     text :
+      en-GB : " minute%1"
+     index : 4
+   -
+     text :
+      en-GB : " hour%1"
+     index : 7
+   -
+     text :
+      en-GB : "Yesterday, "
+     index : 10
+   -
+     text :
+      en-GB : "Tomorrow, "
+     index : 11
+   -
+     text :
+      en-GB : " at "
+     index : 12
+   -
+     text :
+      en-GB : "From "
+     index : 24
+   -
+     text :
+      en-GB : "Honolulu is using the latest Internet and Web 2.0 technologies.\r\nThese technologies are not supported by your browser and you cannot connect to  Honolulu.\r\n\r\nWe recommend that you upgrade your Internet browser to:\r\n- Internet Explorer 6.0 or later\r\n- Firefox 1.5 or later"
+     index : 25
+   -
+     text :
+      en-GB : " - WLanguage error: "
+     index : 26
+   -
+     text :
+      en-GB : Today
+     index : 27
+   -
+     text :
+      en-GB : MM/JJ/AAAA
+     index : 29
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
+associated_test :
+ name : TEST_pUtilitaires.wxt

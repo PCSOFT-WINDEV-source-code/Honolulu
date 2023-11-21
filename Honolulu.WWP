@@ -1,0 +1,2388 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : Honolulu
+ major_version : 28
+ minor_version : 0
+ type : 4097
+ description : PC SOFT Honolulu
+ subtype : 0
+project :
+ identifier : 0x0
+ internal_properties : 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
+ configurations :
+  -
+    name : Honolulu
+    internal_properties : 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
+    configuration_id : 15413203515784950470
+    type : 2
+    generation_name : Honolulu.wdl
+    version :
+     version : 14.00Av
+    index_page_generation_name : PAGE_Index
+    language : 2
+    64bits : true
+ elements :
+  identifier : 0x4cdd432e0479c2bb
+  elements :
+   -
+     name : PAGE_Index
+     identifier : 0x462880e900005950
+     internal_properties : CAAAAAgAAAC5leElgv+3uB397YmixCU7L4J+5tnv8ZDcZXDIcLbkbEhEEZISNt6qXtrEPMQ8xDScpA==
+     physical_name : .\PAGE_Index.wwh
+     type : 65538
+   -
+     name : QRY_Discussion_ListMessagesPerPerson
+     identifier : 0x45c341dd002b680d
+     internal_properties : CAAAAAgAAADva8fb6JWdThcDB6eYC1vd3ZqQgCQdMj+h9g3OOFFFq21XPtXcbAhUNODaJu7inhL6eg==
+     physical_name : .\QRY_Discussion_ListMessagesPerPerson.WDR
+     type : 5
+   -
+     name : QRY_Blogs_Posts
+     identifier : 0x45c341da00235b3b
+     internal_properties : CAAAAAgAAACutIaaKVbekVREWGDJbXb4bC27Y0fwiRiLeliyMme1Y5215k1rnUcV9SGbZS2jX1G7uw==
+     physical_name : .\QRY_Blogs_Posts.WDR
+     type : 5
+   -
+     name : QRY_Links_Find
+     identifier : 0x45c341e2003579df
+     internal_properties : CAAAAAgAAADySCp+zbryLQDg5Iy1OsJMWOuXDzVuK9ugO1D76YCcROB+Ofq/QeOxUc03gQH/++3XXw==
+     physical_name : .\QRY_Links_Find.WDR
+     type : 5
+   -
+     name : PAGE_Login
+     identifier : 0x45c7068f0000c9df
+     internal_properties : CAAAAAgAAACSaMre7VrSjaBARGzVWy4YAE0P12PJQ7eug/HVQNU/wUfLiBufoUMR8S2XYSHfmw33fw==
+     physical_name : .\PAGE_Login.wwh
+     type : 65538
+   -
+     name : QRY_Organizer_GetProfile
+     identifier : 0x45c341d9002157d0
+     internal_properties : CAAAAAgAAAD6UCJmRQIqNQj47JStxKb4eC9332n6hEVO7OU1hzJinqao76QHOdupWcU/uXl3A/XfZw==
+     physical_name : .\QRY_Organizer_GetProfile.WDR
+     type : 5
+   -
+     name : pMessaging
+     identifier : 0x45c341cc000e267f
+     internal_properties : CAAAAAgAAACppZH1Mm9HaE0tHVmSGvlv96bu9jRn15GsNVj/QfQeIiIiW8jiZg5aDgr0zFSMdGSstA==
+     physical_name : .\pMessaging.wdg
+     type : 7
+   -
+     name : PAGE_EngineError
+     identifier : 0x45e43ac5000416d2
+     internal_properties : CAAAAAgAAAAWfH6iAX42OZx8YAghSi4YBEdza+0QNbo+VVUlzVi8vEDOiRqTtV8t3VlDvUW7R7kDAw==
+     physical_name : .\PAGE_EngineError.wwh
+     type : 65538
+   -
+     name : PAGE_DirectoryPortal
+     identifier : 0x45c8a96f0005cf8e
+     internal_properties : CAAAAAgAAADudMba6ZaeURQEGKCJI6KctIEDC6fOB7tOb4VuYLVngU+zgBOrXQdVNeHbJe3jnxH7ew==
+     physical_name : .\PAGE_AddressBookPortal.wwh
+     type : 65538
+   -
+     name : PAGE_Forum_Search
+     identifier : 0x45caf55100011d40
+     internal_properties : CAAAAAgAAAA+JBYKuebO4eSUaBDZZea4vO27kxM+y72xtrTEVr9dm6Wt7iWbrVclxXFrVd0T7+ErKw==
+     physical_name : .\PAGE_Forum_Search.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_GetPwd
+     identifier : 0x45c7414d000b4147
+     internal_properties : CAAAAAgAAABcOrTg34Ssvwbi4o63RIxi+q356dMhmZtUkNtuS/qaVuJoEwC9Q+GvU8/JN//xiX9JyQ==
+     physical_name : .\PAGE_Admin_GetPwd.wwh
+     type : 65538
+   -
+     name : QRY_Organizer_FindDailyTasks
+     identifier : 0x45c341d7001d50bc
+     internal_properties : CAAAAAgAAADKQDLW1ZKaRRjIPET9u9ZASOWX33+wJUqN/pqwtPWfcYe7+Dt3iSt5adXPKennkwXPVw==
+     physical_name : .\QRY_Organizer_FindDailyTasks.WDR
+     type : 5
+   -
+     name : PAGE_SharesPortal
+     identifier : 0x45d03d0e00043875
+     internal_properties : CAAAAAgAAAD4ViB8y/C44/qWVhLbmuxCfn0FXWOv9QfMYg4KhYAc5BzW/SaZr1Ujx3NtS8sF/fPdZQ==
+     physical_name : .\PAGE_PortalShares.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_ListGroups
+     identifier : 0x45c740e30007a412
+     internal_properties : CAAAAAgAAABUMrz4x7z0914KegY//xQCipvRGcnzMkBW7Wjh7CnjNcd/OHs1y2k3KxeBfwf5gXdBwQ==
+     physical_name : .\PAGE_Admin_ListGroups.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_SharesSubsc
+     identifier : 0x45c740dc000389b4
+     internal_properties : CAAAAAgAAAD5VSFlQj93eN29rcli1CUbD0LeRniX9zLZX8XVX4YUPPgUQWJS9p7qnpoE/IR8BPTcZA==
+     physical_name : .\PAGE_Admin_SharesSubsc.wwh
+     type : 65538
+   -
+     name : QRY_Messaging_MessagesReceived
+     identifier : 0x45c341e4003a81bf
+     internal_properties : CAAAAAgAAADwTih0s+jA2/KejioD9gTidiVt9c9wWCOsazDb7axg4GDikYIx133Lv3tlU9MN9evVXQ==
+     physical_name : .\QRY_Messaging_MessagesReceived.WDR
+     type : 5
+   -
+     name : QRY_Blogs_Archives
+     identifier : 0x45c341d9002259d4
+     internal_properties : CAAAAAgAAACZ9UFFYt9XWH0dDamCRolnh6beBjjJ5VqqgQnJaTDiLsZ+HwSyVv5KPvrk3KRcJJR8hA==
+     physical_name : .\QRY_Blogs_Archives.WDR
+     type : 5
+   -
+     name : PAGE_Preview
+     identifier : 0x45ed3ae20001aec7
+     internal_properties : CAAAAAgAAABo5lBMeyCIk6pGRmLLsDAezuGd3edLtNKduNpYN/6eaoZEV1xpn0UT9yOdG5tVLaNt9Q==
+     physical_name : .\PAGE_Preview.wwh
+     type : 65538
+   -
+     name : QRY_Links_Last5
+     identifier : 0x45d4951200012e7a
+     internal_properties : CAAAAAgAAACgnpiEIxgQy+KO/rqzSaTiHiNN7VX+Z3CHFVGCdgOJr1X5nvXBR+27r2tVo2OdZVulrQ==
+     physical_name : .\QRY_Links_Last5.WDR
+     type : 5
+   -
+     name : QRY_Blogs_TotalComments
+     identifier : 0x45f68ad600013286
+     internal_properties : CAAAAAgAAAA7F2OnBEHp8sunq8ts0x/hMb6EBCh5ViuMvmWuWCH922WPJn1I+JzomIR+ejq2QrYeJg==
+     physical_name : .\QRY_Blogs_TotalComments.WDR
+     type : 5
+   -
+     name : pWIKI
+     identifier : 0x45c341d300154245
+     internal_properties : CAAAAAgAAAB60KLmxYKqtYh4bBQtldqcQOGPF64h8tq2FQ0IzUfNc5W93jWHuVsp2UW/Ofn3g3Vf5w==
+     physical_name : .\pWIKI.wwn
+     type : 65539
+   -
+     name : PAGE_Admin_ForumsSubsc
+     identifier : 0x45c740db000282fd
+     internal_properties : CAAAAAgAAAB23F5CYd5WWXwcAKiBeo5YhKcza21XsnWiZnEUnYgMLNB+GQqzVf9NPfnj3aVbJ5lj4w==
+     physical_name : .\PAGE_Admin_ForumsSubsc.wwh
+     type : 65538
+   -
+     name : IPAGE_FORUM
+     identifier : 0x45ca102e0001108f
+     internal_properties : CAAAAAgAAABxzan9Snc/cHUlJUHqVI1j95rGDqBJM2iwWPHf7yb0LNhkEQLKfiZyFgL8xEyEfGxU3A==
+     physical_name : .\IPAGE_FORUM.wwh
+     type : 65542
+   -
+     name : QRY_Blogs_TotalPosts
+     identifier : 0x45f68a8900000745
+     internal_properties : CAAAAAgAAAB10V1BfttTDNGx8b2Gcelfi5jWHjrDav+kLOtoYjffMcN9FB+uUvK+op4Y4KBQKJhg4A==
+     physical_name : .\QRY_Blogs_TotalPosts.WDR
+     type : 5
+   -
+     name : pNews
+     identifier : 0x45c341c700041103
+     internal_properties : CAAAAAgAAAAGDG6ycS6GqYxsUBjRff7AFCVjqxv2HKvb2r48brdlQ811Bh2jpU8dzUmzDZVLN6kTEw==
+     physical_name : .\pNews.wdg
+     type : 7
+   -
+     name : PAGE_OrganizerPortal
+     identifier : 0x4624d924000007f0
+     internal_properties : CAAAAAgAAADcujRgXwQsP4ZiYg431AxCmq3ZSfyujMK6r3NmPMpKplL4g5A9w2Ev009Jt39xCf/JSQ==
+     physical_name : .\PAGE_CalendarPortal.wwh
+     type : 65538
+   -
+     name : PAGE_Messaging_NewMessage
+     identifier : 0x45f02c6500002f66
+     internal_properties : CAAAAAgAAABk4kxoVwwkx+6aijYP/QBWes9JeU388ib8HxAcdr/VyyH9mpkl23nHu2dRr3dpEYdx8Q==
+     physical_name : .\PAGE_Messaging_NewMessage.wwh
+     type : 65538
+   -
+     name : QRY_ATTACH_UseShares
+     identifier : 0x45f69280000425f2
+     internal_properties : CAAAAAgAAAAfe3crmMVtfsez9zcIx3u1bWpQQPQFj5q5wjna/J3558ETgqEs3HjEpJAK9r4yzsIKCg==
+     physical_name : .\QRY_ATTACH_UseShares.WDR
+     type : 5
+   -
+     name : PAGE_News_Edit
+     identifier : 0x45c8a9650000a811
+     internal_properties : CAAAAAgAAACKgPKWFVLahVgIfAQ9zQpcEGHP59dxySCnyvnD1j9VS70Vpo03yWs5KRWPaSmnU0WPlw==
+     physical_name : .\PAGE_News_Edit.wwh
+     type : 65538
+   -
+     name : pUsers
+     identifier : 0x45c341d100133796
+     internal_properties : CAAAAAgAAAB3019DYN1VVn8bD6+QMUcRvY7o2Oz8a/6jR+bbFh93aV+92NvkZABMPPji3qZaJppi4g==
+     physical_name : .\pUsers.wdg
+     type : 7
+   -
+     name : QRY_shares_ListSharesByParentFolder
+     identifier : 0x45c341e600408b44
+     internal_properties : CAAAAAgAAAAT70tfbNlRCiPPw+NU9nfJARwoSAYHti2amyYtKWAy/jr2g6AgIMSQcKwW4qJeGo52/g==
+     physical_name : .\QRY_shares_ListSharesByParentFolder.WDR
+     type : 5
+   -
+     name : pBlogs
+     identifier : 0x45c341c8000716c0
+     internal_properties : CAAAAAgAAAD8WtTA/6QMHybCwu5X6lge2lkRCc/x4NSknzrY7SjsDAw2XbYdI8GPc68plx/RqR/paQ==
+     physical_name : .\pBlogs.wdg
+     type : 7
+   -
+     name : PAGE_Blog_Edit
+     identifier : 0x45d03d3d000bf240
+     internal_properties : CAAAAAgAAAAxDWm9ijd/sLVlZQEqb9Gfz0gaGr41hbtyQh6cgGWxH51zZk2KvmYy1kK8BIxEPKwUHA==
+     physical_name : .\PAGE_Blog_Edit.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_GroupForm
+     identifier : 0x45c740e0000596d4
+     internal_properties : CAAAAAgAAADkYszo14ykR24aCraPRYCm+t+5OZ0HxxaoAvR37gcN0zmFciGlW/lHO+fRL/fpkQfxcQ==
+     physical_name : .\PAGE_Admin_GroupForm.wwh
+     type : 65538
+   -
+     name : QRY_Admin_ListGroups
+     identifier : 0x45c341d6001b4ddd
+     internal_properties : CAAAAAgAAAB+5FZKeSaOoaRUKFCZMKK8FHtja0X23DWgpOFpcyb28tokkwDbbRdlBTGrFZ1TL6Fr6w==
+     physical_name : .\QRY_Admin_ListGroups.WDR
+     type : 5
+   -
+     name : pParameters
+     identifier : 0x45c341ce00102ce8
+     internal_properties : CAAAAAgAAAA4FmC8izB4o7pWFlKbM6DWhpf9ZUVsDUFOC5P60EVPkXOzJP/ZbxVjBzOtC4tFPbMdJQ==
+     physical_name : .\pParameters.wdg
+     type : 7
+   -
+     name : pRSSStream
+     identifier : 0x45caeac30000e58d
+     internal_properties : CAAAAAgAAAAKAHIWldJaBdiI/IS9Voqs8FM/pxcJLYJfyHJol3yQULR6fRa3Seu5qZUP6akn08UPFw==
+     physical_name : .\pRSSStream.wdg
+     type : 7
+   -
+     name : QRY_Messaging_TotalConnectedUsers
+     identifier : 0x4602611d0000f624
+     internal_properties : CAAAAAgAAACgnpiEIxgQy+KO/rqzXZTaHiNdzeVWT12FUn2WQlfFI9F9GgnBR+27r2tVo2OdZVulrQ==
+     physical_name : .\QRY_Messaging_TotalConnectedUsers.WDR
+     type : 5
+   -
+     name : pHonolulu
+     identifier : 0x45c341cb000c2305
+     internal_properties : CAAAAAgAAADKQDLW1ZKaRRjIPET9iMaQ2K8nD6UU9W6Oey1Hv1a+MoJcW1h3iSt5adXPKennkwXPVw==
+     physical_name : .\pHonolulu.wdg
+     type : 7
+   -
+     name : QRY_Messaging_DeletedMessages
+     identifier : 0x45c341e4003b8365
+     internal_properties : CAAAAAgAAAAjHxsPvOnB2vOfUxMksKvVgZCIwILDsfeBk8wPx8LQyDDw6TqQsFQgwHxmUtIO6t4mLg==
+     physical_name : .\QRY_Messaging_DeletedMessages.WDR
+     type : 5
+   -
+     name : PAGE_Blog_PostEdit
+     identifier : 0x45d03d5b000f65ba
+     internal_properties : CAAAAAgAAADxTSl9yve/8PWlpcFq99FvDxgKWm5G/hGuJOMF2E1JR7V7fpVK/qbyloJ8RMwE/OzUXA==
+     physical_name : .\PAGE_Blog_PostEdit.wwh
+     type : 65538
+   -
+     name : PAGE_PortalLink
+     identifier : 0x45c8a9710006d7ad
+     internal_properties : CAAAAAgAAADVsT1hXjtzrLFREV3mdFn/86YS2uxpVi6uo7fDp05E1CikERLOchJeAj64AIBwCPjAQA==
+     physical_name : .\PAGE_PortalLink.wwh
+     type : 65538
+   -
+     name : QRY_Organizer_Tasks
+     identifier : 0x45c341d8001e52df
+     internal_properties : CAAAAAgAAADzTyt/zLnxKgPv44O0Y2eJGVasTHDCacC7n9mvWFHNW1VPJg3AQOSwUMw2ggL++u7WXg==
+     physical_name : .\QRY_Organizer_Tasks.WDR
+     type : 5
+   -
+     name : PAGE_Forum_Messages
+     identifier : 0x45caf5600002594f
+     internal_properties : CAAAAAgAAABXM7/jwL319l87L0/woKdRPXz0/Grsb3e+tC54K+ogMIBwaUqEhCBsHBiCfgb6hnpCwg==
+     physical_name : .\PAGE_Forum_Messages.wwh
+     type : 65538
+   -
+     name : QRY_ATTACH_FindUses
+     identifier : 0x45f6932d0008c8ef
+     internal_properties : CAAAAAgAAAA1ER0BvpuTTBHxMX3G1/2b+7QGZm4vUwpEiu0uJGWpvzWrLnVukjJ+Yt7YIOAQ6NggIA==
+     physical_name : .\QRY_ATTACH_FindUses.WDR
+     type : 5
+   -
+     name : pBrowser
+     identifier : 0x45c23f400001368d
+     internal_properties : CAAAAAgAAABexLZqWQYuwYR0SHD52/I85OGje0fAxx+2ka9IaI0P+ffLyGt7jTcF5VFLtX1zD4FLyw==
+     physical_name : .\pBrowser.wwn
+     type : 65539
+   -
+     name : QRY_Contact_Search
+     identifier : 0x45c341dc00296482
+     internal_properties : CAAAAAgAAABt6UVZZtNbBCnZyfVOQXEnc9C+poL7n9+iM5p4QkfPEfM9tO/mGrqGeqYQ6KhYIJB4+A==
+     physical_name : .\QRY_Contact_Search.WDR
+     type : 5
+   -
+     name : PAGE_AdminPortal
+     identifier : 0x45e4625c0000c593
+     internal_properties : CAAAAAgAAAAtKQUZppObRGkZCbWOkkXb87IK0uBbi/Pi9TIvsWQ2wjqq8zCmWvpGOubQKOgY4NA4OA==
+     physical_name : .\PAGE_AdminPortal.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_ListUsers
+     identifier : 0x45c740e50008aa7b
+     internal_properties : CAAAAAgAAADIRjDs24Cos4pmZgIrsZyqtvv1JakJcbS/cBn5+ivhxw3xRl2Jv2Uz10O9O/v1jQPNVQ==
+     physical_name : .\PAGE_Admin_ListUsers.wwh
+     type : 65538
+   -
+     name : PAGE_MessagingPortal
+     identifier : 0x45d03d1700055b4f
+     internal_properties : CAAAAAgAAACb90NHZCGJkqtHS2vM0/+BEV5kJPSTc+BOrxac1CF9m2VPJn1omDwI+CSeGppWIpZ+hg==
+     physical_name : .\PAGE_MessagingPortal.wwh
+     type : 65538
+   -
+     name : IPAGE_Editor
+     identifier : 0x45d03b240000c182
+     internal_properties : CAAAAAgAAACJhfGVEk/niK1NvflyKhkvNwZuNnRd+vJOZ0G9sUTOMpJyy9gCBq767iqUbDSsVESMlA==
+     physical_name : .\IPAGE_Editor.wwh
+     type : 65542
+   -
+     name : QRY_Directory_FindZipCode
+     identifier : 0x45c341d8001f54f2
+     internal_properties : CAAAAAgAAACKgPKWFVLahVgIfAQ95spMUBMfhz0nAEih30sYfQyAYKQKbaY3yWs5KRWPaSmnU0WPlw==
+     physical_name : .\QRY_Directory_FindZipCode.WDR
+     type : 5
+   -
+     name : PAGE_FORUM_TOPICS
+     identifier : 0x45caf57a0006c017
+     internal_properties : CAAAAAgAAAByyKr+TTpyrYBgZAw17z5gMB0PR2NcOJaiDXXk3ElLRbN/dK8/wWMx0U23AYF/e21X3w==
+     physical_name : .\PAGE_FORUM_TOPICS.wwh
+     type : 65538
+   -
+     name : PAGE_Shares_Rights
+     identifier : 0x45d03d310009c39e
+     internal_properties : CAAAAAgAAADpZdE18q8HKA3t3ZlSDTVjRySSWmKzpqqtDzy0WsvDVacZeLsiJs6aTso0jBTMtCTsdA==
+     physical_name : .\PAGE_Shares_Rights.wwh
+     type : 65538
+   -
+     name : QRY_Messaging_MessagesLabels
+     identifier : 0x45c341e300398038
+     internal_properties : CAAAAAgAAAAgHhgEo5iQS2IOfjoz/9hmzr9FTQFCtcmYXMMI2LHjfUeviJtBx207L+vVI+Md5dslLQ==
+     physical_name : .\QRY_Messaging_MessagesLabels.WDR
+     type : 5
+   -
+     name : PAGE_InstantDiscussion
+     identifier : 0x469e128202807bd4
+     internal_properties : CAAAAAgAAAA9FLZugHdVKtY3DmCjkbrpVUhceEg84DFZE3iq5gj6UxOVH9dKbi32XtrBbbWPXbZVz07vzq5P9tgKWQzlZQIfD2Avn+oSZooGuA3G1eQMyBk=
+     physical_name : .\PAGE_InstantDiscussion.wwh
+     type : 65538
+     report :
+      fr-FR : FR
+      en-GB : UK
+   -
+     name : QRY_Shares_ListAuthorizedUsers
+     identifier : 0x45c341e600418cda
+     internal_properties : CAAAAAgAAACb90NHZCGJkqtHS2vM2/9x8Y6UhLjpiA+rSH2WMEnVAz3XnoVomDwI+CSeGppWIpZ+hg==
+     physical_name : .\QRY_Shares_ListAuthorizedUsers.WDR
+     type : 5
+   -
+     name : QRY_Messaging_SPIM
+     identifier : 0x45ebe2a9000005a5
+     internal_properties : CAAAAAgAAAAacMLG5aIKFSjYzPRNXXoM4JHfV/usj0GFUhn6ag+Fu03ltv3nGbuJeaUfmRnXoxX/Bw==
+     physical_name : .\QRY_Messaging_SPIM.WDR
+     type : 5
+   -
+     name : IPAGE_Shares
+     identifier : 0x45ca129400036d1a
+     internal_properties : CAAAAAgAAAAXc3+jAH01Np97bw8w8tN97cg0JJ6X/tihNVn5cbRm8s7Cl5xExGAs3FhCvka6RroCAg==
+     physical_name : .\IPAGE_Shares.wwh
+     type : 65542
+   -
+     name : QRY_ATTACH_UseMessaging
+     identifier : 0x45f692640003b650
+     internal_properties : CAAAAAgAAADCuDpuXQoiPZBwtHzF2O544Ecv9zFqTp+l35p5YwaOclK8m4hvkTMB4V1HsXFvC/3HTw==
+     physical_name : .\QRY_ATTACH_UseMessaging.WDR
+     type : 5
+   -
+     name : PAGE_News_Search
+     identifier : 0x45c8a9670001b11a
+     internal_properties : CAAAAAgAAAA1ER0BvpuTTBHxMX3Gqn2DaypSSohDqx2DJUsXqXweymLyq4hukjJ+Yt7YIOAQ6NggIA==
+     physical_name : .\PAGE_News_Search.wwh
+     type : 65538
+   -
+     name : QRY_Messaging_RecipientsMessages
+     identifier : 0x45c341e200367b66
+     internal_properties : CAAAAAgAAACW/P4igf62uRz84IihFq6ghMdD23EqFrWjPSTvZQSQuHSKzdYTNd+tXdnDPcU7xzmDgw==
+     physical_name : .\QRY_Messaging_RecipientsMessages.WDR
+     type : 5
+   -
+     name : PAGE_Blog_Search
+     identifier : 0x45d03d37000adbba
+     internal_properties : CAAAAAgAAABYNgAcq9BYA9q29jI78Uw6JmsltZle2HVXgSUWmmshJy0xZr05z3XDp5MN66sl3dM9xQ==
+     physical_name : .\PAGE_Blog_Search.wwh
+     type : 65538
+   -
+     name : PAGE_Messaging_AutoFilter
+     identifier : 0x45efd0610000be01
+     internal_properties : CAAAAAgAAABLx7NXVBEZwpt3u/t8M4/xYS50VEQCJtS1X2xblIEd22Xvpv34CKz46FROqmpmEoZO1g==
+     physical_name : .\PAGE_Messaging_AutoFilter.wwh
+     type : 65538
+   -
+     name : PAGE_WIKIPortal
+     identifier : 0x45d03d0600031ca0
+     internal_properties : CAAAAAgAAACRbcnd6pefUBUFBaGKYjEXD1527lxrzUqKeF4TqZx2+hoaQ1CqXgZSNuLcJOzknAz0fA==
+     physical_name : .\PAGE_WIKIPortal.wwh
+     type : 65538
+   -
+     name : PAGE_Admin_UserForm
+     identifier : 0x45c740e200069d7b
+     internal_properties : CAAAAAgAAAA0EhwYp5yUl74qGqafSPRSUvWhMRv7fflPzECsF+6mqq68/xTVawlXCzehH+cZ4dchIQ==
+     physical_name : .\PAGE_Admin_UserForm.wwh
+     type : 65538
+   -
+     name : TPL_Internal
+     identifier : 0x45cb0a7f0000da67
+     internal_properties : CAAAAAgAAADwTih0s+jA2/KejioD7cRKrhOtfbFbL4aihvMfjme1U6ENarkx133Lv3tlU9MN9evVXQ==
+     physical_name : .\TPL_Internal.wwt
+     type : 65541
+   -
+     name : PAGE_ATTACH
+     identifier : 0x45c342350046bf6f
+     internal_properties : CAAAAAgAAABCOLru3YqivRDwNPxFIG7oYBdf1933PW6OFwJyd44GOspkExDvEbOBYd3HMfHvi31Hzw==
+     physical_name : .\PAGE_ATTACH.wwh
+     type : 65538
+   -
+     name : cVCard21
+     identifier : 0x45c341c500000972
+     internal_properties : CAAAAAgAAABdObVpVgMrNJlJucV+elU7I3IqogBlZxfrf28ZaYyOSvJyK/j2Cqr26lZAuHhoEIBIyA==
+     physical_name : .\Annuaire_vCard21.wdc
+     type : 4
+   -
+     name : PAGE_Error
+     identifier : 0x48c4e53b0000a269
+     internal_properties : CAAAAAgAAAAJBXEVks9nCC3NPXnyz9lHVwAiogZB+pIDc4jgkIWRT/0Dtm2Chi56bqoU7LQs1MQMFA==
+     physical_name : .\PAGE_Error.wwh
+     type : 65538
+   -
+     name : QRY_Directory_FindCity
+     identifier : 0x45c341d900205669
+     internal_properties : CAAAAAgAAADYtoCcK1DYg1o2drK7uYxq5vu1NZ2n4WmhL3jjFpP5z2WZ3kW5T/VDJxONayulXVO9RQ==
+     physical_name : .\QRY_AddressBook_FindCity.WDR
+     type : 5
+   -
+     name : QRY_Admin_ListUsers
+     identifier : 0x45c341d7001c4f54
+     internal_properties : CAAAAAgAAADAvjhkQzhwq4JuXhrTooRqtjVNFS/Yt1twKINXkQgU3BTO5U6hp00bz0u1A4N9BfvFTQ==
+     physical_name : .\QRY_Admin_ListUsers.WDR
+     type : 5
+   -
+     name : pHTMLEdit
+     identifier : 0x45c341c900091ab8
+     internal_properties : CAAAAAgAAADudMba6ZaeURQEGKCJqfZg7I2rQ4M77AWJu0Nd4iNpv3Gh2lmrXQdVNeHbJe3jnxH7ew==
+     physical_name : .\pHTMLEdit.wdg
+     type : 7
+   -
+     name : PAGE_Admin_WikiSubsc
+     identifier : 0x45c75488000c5dfa
+     internal_properties : CAAAAAgAAACno4+TEE3lhq9Lv/9AcVfBzV74CLx6SOSqh8ORNt83ib99OPv0FLD87CiSbjaqVkqysg==
+     physical_name : .\PAGE_Admin_WikiSubsc.wwh
+     type : 65538
+   -
+     name : QRY_News_12LastAccordingDateTime
+     identifier : 0x45c341d5001747b3
+     internal_properties : CAAAAAgAAAAGDG6ycS6GqYxsUBjRo+pk/JnL02MsmAiLFUKQtNXHcY+j0FOjpU8dzUmzDZVLN6kTEw==
+     physical_name : .\QRY_News_12LastAccordingDateTime.WDR
+     type : 5
+   -
+     name : PAGE_Messaging_Message
+     identifier : 0x45d03d6900119d35
+     internal_properties : CAAAAAgAAACrp5P3NHE5YnsX25tcX1/J0X4UxPTIgoOY9tBFWL3RV/l7OukYKMyYSPTuykqGcmautg==
+     physical_name : .\PAGE_Messaging_Message.wwh
+     type : 65538
+   -
+     name : PAGE_Blog_Comments
+     identifier : 0x45d03d44000c0e72
+     internal_properties : CAAAAAgAAAC4luA8C7D4IzrWltIb7yAO1lft9UV15U6tCv4ntGGzfbdvCKtZ75Xjh7MtiwvFvTOdpQ==
+     physical_name : .\PAGE_Blog_Comments.wwh
+     type : 65538
+   -
+     name : PAGE_NewsPortal
+     identifier : 0x469e1115027ee9bd
+     internal_properties : CAAAAAgAAABGTxEb7RToj0vcM0WIVOW08sfD8ZE14zZaNLKjgbkblGJb20FIY5LZjQFM7iYwEuUW7NNuDR/O99kLWgOc3oumtI3cYhUveZ9rXaJpsDmxc6I=
+     physical_name : .\PAGE_NewsPortal.wwh
+     type : 65538
+     report :
+      fr-FR : FR
+      en-GB : UK
+   -
+     name : PAGE_WIKI_Modify
+     identifier : 0x45d03cf70001df68
+     internal_properties : CAAAAAgAAAAFAW2xjiuDnKFBQW3WrOm/YwYSikNLAF5WbUU6rmasTPAcuWqeokIO8i6oEJBAOKgQEA==
+     physical_name : .\PAGE_WIKI_Modify.wwh
+     type : 65538
+   -
+     name : pForum
+     identifier : 0x45c341ca000a1ccb
+     internal_properties : CAAAAAgAAACkooyoF0zkh65aSnbP9sD+UuGZ8bdwv0itcx9jMcTQKNByAZJlmzkH+yeRbzepUUexsQ==
+     physical_name : .\pForum.wdg
+     type : 7
+   -
+     name : pDiscussion
+     identifier : 0x45c341c900081895
+     internal_properties : CAAAAAgAAAD0UtzY51zU1/5qWmbfp/Syagsh+VmS672qoEQ4xFG7Xf8nsGOVq0kXy3dhXyfZoRfhYQ==
+     physical_name : .\pDiscussion.wdg
+     type : 7
+   -
+     name : cWIKIBlock
+     identifier : 0x45c341c600010ccd
+     internal_properties : CAAAAAgAAADBvTltWgcvwIV1tXH6w8EH31gamj1htAROJ/WJy3mdQ8l3ApF6jjYC5lJMtHx0DPzETA==
+     physical_name : .\cWIKIBlock.wdc
+     type : 4
+   -
+     name : PAGE_Admin_NewsSubsc
+     identifier : 0x45c740d7000072c1
+     internal_properties : CAAAAAgAAABWPL7iwb72+Vw8IEjhm5qEbDlr488K4ESJUOT6WM3PCTc7eCvTdR9tHRmDfQX7h3lDww==
+     physical_name : .\PAGE_Admin_NewsSubsc.wwh
+     type : 65538
+   -
+     name : PAGE_BlogsPortal
+     identifier : 0x45d03d1d000674f2
+     internal_properties : CAAAAAgAAACsqoSQL1Tcj1Yycj4HMmjeChlRGa/3+Y9O75leRfAk9AQ+Vd4t03E/Ix+ZZy+hWU+5uQ==
+     physical_name : .\PAGE_BlogsPortal.wwh
+     type : 65538
+   -
+     name : IP_ORGANIZER
+     identifier : 0x45e3f9b900000253
+     internal_properties : CAAAAAgAAAAUcny4B3w0N55KusZ4S0oUwGMfdznbe0OK1dVsxVBMpFD+mQr2C6n361dBv0e5QbcBAQ==
+     physical_name : .\IP_ORGANIZER.wwh
+     type : 65542
+   -
+     name : PAGE_Blog_Posts
+     identifier : 0x45d03d52000e433e
+     internal_properties : CAAAAAgAAAAFAW2xjiuDnKFBQW3Xs+8pqSRwsArK3Ry21SaQQcROQrYKr3SfokIO8i6oEJBAOKgQEA==
+     physical_name : .\PAGE_Blog_Posts.wwh
+     type : 65538
+   -
+     name : QRY_Shares_Last5ModifiedShares
+     identifier : 0x45d46b5d0000418e
+     internal_properties : CAAAAAgAAACppZH1Mm9HaE0tHVmTcLt1rSqQADTFHzaaOznafB3558ETgiHjZg5aDgr0zFSMdGSstA==
+     physical_name : .\QRY_Shares_Last5ModifiedShares.WDR
+     type : 5
+   -
+     name : PAGE_Admin_BlogsSubsc
+     identifier : 0x45c740d900017ce3
+     internal_properties : CAAAAAgAAADVsT1hXjtzrLFREV3nZZPV+UjAaGbUV+aef2MIh24klGS83UbPchJeAj64AIBwCPjAQA==
+     physical_name : .\PAGE_Admin_BlogsSubsc.wwh
+     type : 65538
+   -
+     name : QRY_ATTACH_UseWIKI
+     identifier : 0x45f692000002306b
+     internal_properties : CAAAAAgAAACTb8vf7FnRiqNPQ2PVtfVLn5KutgwNIX2hPHTnYyZ0vHi0wWKhoEQQ8CyWYiLemg72fg==
+     physical_name : .\QRY_ATTACH_UseWIKI.WDR
+     type : 5
+   -
+     name : PAGE_HonoluluPortal
+     identifier : 0x469cbe40027e581f
+     internal_properties : CAAAAAgAAABZGkJtunz+MQ/T/mlJ0bXIpwBkBXQ914OOjDaqga5R6wtL/rC/0NDNvoekLZnImLPLQ4Fdpyjn3pOht9pCDdALU12X5xk=
+     physical_name : .\PAGE_HonoluluPortal.wwh
+     type : 65538
+     report :
+      fr-FR : FR
+   -
+     name : TPL_Admin_Subsc
+     identifier : 0x45c759d2000d093d
+     internal_properties : CAAAAAgAAAA7F2OnBEHp8sunq8tt7xFfDw5WzgzSFdmoCxIGTdi6Jp52Z8xJ+JzomIR+ejq2QrYeJg==
+     physical_name : .\TPL_Admin_Subsc.wwt
+     type : 65541
+   -
+     name : cWIKIDocument
+     identifier : 0x45c341c600020e15
+     internal_properties : CAAAAAgAAABPy6f7SHU9bncjJ0f53M2T27QWhjnFtIlOq/WJS6l1Y0GfGpl9jCh0FAD6xk6CfnJa2g==
+     physical_name : .\Document.wdc
+     type : 4
+   -
+     name : QRY_ATTACH_UseNews
+     identifier : 0x45f692a00005a062
+     internal_properties : CAAAAAgAAAA1ER0BvpuTTBHxMX3HzTNlOZjw6GqzQRigqyjjQ3Yc3DyEda5vkjJ+Yt7YIOAQ6NggIA==
+     physical_name : .\QRY_ATTACH_UseNews.WDR
+     type : 5
+   -
+     name : QRY_Messaging_Last9IncomingMessages
+     identifier : 0x45e400b9000259a8
+     internal_properties : CAAAAAgAAACxjek9Crf/MDXl5YGrIlfxLa4oyHDhkP+ffu9kYlc/gUeVABMLPuayVsI8hAzEvCyUnA==
+     physical_name : .\QRY_Messaging_Last9IncomingMessages.WDR
+     type : 5
+   -
+     name : QRY_Forum_ListForums
+     identifier : 0x45c341de002e6d2d
+     internal_properties : CAAAAAgAAAC9mZWJNmNLVHnp2eVfN2epcXzI2GbHX35aBm7lEZj61mKOK/gXKsqWSvbg2FiIcGCoqA==
+     physical_name : .\QRY_Forum_ListForums.WDR
+     type : 5
+   -
+     name : QRY_Blogs_LastPosts
+     identifier : 0x45c341db00265fee
+     internal_properties : CAAAAAgAAAAoJhAMu+DI0+qGhiIUBWKkxLsTm7UOk5ynb42NL5pyZlaoL/Qq34XTt2NdW9sV7eMtNQ==
+     physical_name : .\QRY_Blogs_LastPosts.WDR
+     type : 5
+   -
+     name : QRY_Organizer_PublicOrganizers
+     identifier : 0x45e80ae20000241e
+     internal_properties : CAAAAAgAAACGjO4y8a4GKQzs0JhSTMRaGgsROZ2exD+0G568NHUnoWurLOckJc+dTckzjRXLtymTkw==
+     physical_name : .\QRY_Organizer_PublicOrganizers.WDR
+     type : 5
+   -
+     name : QRY_Discussion_ListRequestsByPerson
+     identifier : 0x45c341dc002a65f9
+     internal_properties : CAAAAAgAAAApJRF1su/H6M2tndkTDv+h9eZAADgBCvekXKNw1sNTTbsB9K9j5o7ajop0TNQM9OQsNA==
+     physical_name : .\QRY_Discussion_ListRequestsByPerson.WDR
+     type : 5
+   -
+     name : QRY_ATTACH_UseBlogs
+     identifier : 0x45f692c60006360a
+     internal_properties : CAAAAAgAAABdObVpVgMrNJlJucV/mxfBsezoGDY/HGGge8IJTUzGWq4ilxz3Cqr26lZAuHhoEIBIyA==
+     physical_name : .\REQ_PJ_UtilisationBlog.WDR
+     type : 5
+   -
+     name : QRY_News_ListNews
+     identifier : 0x45c341d6001a4c66
+     internal_properties : CAAAAAgAAADLRzPX1JGZQhv3O3v9Go2jH1yqMg5Pt1J8QQrIAoeXoRuV/Kd5iCx4aNTOKurmkgbOVg==
+     physical_name : .\QRY_News_ListNews.WDR
+     type : 5
+   -
+     name : QRY_Forum_LastForumMessage
+     identifier : 0x45c341de002c6a20
+     internal_properties : CAAAAAgAAAArJxN3tPG54vuXWxvd+6FXP372flDJr/ahFjbddTTeckKyK4iZqEwYyHRuSsoG8uYuNg==
+     physical_name : .\QRY_Forum_LastForumMessage.WDR
+     type : 5
+   -
+     name : pManageSearchEngine
+     identifier : 0x45c341cb000b2007
+     internal_properties : CAAAAAgAAACA/vgkg/iw68KuntocA/6YlMczu42+LKSK9VZrlXAkNIgG8bJi543bj4t1Q8M9xTuFjQ==
+     physical_name : .\pManageSearchEngine.wdg
+     type : 7
+   -
+     name : QRY_Forum_LastMessageTopic
+     identifier : 0x45c341de002d6ba6
+     internal_properties : CAAAAAgAAAAIBnAsm8Boc0omJkL0rEIMVDGTi8uV97iCcNepPF2/KYdbWFvKfyVzFwP9+7s1zcMNFQ==
+     physical_name : .\QRY_Forum_LastMessageTopic.WDR
+     type : 5
+   -
+     name : IPAGE_MESSAGING
+     identifier : 0x45e3ff430001a2e3
+     internal_properties : CAAAAAgAAACKgPKWFVLahVgIfAQ+XzxqDh117eO13Hesxku00TRYmHi6Oeo4yWs5KRWPaSmnU0WPlw==
+     physical_name : .\IPAGE_MESSAGING.wwh
+     type : 65542
+   -
+     name : debug
+     identifier : 0x4607a1f500005462
+     internal_properties : CAAAAAgAAACGjO4y8a4GKQzs0JhSVMRq+ruhOZq3fkCLnSW8yX2fqQPzRO8kJc+dTckzjRXLtymTkw==
+     physical_name : .\debug.wwh
+     type : 65538
+   -
+     name : pUtilities
+     identifier : 0x45c341d200143bfb
+     internal_properties : CAAAAAgAAAC/m5eLOGVNXmcT15epfB3DKwTmdkqxj9N2IY8ATMnVY0G/mhkNPNikRPDq1l6SbmKqqg==
+     physical_name : .\pUtilities.wdg
+     type : 7
+   -
+     name : QRY_Blogs_ListBlogs
+     identifier : 0x45c341db00276175
+     internal_properties : CAAAAAgAAAC7l+MnhMFpcksnK0vtsV3rdzq2btS9xXWYV/AjVyJoSIxwxV7JeBxoGAT++ro2wjaepg==
+     physical_name : .\QRY_Blogs_ListBlogs.WDR
+     type : 5
+   -
+     name : pDirectory
+     identifier : 0x45c341c8000614cc
+     internal_properties : CAAAAAgAAACxjek9Crf/MDXl5YGrcBMNhfIImCiVmRG/UyDGaL1Z98EjciELPuayVsI8hAzEvCyUnA==
+     physical_name : .\pDirectory.wdg
+     type : 7
+   -
+     name : QRY_Forum_TopicMessages
+     identifier : 0x45c341df0030705a
+     internal_properties : CAAAAAgAAACTb8vf7FnRiqNPQ2PVy7nP16aOlqjCXZimf2reFWSuEvLSq3ihoEQQ8CyWYiLemg72fg==
+     physical_name : .\QRY_Forum_TopicMessages.WDR
+     type : 5
+   -
+     name : PAGE_WIKI_Find
+     identifier : 0x45d03d00000202cf
+     internal_properties : CAAAAAgAAAByyKr+TTpyrYBgZAw2LtR6viO9rYFIEW1zaBh0Lue1M4FNStlAwWMx0U23AYF/e21X3w==
+     physical_name : .\PAGE_WIKI_Find.wwh
+     type : 65538
+   -
+     name : QRY_Messaging_MessagesSent
+     identifier : 0x45c341e300387e83
+     internal_properties : CAAAAAgAAACQbsjU04iguxL+7oqsTi4wJJVzm7/48eBUAbkSosdV893Flg0SN92rX9vFM/PtlQv1fQ==
+     physical_name : .\QRY_Messaging_MessagesSent.WDR
+     type : 5
+   -
+     name : QRY_Blogs_MostActiveBlogs
+     identifier : 0x45c341da00245cf1
+     internal_properties : CAAAAAgAAABKwLJWVRIaxZhIvMR+aQB+/kFdTfsM/lO7Pu0lI3Ymwg78XzT4Cav56VVPqWlnE4VP1w==
+     physical_name : .\QRY_Blogs_MostActiveBlogs.WDR
+     type : 5
+   -
+     name : QRY_News_5LastAccordingDateTime
+     identifier : 0x45c341d600194aff
+     internal_properties : CAAAAAgAAAC6kOImhcJqdUg4LFTuulzaNksFJa3mNqqjF4BSdhN5r0XZvmXIeRtpGQX/+bk3wzWfpw==
+     physical_name : .\QRY_News_5LastAccordingDateTime.WDR
+     type : 5
+   -
+     name : pShares
+     identifier : 0x45c341cf00113082
+     internal_properties : CAAAAAgAAAAZdcHF4l/X2P2djSkDIMtFXXoAEKCpIcK4wcWSaI2Jt3GDMvEz1n7KvnpkXCTcpBT8BA==
+     physical_name : .\pShares.wdg
+     type : 7
+   -
+     name : PAGE_FORUMPORTAL
+     identifier : 0x45caf5b200079b16
+     internal_properties : CAAAAAgAAADUsjx4Rzx0d96K+oa4r0rcUOOPp5nYlIFOixNdkZT4KNxyxW62S+m3q5cB/4d5AffBQQ==
+     physical_name : .\PAGE_FORUMPORTAL.wwh
+     type : 65538
+   -
+     name : QRY_Shares_ListShares
+     identifier : 0x45c341e6003f89ae
+     internal_properties : CAAAAAgAAACwjug086gAGzLezupMZHoUjOnbA7O8iPOuuoOQ1NXHUa8jcDPyF72Lf7slkxPNtSuVnQ==
+     physical_name : .\QRY_Shares_ListShares.WDR
+     type : 5
+   -
+     name : PAGE_Forum_Edit
+     identifier : 0x45caf567000374c6
+     internal_properties : CAAAAAgAAAD2XN7C4V7W2fycgCgCI8BWQiEJEaeqJF6LUy/hJeA0lHReNe401X/NvXljXSXbpxnjYw==
+     physical_name : .\PAGE_Forum_Edit.wwh
+     type : 65538
+   -
+     name : PAGE_Blog_PostsSearch
+     identifier : 0x45d03d4b000d297c
+     internal_properties : CAAAAAgAAACU8vw4h/y0tx7KOkb48goEgMFfR3e8x0DoHWOaskNR/znJ8rF2iyl3a9fBP8c5wTeBgQ==
+     physical_name : .\PAGE_Blog_PostsSearch.wwh
+     type : 65538
+   -
+     name : pAttachments
+     identifier : 0x45c341d0001233ed
+     internal_properties : CAAAAAgAAAA9GRUJtuPL1PlpWWXf0islIVIMLBDifaWqQNtddp//KcdlEJOXqkoWynZgWNgI8OAoKA==
+     physical_name : .\pAttachments.wdg
+     type : 7
+   -
+     name : IPAGE_news
+     identifier : 0x45ca0fd60000b6db
+     internal_properties : CAAAAAgAAACimJqOPWpCXXAQ1JymSrSSbjNdHbGSYkqw8JV68gMJDzU5fhUQMdOhQf3n0VGPa12nrw==
+     physical_name : .\IPAGE_news.wwh
+     type : 65542
+   -
+     name : PAGE_Wiki_Print
+     identifier : 0x45d03d6f0012b486
+     internal_properties : CAAAAAgAAABt6UVZZtNbBCnZyfVPZIdZ2Ya8LINzo2lLSZHhGwkV032HzkXnGrqGeqYQ6KhYIJB4+A==
+     physical_name : .\PAGE_Wiki_Print.wwh
+     type : 65538
+   -
+     name : QRY_Messaging_Labels
+     identifier : 0x45c341e200377cfc
+     internal_properties : CAAAAAgAAAA/GxcLuOXN3ueTVxcpzx0LmzpSCkzV4uFLK2LpyfAaHj7G96yNvFgkxHBqVt4S7uIqKg==
+     physical_name : .\QRY_Messaging_Labels.WDR
+     type : 5
+   -
+     name : QRY_Forum_TotalForumMessages
+     identifier : 0x45c341e0003171e0
+     internal_properties : CAAAAAgAAAB23F5CYd5WWXwcAKiCqdSystWBUe8IH7ZaRvYdW05Gyk7cn3S0Vf9NPfnj3aVbJ5lj4w==
+     physical_name : .\QRY_Forum_TotalForumMessages.WDR
+     type : 5
+   -
+     name : QRY_Shares_ListAuthorizedGroups
+     identifier : 0x45c341e5003e8827
+     internal_properties : CAAAAAgAAADUsjx4Rzx0d96K+oa4qEY4OAWHDz/IOHeuotd8aDHjfUu3nHe2S+m3q5cB/4d5AffBQQ==
+     physical_name : .\QRY_Shares_ListAuthorizedGroups.WDR
+     type : 5
+   -
+     name : PAGE_Directory_ContactForm
+     identifier : 0x45c8a9690002b909
+     internal_properties : CAAAAAgAAADYtoCcK1DYg1o2drKEtbK0tMuDqxHhr5CqEKW0+woCNsZYH4S6T/VDJxONayulXVO9RQ==
+     physical_name : .\PAGE_Directory_ContactForm.wwh
+     type : 65538
+   -
+     name : pOrganizer
+     identifier : 0x45c341c7000512f7
+     internal_properties : CAAAAAgAAAD2XN7C4V7W2fycgCgCfBRqypvBCbmTAS+7T5PFQKV3sVvbnPc01X/NvXljXSXbpxnjYw==
+     physical_name : .\pOrganizer.wdg
+     type : 7
+   -
+     name : PAGE_PortalSearch
+     identifier : 0x45eea7290000b239
+     internal_properties : CAAAAAgAAAA9GRUJtuPL1PlpWWXfGutVwYK8rABVSv3x5DWgzkfXET/NiJuXqkoWynZgWNgI8OAoKA==
+     physical_name : .\PAGE_PortalSearch.wwh
+     type : 65538
+   -
+     name : QRY_Forum_TotalTopicMessages
+     identifier : 0x45c341e0003273f3
+     internal_properties : CAAAAAgAAADYtoCcK1DYg1o2drKE+IJk5PGD63u9ruW2saKVQHkT5RvXnIe6T/VDJxONayulXVO9RQ==
+     physical_name : .\QRY_Forum_TotalTopicMessages.WDR
+     type : 5
+   -
+     name : pWikiSyntax
+     identifier : 0x45c341d40016438d
+     internal_properties : CAAAAAgAAAAHA2+zcC2Fpo9rXx8hHvFfg6DeBr3I+cyKlIOScbNjrUf5mJuVtFAczEiyDpZKNqoSEg==
+     physical_name : .\pWikiSyntax.wdg
+     type : 7
+   -
+     name : pHonoluluBrw
+     identifier : 0x45c341cc000d2528
+     internal_properties : CAAAAAgAAAAbd8PH5KEJEivHy+tNq7Gnr85mDsz7dUhSmhlbYaRuQvIiW1jpGLyIeKQemhrWohb+Bg==
+     physical_name : .\pHonoluluBrw.wwn
+     type : 65539
+   -
+     name : PAGE_Forum_CreateTopic
+     identifier : 0x48c4e6150001f609
+     internal_properties : CAAAAAgAAADEQiwIt+zE5866qtZoTxoMILPfF6m75/KM1ELIUbRYqFySxe5G+5nnm4dxT9cJ8efRUQ==
+     physical_name : .\PAGE_Forum_CreateTopic.wwh
+     type : 65538
+   -
+     name : QRY_WIKI_Last5WIKI
+     identifier : 0x45d1a06e0000782e
+     internal_properties : CAAAAAgAAADfuzfr2IWtvgfzN/dJqamng8ZC2nAxSv2HWchD54IQOPQITVbtHLiEZNDKNv7yjgLKSg==
+     physical_name : .\QRY_WIKI_Last5WIKI.WDR
+     type : 5
+   -
+     name : QRY_Forum_TotalForumTopics
+     identifier : 0x45c341e100337607
+     internal_properties : CAAAAAgAAADIRjDs24Cos4pmZgI0DcK0pOujO4WP3JhW/QkmJ2IqLi4wZ7yKv2Uz10O9O/v1jQPNVQ==
+     physical_name : .\QRY_Forum_TotalForumTopics.WDR
+     type : 5
+   -
+     name : QRY_ATTACH_UseForum
+     identifier : 0x45f692de000793ca
+     internal_properties : CAAAAAgAAACD//svnMlhetO/8zMFRwnnByZehrhJe5at+ULJaTDiLsZ+HwQx0HTAoJwG8rIuyj6Gjg==
+     physical_name : .\QRY_ATTACH_UseForum.WDR
+     type : 5
+   -
+     name : IPAGE_Links
+     identifier : 0x45d492e40000a934
+     internal_properties : CAAAAAgAAACY9kBcaxAYw5p2tnLED8Yo/P+L0+UwDxy0O0lJuXwY4BzS5c56jzUD51NNq2tlHZN9hQ==
+     physical_name : .\IPAGE_Links.wwh
+     type : 65542
+   -
+     name : QRY_Forum_Last5Topics
+     identifier : 0x45caf61c0008385a
+     internal_properties : CAAAAAgAAAA/GxcLuOXN3ueTVxcpHdmvc3YiekA6NT26wdLoA5Z8nKBMabqNvFgkxHBqVt4S7uIqKg==
+     physical_name : .\QRY_Forum_Last5Topics.WDR
+     type : 5
+   -
+     name : QRY_Messaging_ListAllTheMessages
+     identifier : 0x45effb8000003236
+     internal_properties : CAAAAAgAAAA8GhQAv+TM3+aCgi4QLiJ0qMlnvwMkYUyEVcEKyt+1W/0ltu1e44HPs29pV98R6d8pKQ==
+     physical_name : .\QRY_Messaging_ListAllTheMessages.WDR
+     type : 5
+   -
+     name : QRY_Blogs_Comments
+     identifier : 0x45c341db00255e68
+     internal_properties : CAAAAAgAAAApJRF1su/H6M2tndkTKj8J1VbgMIipYMyzsGbsSl832X+tyNtj5o7ajop0TNQM9OQsNA==
+     physical_name : .\QRY_Blogs_Comments.WDR
+     type : 5
+   -
+     name : TPL_Base
+     identifier : 0x468b93d9027a7d99
+     internal_properties : CAAAAAgAAACC+PouncpifcSxIc/tAISCDAlbw/gxghfVgKfsAeW3IZ9zCmMGPG3GpZ0H8bEvyz2Hjw==
+     physical_name : .\TPL_Base.wwt
+     type : 65541
+  other_elements : []
+  analysis : .\Honolulu.ana\Honolulu.wda
+  net_assemblies : []
+  uwp_api : []
+  external_components : []
+  internal_components : []
+ common_generation_directory : true
+ wb_skin : 150 iStyle
+ wb_color_palette : Cold Wave & Light
+ languages :
+  - en-GB
+ site_map :
+  roots : []
+  orphans :
+   -
+     name : PAGE_AdminPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Admin_GetPwd
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu - Internal error
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu - Internal error
+   -
+     name : PAGE_Admin_WikiSubsc
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_Comments
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_Edit
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_PostEdit
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_Posts
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_PostsSearch
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Blog_Search
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_BlogsPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_EngineError
+     parameters : []
+     title :
+      fr-FR : Honolulu - Erreur interne
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu - Erreur interne
+      en-GB : Honolulu
+   -
+     name : PAGE_FORUMPORTAL
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_FORUM_TOPICS
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Forum_CreateTopic
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Forum_CreateTopic
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Forum_Edit
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Forum_Messages
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Forum_Search
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Index
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Login
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_MessagingPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Messaging_AutoFilter
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Messaging_Message
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Messaging_NewMessage
+     parameters : []
+     title :
+      fr-FR : Nouveau message
+      en-GB : New message
+     description :
+      fr-FR : Nouveau message
+      en-GB : New message
+   -
+     name : PAGE_OrganizerPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Preview
+     parameters : []
+     title :
+      fr-FR : Aperçu
+      en-GB : Preview
+     description :
+      fr-FR : Aperçu
+      en-GB : Preview
+   -
+     name : PAGE_SharesPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Shares_Rights
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_WIKIPortal
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_WIKI_Find
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_WIKI_Modify
+     parameters : []
+     title :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+     description :
+      fr-FR : Honolulu
+      en-GB : Honolulu
+   -
+     name : PAGE_Wiki_Print
+     parameters : []
+     title :
+      fr-FR : Impression
+      en-GB : Print
+     description :
+      fr-FR : Impression
+      en-GB : Print
+   -
+     name : debug
+     parameters : []
+     title :
+      fr-FR : Honolulu - Informations de débogage
+      en-GB : Honolulu - Debugging information
+     description :
+      fr-FR : Honolulu - Informations de débogage
+      en-GB : Honolulu - Debugging information
+ url_rewriting :
+  internal_properties : CAAAAAgAAADkPzcUdUUS7wCiun+MCjqYH70RJdzkSv/nRvXZ3ENdikMa6bcHtsAH
+ code_elements :
+  internal_properties : CAAAAAgAAAAz1Lj97xmrpTA7OQiVr+4pCBr7oxp3JSIE470cMPGV0HNsJD4bCNsH3sJlhi4rY85sHu01NQjBk8niET1VNcNMJaqVsYtGrG9Y7sHpCYM2C9u1pROIH9coIFUvIYYSlWs47ISa9jHdHwtq8eWs0py1gplHHipKKjXpcTtg7mtv9/lKd/GOPwTNRYK0W3kPEkVCr0K0/IzHpsvI8xuPgbG3xSVUhrj85/IYhcA5MpeHFTXH3N+WKWlCr8Q3nF/9UCZkrCEHZgIZorVTp0j7mW5vqzgUlba+TsHY6OFJvhLPT2OrZ+bIByWT4GOydvroGugXVfYr4NLPy3dft5OObBzppkD2R30wQliB24gOeH3JeUprY1ZlqeKB+eWYwTz+HsQYySz80fKTpXOWjQLKh2lWu1Ys22VX2wSr7m2LXgOZP1PUKX1GEKaChW8gTIcuaD2QBAgFg1E1YK5Bff0ki2Ee8tA+cysnlf07SfrpdVEWTHyMRnG3KkjR+C6OU7wvUCY3
+  type_code : 0
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAADfd0EoqATPxlvfuKh9k0PBaNNNGTfoOLO946fcyjlNEM9/x61suL6CkNyOPxjFVpvRZJiiFkwLlxFPzXQUBsue0ecYZjhvtKdXxBHJAj7hxcrg0nXC2HS9XzEgCFx4yNcPoMsdTvv+TCE4OWWj/MNu2fOfk4Gdxur/4P3k4JWyhqxSL8vvKtt7tRIyIvIFpMPULjO1M1Y+whQH3K17orvUqCv4Tp2+pdT1lKGfnpfETs4ZVFtlxTN1vthYR0420cgk9vQWpbsFXwvHaASQNF5/Tq9VqzXgeGoVYCR1EJ3IZ6BQbrNoKiUeoS8j20tq
+     code : |1+
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //
+      // HONOLULU
+      // © 2012-2017, PC SOFT. All rights reserved
+      //
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////////////////////////////////////////////
+      
+      //
+      // General process of exceptions
+      //
+      gbFatalError			is boolean
+      gsErrorInfo				is string
+      gsCurrentPage			is string
+      gsExceptionInfo			is string
+      gsIdentifier			is string
+      gbClassicMode			is boolean = True
+      
+      // Language
+      Nation(nationEnglish)
+      
+      WHEN EXCEPTION
+      	// Re-enables the exceptions
+      	ExceptionEnable()
+      	
+      	// If an exception occurs while we already are in fatal error
+      	IF gbFatalError THEN
+      		gsExceptionInfo = gsErrorInfo
+      	ELSE
+      		IF ExceptionInfo(errCode) IN (10085,74000,70204,74001,74020) THEN
+      			gsExceptionInfo = <§@00000000000000000006§> + ExceptionInfo(errFullDetails)
+      		ELSE
+      			gsExceptionInfo = ExceptionInfo(errFullDetails)
+      		END		
+      	END
+      	
+      	// In development mode: displays an assert
+      	dbgAssert(False, ExceptionInfo(errFullDetails))
+      	
+      	IF InAWPMode() = False THEN
+      		IF InAJAXMode() = False THEN
+      			// In standard mode: displays the error page
+      			PageDisplay(PAGE_Error, gsExceptionInfo)
+      		ELSE		
+      			// Update the variables for managing the errors
+      			gbFatalError = True
+      			gsExceptionInfo = <§@00000000000000000005§> + ExceptionInfo(errFullDetails)
+      			
+      			// In AJAX mode	
+      			IF NOT (CurrentPage() ~= "" AND gsCurrentPage ~= "") THEN
+      				// We are positioned in a page
+      				// Display the error in the page
+      				IF gsCurrentPage = "" THEN
+      					gsCurrentPage = CurrentPage()
+      				END
+      				ExecuteProcess(gsCurrentPage + ".WDialogEx", trtProcedure, <§@0000000000000000000b§> + CR + <§@0000000000000000000c§>, "OK" + TAB + "1", "OnHFError", <§@0000000000000000000d§>, "%web%/ext/msgbox/error.png")
+      			END			
+      		END
+      	ELSE
+      		// In AWP mode: displays the error
+      		Error(gsExceptionInfo)
+      	END
+      	
+      	RETURN
+      END
+      
+      //
+      // Declare the variables
+      //
+      
+      CONSTANT
+      	CS_VERSION 					= 24
+      	CS_NAME_HONOLULU_SERVER_CS 	= "HONOLULU" + CS_VERSION
+      	
+      	// HFCS identification
+      	CS_USER 					= "ADMIN_" 	+ CS_NAME_HONOLULU_SERVER_CS
+      	CS_PASSWORD_CS 				= "PCSH" 	+ CS_VERSION
+      	CS_PASSWORD_CS_USER			= "H" 		+ CS_VERSION + "USER"
+      	
+      	// Rights granted to the users
+      	CS_USER_RIGHTS = hRightsInsert + hRightsConnection + hRightsManageDuplicate + hRightsManageIntegrity + hRightsRead + hRightsMaintenance + ...
+      					 hRightsUpdate + hRightsDelete + hRightsRunProcedure + hRightsManageProcedure
+      	
+      	// Rights granted to the administrators	
+      	CS_RIGHTS_ADMIN_USERS = CS_USER_RIGHTS + hRightsChangeRights + hRightsLock
+      	
+      	// Parameter
+      	PARAM_SCREENBCKGRD  = "SCREEN_BCKGRD"
+      	
+      	// Cookie
+      	COOKIE_SCREENBCKGRD = "SCREENBCKGRD_TOOLTIP"
+      	COOKIE_AUTOLOGIN 	= "HONOLULU_AUTOLOGIN_F"
+      	COOKIE_IDENT     	= "HONOLULU_IDENTIFICATION_F"
+      	COOKIE_USER      	= "HONOLULU_USERNAME_F"
+      	COOKIE_LANGUAGE    	= "HONOLULU_LANGUAGE_F"
+      END
+      
+      // Structure used to store the information regarding the user currently connected
+      STCurrentUser is Structure
+      	UserID 					is int
+      	Login					is string
+      	Password				is string
+      	DisplayedName			is string
+      	Name					is string
+      	FirstName				is string
+      	Email					is string
+      	Avatar					is buffer
+      	PublicCalendar			is boolean
+      	IsAdministrator			is boolean
+      	IsModerator				is boolean
+      	IsDeleted				is boolean
+      	EmailAllowed			is boolean
+      	IsConnected				is boolean
+      	PasswordQuestion 		is int
+      	PasswordAnswer			is string
+      	CreationDateTime		is datetime
+      	DateTimeConnection		is datetime
+      	Signature				is string
+      END
+      
+      STBrowser is Structure
+      	Acronym					is string
+      	UserAgent				is string
+      	Version					is real
+      	MozillaVersion			is real
+      END
+      
+      // Information about the current browser
+      CurrentClientBrowser		is STBrowser
+      // Information about the current user
+      CurrentUser 				is STCurrentUser
+      // If the connection to the site is established via a command line
+      gsCmdContinuation			is string
+      // Extension of AWP pages
+      AWP_EXT						is string
+      
+      // Name displayed by default
+      CurrentUser:DisplayedName = "Guest"
+      
+      // INI file found?
+      IF NOT fFileExist(fDataDir() + "\HONOLULU.INI") THEN
+      	sConfigError is string
+      	sConfigError = <§@00000000000000000010§>	
+      	
+      	PageDisplay(PAGE_Error,StringBuild(sConfigError,fDataDir()))
+      	EndProgram()
+      END
+      
+      // HFClassic mode?
+      gbClassicMode = INIRead("HFCS", "CLASSIC", "1", fDataDir() + "\HONOLULU.INI")
+      
+      // Analysis in compatibility mode
+      HSetREP(False)
+      HCheckStructure("*", hCompatible)
+      
+      //
+      // Connection to the database
+      //
+      
+      gctConnection 	  	is connection
+      gctTrialConnection 	is connection
+      gsPassWordUser 	  	is string
+      gbTrialMode		  	is boolean
+      
+      // Read the configuration information
+      LOCAL 
+      	
+      sPassword 			is string
+      sINIDir				is string = fDataDir()
+      	
+      // Extensions of AWP pages
+      AWP_EXT = InTestMode() ? "AWP" ELSE INIRead("HONOLULU", "HAWP", "awp", sINIDir + "\HONOLULU.INI")
+      
+      IF gbClassicMode = False THEN		
+      	
+      	// Administrator password
+      	sPassword = INIRead("HFCS", "ADMIN_PASSWORD", CS_PASSWORD_CS, sINIDir + "\HONOLULU.INI")
+      	
+      	// Decrypt the password if necessary
+      	IF sPassword <> CS_PASSWORD_CS THEN
+      		sPassword = Uncrypt(sPassword, csEncryptionPwd, cryptSecure, True) 
+      	END
+      	
+      	// Password of the user accounts
+      	gsPassWordUser = INIRead("HFCS", "USER_PASSWORD", CS_PASSWORD_CS_USER, sINIDir + "\HONOLULU.INI")
+      	
+      	// Decrypt the password if necessary
+      	IF gsPassWordUser <> CS_PASSWORD_CS_USER THEN
+      		gsPassWordUser = Uncrypt(gsPassWordUser, csEncryptionPwd, cryptSecure, True) 
+      	END
+      	
+      	// Enable the TRIAL mode
+      	gbTrialMode						= INIRead("DEMO", "DEMOACTIVE",	 		"OFF", 						sINIDir + "\HONOLULU.INI") = "ON"
+      	
+      	gctConnection..Database 		= INIRead("HFCS", "DATABASE",	 		"", 						sINIDir + "\HONOLULU.INI")
+      	gctConnection..Server 			= INIRead("HFCS", "SERVER",	 			"", 						sINIDir + "\HONOLULU.INI")
+      	gctConnection..User 			= INIRead("HFCS", "ADMIN_USERNAME",	 	CS_USER, 					sINIDir + "\HONOLULU.INI")
+      	gctConnection..Password			= sPassword
+      	gctConnection..Provider 		= hAccessHFClientServer
+      ELSE
+      	gctConnection..Provider			= hAccessHF7
+      END
+      
+      // Connect in ADMINISTRATOR mode to start the site
+      HChangeConnection("*", gctConnection)
+      IF ErrorOccurred THEN
+      	dbgAssert(False, <§@00000000000000000007§>)
+      END
+      
+      // Password
+      HPass("*", csEncryptionPwd)
+      
+      IF InAWPMode() THEN
+      	
+      	// Attempt to retrieve the identifier
+      	gsIdentifier = IdentifierAWPContext
+      	
+      	IF gbTrialMode = True AND gbClassicMode = False THEN
+      		
+      		IF gsIdentifier ~= "" THEN
+      			// No identifier
+      			ExceptionThrow(1, <§@00000000000000000008§>)
+      			RETURN
+      		END
+      		
+      		// When Honolulu is started, the administrator rights are granted to the connected user
+      		// Create the database 
+      		gctTrialConnection..Database = gsIdentifier
+      		gctTrialConnection..Server	 = gctConnection..Server
+      		gctTrialConnection..User	 = gctConnection..User
+      		gctTrialConnection..Password = sPassword
+      		gctTrialConnection..Provider = gctConnection..Provider
+      		
+      		// Modifies the connection
+      		gctConnection = gctTrialConnection
+      		
+      		// Connect in ADMINISTRATOR mode to start the site
+      		HChangeConnection("*", gctConnection)
+      		
+      		// Password
+      		HPass("*", csEncryptionPwd)
+      		
+      	END
+      	
+      ELSE
+      	
+      	// Creates a unique identifier
+      	gsIdentifier = GetGUID(guidRough)
+      	
+      	// TRIAL MODE
+      	IF gbTrialMode = True AND gbClassicMode = False THEN
+      		
+      		// In trial mode, we must:
+      		// - Create a temporary database
+      		// - Copy the data from the source database to the temporary database
+      		// - Change the connection to the temporary database
+      		
+      		// When Honolulu is started, the administrator rights are granted to the connected user
+      		// Create the database 
+      		gctTrialConnection..Database = gsIdentifier
+      		gctTrialConnection..Server	 = gctConnection..Server
+      		gctTrialConnection..User	 = gctConnection..User
+      		gctTrialConnection..Password = sPassword
+      		gctTrialConnection..Provider = gctConnection..Provider
+      		
+      		// Opens the connection to the new database
+      		HOpenConnection(gctTrialConnection)
+      		
+      		// Copies the data files from the source database to the temporary database
+      		sListFiles is string
+      		sFile is string
+      		sListFiles = HListFile(gctConnection)
+      		
+      		FOR EACH string sFile of sListFiles SEPARATED BY CR
+      			HCopyFile(gctTrialConnection, sFile, gctConnection, sFile, hCopyIndex)
+      		END
+      		
+      		// Closes the connection
+      		HCloseConnection(gctTrialConnection)
+      		HCloseConnection(gctConnection)
+      		
+      		// Modifies the connection
+      		gctConnection..Database = gsIdentifier
+      		
+      		// Connect in ADMINISTRATOR mode to start the site
+      		HChangeConnection("*", gctConnection)
+      		
+      		// Password
+      		HPass("*", csEncryptionPwd)
+      		
+      		// Create a trial account
+      		User.CreationDateTime = Today + Now
+      		User.Login = "HONOLULUDEMO"
+      		User.Password = "DEMO"
+      		User.DisplayedName = <§@00000000000000000003§>
+      		User.Name = "HONOLULU"
+      		User.FirstName = <§@00000000000000000004§>
+      		HAdd(User)
+      		
+      		// The HFCS account of the user must be created if it does not exist
+      		IF NOT HInfoUser(gctConnection, "HONOLULUDEMO") THEN
+      			
+      			// Creates the HFCS account of the user
+      			HUser.Login = "HONOLULUDEMO"
+      			HUser.Password = gsPassWordUser
+      			HAddUser(gctConnection)
+      			
+      			// Adds the user into the "Users" list
+      			HInfoGroup(gctConnection, <§@00000000000000000002§>)
+      			HGroup.Users += [CR] + "HONOLULUDEMO"
+      			HModifyGroup(gctConnection, <§@00000000000000000001§>)
+      		END
+      		
+      		// Enables the basis rights
+      		HFCSDisableAdministratorRights(gctConnection, "HONOLULUDEMO")
+      		//
+      		
+      	END
+      	
+      	HOpen("*", csEncryptionPwd)
+      	IF ErrorOccurred THEN
+      		dbgAssert(False, <§@00000000000000000009§>)
+      	END	
+      END
+     type : 196608
+   -
+     code : |1+
+      
+      IF NOT InAWPMode THEN
+      	
+      	//
+      	// Processes of the command lines
+      	//
+      	sRSSCmd is string
+      	sRSSCmd = PageParameter("rss")
+      	
+      	// RSS stream
+      	IF sRSSCmd <> "" THEN
+      		
+      		// RSS on the news
+      		IF sRSSCmd IN ("news", "news") THEN
+      			StringDisplay(GenerateNewsStream(), "text/xml")
+      			EndProgram(True)
+      		END
+      	END
+      	
+      	sCmdShow is string
+      	sCmdShow = PageParameter("gb")
+      	
+      	// Direct access to a page
+      	IF sCmdShow <> "" THEN
+      		
+      		SWITCH Lower(sCmdShow)
+      		
+      			// Show one of the news
+      			CASE "news"
+      				IF PageParameter("newsid") <> "" THEN
+      					gsCmdContinuation = "PageDisplay(""PAGE_NewsPortal"", """ + PageParameter("newsid") + """)"
+      				ELSE
+      					gsCmdContinuation = "PageDisplay(""PAGE_NewsPortal"")"
+      				END
+      				
+      			// Direct access to WIKI
+      			CASE "wiki"
+      				gsCmdContinuation = "PageDisplay(""PAGE_WIKIPortal"")"
+      				
+      			// Direct access to the organizer
+      			CASE "calendar", "organizer"
+      				gsCmdContinuation = "PageDisplay(""PAGE_OrganizerPortal"")"				
+      				
+      			// Direct access to the messaging
+      			CASE "messaging", "email"
+      				gsCmdContinuation = "PageDisplay(""PAGE_MessagingPortal"")"					
+      				
+      			// Direct access to the shares
+      			CASE "shares", "share"
+      				gsCmdContinuation = "PageDisplay(""PAGE_SharesPortal"")"		
+      				
+      			// Direct access to the blogs
+      			CASE "blogs"
+      				gsCmdContinuation = "PageDisplay(""PAGE_BlogsPortal"")"										
+      				
+      			// Direct access to the forums
+      			CASE "forums"
+      				gsCmdContinuation = "PageDisplay(""PAGE_ForumPortal"")"										
+      				
+      			// Direct access to the directory book
+      			CASE "address_book", "contacts"
+      				gsCmdContinuation = "PageDisplay(""PAGE_AddressBookPortal"")"										
+      				
+      		END
+      		
+      	END
+      	
+      	// Test of the browser
+      	BrowserCheckCompatibility()
+      END
+     type : 196626
+   -
+     internal_properties : CAAAAAgAAADljE6S5ygUDoUx9qLzvZqAoxqZlqm5+BKlVaIL14MpAdq9ImSm9R7l0iOqR5JpsL8rlxLlARyn53wEtRZ/qqPuYUGMQ77EoPeeZZPsT9yXpjiULcd5agXZoWdlRjdghZ00dx7Cu8kNBedeznNWJfPwBqzRo3o8eQyuPBtjAfSYa/rkZA==
+     code : |1+
+      
+      IF NOT InAWPMode() THEN
+      	
+      	// Disconnect the user
+      	DisconnectUser()
+      	
+      	// Close the connection
+      	HCloseConnection(gctConnection)
+      	
+      	// The temporary database must be deleted
+      	IF gbTrialMode AND gbClassicMode = False THEN
+      		
+      		sINIDir     is string = fDataDir()
+      		sUser 		is string
+      		sPassword	is string
+      		
+      		// Re-read the parameters
+      		sUser		= INIRead("HFCS", "ADMIN_USERNAME",	 	CS_USER, 				sINIDir + "\HONOLULU.INI")
+      		sPassword	= INIRead("HFCS", "ADMIN_PASSWORD",	 	CS_PASSWORD_CS, 		sINIDir + "\HONOLULU.INI")
+      		
+      		// Decrypt the password if necessary
+      		IF sPassword <> CS_PASSWORD_CS THEN
+      			sPassword = Uncrypt(sPassword, csEncryptionPwd, cryptSecure, True) 
+      		END
+      		
+      		// Re-opens a connection with the administrator rights
+      		HOpenConnection("TEMP_HONOLULU", sUser, sPassword, gctConnection..Server, "", hAccessHFClientServer)
+      		
+      		// Delete the database
+      		HDeleteDatabase("TEMP_HONOLULU", gsIdentifier, hDeleteLog)
+      		
+      		// Close the connection
+      		HCloseConnection("TEMP_HONOLULU")		
+      		
+      	END
+      END
+      
+     type : 196610
+   -
+     type : 196621
+   -
+     type : 196627
+     enabled : false
+  orphans :
+   -
+     name : Honolulu
+     identifier : 0x4cdd432e0514c347
+     code_elements :
+      type_code : 159
+      p_codes : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : Honolulu
+rad :
+ internal_properties : CAAAAAgAAABhIL0UXeZmxDJxY3Xy0Q==
+project_explorer :
+ explorer_type : project
+ children :
+  -
+    explorer_type : pages
+    children :
+     -
+       name : Discussion
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_InstantDiscussion
+          explorer_type : element
+          type : 65538
+     -
+       name : Tools
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_ATTACH
+          explorer_type : element
+          type : 65538
+        -
+          name : IPAGE_Editor
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_Preview
+          explorer_type : element
+          type : 65538
+        -
+          name : debug
+          explorer_type : element
+          type : 65538
+     -
+       name : Management
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_Admin_GroupForm
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Admin_UserForm
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Admin_ListGroups
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Admin_ListUsers
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Admin_GetPwd
+          explorer_type : element
+          type : 65538
+        -
+          name : Subscriptions
+          explorer_type : custom_folder
+          children :
+           -
+             name : PAGE_Admin_NewsSubsc
+             explorer_type : element
+             type : 65538
+           -
+             name : PAGE_Admin_BlogsSubsc
+             explorer_type : element
+             type : 65538
+           -
+             name : PAGE_Admin_ForumsSubsc
+             explorer_type : element
+             type : 65538
+           -
+             name : PAGE_Admin_SharesSubsc
+             explorer_type : element
+             type : 65538
+           -
+             name : PAGE_Admin_WikiSubsc
+             explorer_type : element
+             type : 65538
+        -
+          name : PAGE_AdminPortal
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_PortalSearch
+          explorer_type : element
+          type : 65538
+     -
+       name : News
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_News_Edit
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_News_Search
+          explorer_type : element
+          type : 65538
+        -
+          name : IPAGE_news
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_NewsPortal
+          explorer_type : element
+          type : 65538
+     -
+       name : Blogs
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_Blog_PostEdit
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Blog_Edit
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Blog_Search
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_BlogsPortal
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Blog_Comments
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Blog_PostsSearch
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Blog_Posts
+          explorer_type : element
+          type : 65538
+     -
+       name : Directory
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_Directory_ContactForm
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_DirectoryPortal
+          explorer_type : element
+          type : 65538
+     -
+       name : Forum
+       explorer_type : custom_folder
+       children :
+        -
+          name : IPAGE_FORUM
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_Forum_Search
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Forum_Messages
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Forum_Edit
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_FORUM_TOPICS
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_FORUMPORTAL
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Forum_CreateTopic
+          explorer_type : element
+          type : 65538
+     -
+       name : Shares
+       explorer_type : custom_folder
+       children :
+        -
+          name : IPAGE_Shares
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_Shares_Rights
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_SharesPortal
+          explorer_type : element
+          type : 65538
+     -
+       name : WIKIs
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_WIKIPortal
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_WIKI_Find
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Wiki_Print
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_WIKI_Modify
+          explorer_type : element
+          type : 65538
+     -
+       name : Messaging
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_MessagingPortal
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Messaging_Message
+          explorer_type : element
+          type : 65538
+        -
+          name : IPAGE_MESSAGING
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_Messaging_AutoFilter
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Messaging_NewMessage
+          explorer_type : element
+          type : 65538
+     -
+       name : Links
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_PortalLink
+          explorer_type : element
+          type : 65538
+        -
+          name : IPAGE_Links
+          explorer_type : element
+          type : 65542
+     -
+       name : Organizer
+       explorer_type : custom_folder
+       children :
+        -
+          name : IP_ORGANIZER
+          explorer_type : element
+          type : 65542
+        -
+          name : PAGE_OrganizerPortal
+          explorer_type : element
+          type : 65538
+     -
+       name : Errors
+       explorer_type : custom_folder
+       children :
+        -
+          name : PAGE_EngineError
+          explorer_type : element
+          type : 65538
+        -
+          name : PAGE_Error
+          explorer_type : element
+          type : 65538
+  -
+    explorer_type : queries
+    children :
+     -
+       name : News queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_News_12LastAccordingDateTime
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_News_5LastAccordingDateTime
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_News_ListNews
+          explorer_type : element
+          type : 5
+     -
+       name : Management queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Admin_ListGroups
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Admin_ListUsers
+          explorer_type : element
+          type : 5
+     -
+       name : Organizer queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Organizer_FindDailyTasks
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Organizer_Tasks
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Organizer_PublicOrganizers
+          explorer_type : element
+          type : 5
+     -
+       name : Directory queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Directory_FindZipCode
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Directory_FindCity
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Organizer_GetProfile
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Contact_Search
+          explorer_type : element
+          type : 5
+     -
+       name : Blogs queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Blogs_Archives
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_Posts
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_MostActiveBlogs
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_Comments
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_LastPosts
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_ListBlogs
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_TotalPosts
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Blogs_TotalComments
+          explorer_type : element
+          type : 5
+     -
+       name : Discussion queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Discussion_ListRequestsByPerson
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Discussion_ListMessagesPerPerson
+          explorer_type : element
+          type : 5
+     -
+       name : Forum queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Forum_LastForumMessage
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_LastMessageTopic
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_ListForums
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_TopicMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_TotalForumMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_TotalTopicMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_TotalForumTopics
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Forum_Last5Topics
+          explorer_type : element
+          type : 5
+     -
+       name : Messaging queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Messaging_RecipientsMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_Labels
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_MessagesSent
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_MessagesLabels
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_MessagesReceived
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_DeletedMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_Last9IncomingMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_SPIM
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_ListAllTheMessages
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Messaging_TotalConnectedUsers
+          explorer_type : element
+          type : 5
+     -
+       name : Shares queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Shares_ListAuthorizedGroups
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Shares_ListShares
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_shares_ListSharesByParentFolder
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Shares_ListAuthorizedUsers
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Shares_Last5ModifiedShares
+          explorer_type : element
+          type : 5
+     -
+       name : WIKI queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_WIKI_Last5WIKI
+          explorer_type : element
+          type : 5
+     -
+       name : Links queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_Links_Find
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_Links_Last5
+          explorer_type : element
+          type : 5
+     -
+       name : Attachments queries
+       explorer_type : custom_folder
+       children :
+        -
+          name : QRY_ATTACH_UseWIKI
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_UseMessaging
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_UseShares
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_UseNews
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_UseBlogs
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_UseForum
+          explorer_type : element
+          type : 5
+        -
+          name : QRY_ATTACH_FindUses
+          explorer_type : element
+          type : 5
+  -
+    explorer_type : classes
+    children :
+     -
+       name : WIKI classes
+       explorer_type : custom_folder
+       children :
+        -
+          name : cWIKIBlock
+          explorer_type : element
+          type : 4
+        -
+          name : cWIKIDocument
+          explorer_type : element
+          type : 4
+     -
+       name : Directory classes
+       explorer_type : custom_folder
+       children :
+        -
+          name : cVCard21
+          explorer_type : element
+          type : 4
+  -
+    explorer_type : procedures
+    children :
+     -
+       name : Modules
+       explorer_type : custom_folder
+       children :
+        -
+          name : pNews
+          explorer_type : element
+          type : 7
+        -
+          name : pOrganizer
+          explorer_type : element
+          type : 7
+        -
+          name : pDirectory
+          explorer_type : element
+          type : 7
+        -
+          name : pBlogs
+          explorer_type : element
+          type : 7
+        -
+          name : pDiscussion
+          explorer_type : element
+          type : 7
+        -
+          name : pForum
+          explorer_type : element
+          type : 7
+        -
+          name : pMessaging
+          explorer_type : element
+          type : 7
+        -
+          name : pShares
+          explorer_type : element
+          type : 7
+        -
+          name : pUsers
+          explorer_type : element
+          type : 7
+        -
+          name : WIKI
+          explorer_type : custom_folder
+          children :
+           -
+             name : pWIKI
+             explorer_type : element
+             type : 65539
+           -
+             name : pWikiSyntax
+             explorer_type : element
+             type : 7
+     -
+       name : System
+       explorer_type : custom_folder
+       children :
+        -
+          name : pManageSearchEngine
+          explorer_type : element
+          type : 7
+        -
+          name : pHonolulu
+          explorer_type : element
+          type : 7
+        -
+          name : pParameters
+          explorer_type : element
+          type : 7
+        -
+          name : pAttachments
+          explorer_type : element
+          type : 7
+        -
+          name : pUtilities
+          explorer_type : element
+          type : 7
+        -
+          name : pHTMLEdit
+          explorer_type : element
+          type : 7
+        -
+          name : pRSSStream
+          explorer_type : element
+          type : 7
+resources :
+ string_res :
+  identifier : 0x0
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Type of language not supported
+     index : 0
+   -
+     text :
+      en-GB : Users
+     index : 1
+   -
+     text :
+      en-GB : Users
+     index : 2
+   -
+     text :
+      en-GB : Demo account
+     index : 3
+   -
+     text :
+      en-GB : Demo
+     index : 4
+   -
+     text :
+      en-GB : "Check whether a HFSQL server is installed and configured properly.\r\n\r\nFor your tests, you have the ability use the setting found in the HONOLULU.INI file of the Honolulu setup.\r\nCheck whether the network is operating and whether the database server is started.\r\n\r\nDetails (intended for the application provider):\r\n\t\t\t\t"
+     index : 5
+   -
+     text :
+      en-GB : "Check whether a HFSQL server is installed and configured properly.\r\n\r\nFor your tests, you have the ability use the setting found in the HONOLULU.INI file of the Honolulu setup.\r\nCheck whether the network is operating and whether the database server is started.\r\n\r\nDetails (intended for the application provider):\r\n\t\t\t"
+     index : 6
+   -
+     text :
+      en-GB : "Unable to connect to the HFSQL server.\r\nCheck whether a HFSQL server is installed and configured properly.\r\n\t\t\r\nFor your tests, you have the ability to use the setting found in the HONOLULU.INI file of the Honolulu setup."
+     index : 7
+   -
+     text :
+      en-GB : Invalid session information
+     index : 8
+   -
+     text :
+      en-GB : "Unable to connect to the HFSQL server.\r\nCheck whether a HFSQL server is installed and configured properly.\r\n\r\nFor your tests, you have the ability to use the setting found in the HONOLULU.INI file of the Honolulu setup."
+     index : 9
+   -
+     text :
+      en-GB : "\t\tUnable to connect to the HFSQL server.\r\n\t\tCheck whether a HFSQL server is installed and configured properly.\r\n\t\t\r\n\t\tFor your tests, you have the ability to use the setting found in the HONOLULU.INI file of the Honolulu setup."
+     index : 10
+   -
+     text :
+      en-GB : "An unexpected error occurred:"
+     index : 11
+   -
+     text :
+      en-GB : <b>The data server does not respond</b>
+     index : 12
+   -
+     text :
+      en-GB : Error
+     index : 13
+   -
+     text :
+      en-GB : "\tThe HONOLULU.INI configuration file was not found in the %1 directory.\r\n\tThis file is required for Honolulu to work. It must have the following format:\"\r\n\t\r\n\t"
+     index : 14
+   -
+     text :
+      en-GB : "The HONOLULU.INI configuration file was not found in the %1 directory.\r\nThis file is required for Honolulu to operate.\r\n\r\nRetrieve a HONOLULU.INI configuration file generated by a previous setup.\r\n\r\nA blank database is available in the Honolulu installer (H14DATA_FR.zip file for French or H14DATA_US.zip for English).\r\nAll you have to do is unzip the database and copy/paste it into the DB directory of the HFSQL C/S server whose information was specified in the HONOLULU.ini file."
+     index : 15
+   -
+     text :
+      en-GB : "The HONOLULU.INI configuration file was not found in the %1 directory.\r\nThis file is required for Honolulu to operate.\r\n\r\nRetrieve a HONOLULU.INI configuration file generated by a previous setup.\r\n\r\nA blank database is available in the Honolulu installer (H16DATA_FR.zip file for French or H16DATA_US.zip for English).\r\nAll you have to do is unzip the database and copy/paste it into the DB directory of the HFSQL C/S server whose information was specified in the HONOLULU.ini file."
+     index : 16
+   -
+     text :
+      en-GB : Synchronization error
+     index : 17
+custom_note :
+ internal_properties : CAAAAAgAAAAd98VSJfHHqE3P0QHwrwdhn7ig8dWBR6valpUTgnAMTVXiDg==

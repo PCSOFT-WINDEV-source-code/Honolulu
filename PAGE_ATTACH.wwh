@@ -1,0 +1,167 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : PAGE_ATTACH
+ major_version : 28
+ minor_version : 0
+ type : 65538
+ description : Retrieving the attachments
+ subtype : 8192
+page :
+ name : PAGE_ATTACH
+ identifier : 0x296c804e57af5d2b
+ internal_properties : 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
+ properties : {}
+ type : 1
+ languages :
+  - en-GB
+ code_elements :
+  type_code : 38
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAAAdPYMKfm7gVCf3p+GDl5JK/smAQteym/Z/QPpXVzmokhkTi5m4dkmMQlwKAgVLAbdbrEwdKlV2Uz3UqLC/sPzgYgyKdn38CcIbxAKn30Gk+jhlcPBDQX4d75z0WK1raiqiLFk21a/Cn99KejaN2Ho8OWdPgRwRMi7/0NWI5/AhYJ3fv0Gq6G1CiQv54ZvSMvE=
+     code : |1+
+      
+      //dbgEnableAssert(true)
+      
+      WHEN EXCEPTION
+      	ExceptionEnable()
+      	StringDisplay(ExceptionInfo(), "text/plain")
+      	RETURN
+      END
+      
+      LOCAL
+      	bufMemo is buffer
+      	sKey is string
+      	sMIMEType is string
+      	sFileName is string
+      	nFileSize is int
+      	oImage is an Image
+      	
+      // Retrieves the key	
+      sKey = PageParameter("key")
+      
+      IF sKey <> "" THEN		
+      	
+      	// Retrieves the attachment
+      	bufMemo = ATTACHGet(sKey, "", sMIMEType, nFileSize, sFileName)
+      	dbgAssert(bufMemo <> "")
+      	
+      	IF PageParameter("mode") = "homo" THEN
+      		
+      		// Load
+      		oImage = bufMemo
+      		oImage..FillColor = white
+      		
+      		// The image must be resized
+      		dResize(oImage, Val(PageParameter("sizel")), Val(PageParameter("sizeh")), drHomothetic + drHighQuality)
+      		
+      		// Returns the resized image
+      		StringDisplay(dSaveImageJPEG(oImage, inMemory), "image/jpeg")
+      	ELSE
+      		IF bufMemo <> "" THEN
+      			StringDisplay(bufMemo, sMIMEType, sFileName)
+      		ELSE
+      			// Don't return anything if nothing was found
+      			StringDisplay(<§$0001§>, "text/plain")		
+      		END	
+      	END
+      ELSE
+      	
+      	IF PageParameter("mime") <> "" THEN
+      		
+      		// Loads the image
+      		oImage = IconMIMEType(PageParameter("mime"), False)
+      		oImage..FillColor = White
+      		
+      		// The image must be resized
+      		dResize(oImage, Val(PageParameter("sizel")), Val(PageParameter("sizeh")), drHomothetic + drHighQuality)
+      		
+      		// Returns the resized image
+      		StringDisplay(dSaveImageJPEG(oImage, inMemory), "image/jpeg")
+      	ELSE
+      		
+      		IF PageParameter("ban") <> "" THEN
+      			
+      			// Loads the banner
+      			oImage = dLoadImage(CompleteDir(fWebDir()) + "ext\banners\" + PageParameter("ban"))				
+      			oImage..FillColor = RGB(248, 248, 248)
+      			
+      			// The image must be resized
+      			dResize(oImage, 225, 45, drHomothetic + drHighQuality)
+      			
+      			// Returns the resized image
+      			StringDisplay(dSaveImageJPEG(oImage, inMemory), "image/jpeg")
+      		ELSE
+      			// Don't return anything if nothing was found
+      			StringDisplay(<§$0000§>, "text/plain")					
+      		END
+      	END
+      	
+      END
+     type : 851968
+   -
+     type : 852017
+     enabled : false
+   -
+     type : 852119
+     enabled : false
+   -
+     type : 852298
+     role : N
+   -
+     type : 851999
+     role : N
+   -
+     type : 852000
+     role : N
+   -
+     type : 852232
+     enabled : false
+   -
+     type : 852167
+     enabled : false
+   -
+     type : 852169
+     role : N
+     enabled : false
+   -
+     type : 852225
+     role : N
+     enabled : false
+   -
+     type : 852227
+     enabled : false
+   -
+     type : 1310979
+     enabled : false
+   -
+     type : 852228
+     role : N
+     enabled : false
+   -
+     type : 852217
+     role : N
+     enabled : false
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : PAGE_Page1
+resources :
+ string_res :
+  identifier : 0x15533c21007a83de
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : No attachment
+     index : 0
+   -
+     text :
+      en-GB : The attachment is not found
+     index : 1
+webification :
+ internal_properties : CAAAAAgAAACYzxT95H3qP7nIys4LqA==
+custom_note :
+ internal_properties : CAAAAAgAAAC68/W0/adbG0nFCRhrE42B5HRnbDzVHaz86sSQyxlBk7I=
+rad :
+ internal_properties : CAAAAAgAAABoAN7PLpwJW3EiA7WVZdCA5EwrCA1rvutcDHooMWKe

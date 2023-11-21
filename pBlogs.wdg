@@ -1,0 +1,433 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pBlogs
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x155352d8026a4185
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAAD4UjKDvbw9D/mSSe7LUQIyFvRxzCV3sZSf07I6lvMcvuGq5oEUvTjscVzf2H5vjMG363MytHPmWVaiP+cNMiLjIQFNWETaAtiDqViHma5W/smPL1Go6bTLdsoTPPbUod9FQyoi+aVQlTom58cj
+  type_code : 31
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAAD1PyOnfWan5j/8P1oc55hZm+1s3Chts5NHKpt4yAWPF5EUNsCbOFkNWDOT1PC+RS5/iuqg0BTmKHqBZDnUnGqIIcX4D8nY/ExgAn6I6q6kLh8trJfeB0pLjAxZcGsNowg5yRvVthhf+UUYyZI=
+     code : |1-
+      // Set of procedures for managing the blogs
+      
+      CONSTANT
+      	// Counters
+      	CPT_BLOGS 			= "TotalBlogPosts"
+      	CPT_COMMENTS_BLOG 	= "TotalBlogComments"
+      	CPT_COMMENTS_POST 	= "TotalPostComments"
+      	
+      	// Notifications
+      	NOTIFICATION_BLOGS_COMMENTS = "NOTIFICATION_BLOGS_COMMENTS"
+      	NOTIFICATION_BLOGS_POSTCREATION = "NOTIFICATION_BLOGS_POSTCREATION"
+      END
+      
+      // Branches the triggers on the addition/deletion of posts or comments for updating the counters
+      IF NOT HDescribeTrigger(BlogPost, 	"HAdd,HDelete", 	TRIGGER_AddDeletePosts, 		hTriggerAfter) THEN dbgAssert(False, HError)
+      IF NOT HDescribeTrigger(Comment, 	"HAdd,HDelete", 	TRIGGER_AddDeleteComments, 		hTriggerAfter) THEN dbgAssert(False, HError)
+      IF NOT HDescribeTrigger(Blog, 		"HDelete", 			TRIGGER_AddDeleteBlog, 			hTriggerAfter) THEN dbgAssert(False, HError)
+     type : 720896
+  procedures :
+   -
+     name : TRIGGER_AddDeletePosts
+     internal_properties : CAAAAAgAAACYE4Ri9ORb4bbGOyVqmou+w/DkPNIPea707oDFBaASH5IHgQzJlsRlPGRWSHailWqIcDQltsKBg6QwgT78aKzRg/QqggTe05KqIv7WIOkaQWK/JYHZopc08N048tcwoouHTu1/oGXpIhQHAqlQ1NU8yb9LjnSJLFMMgcCqqZ0jEvok1g57KimUeF1P7aDgGax6IjXIW3A=
+     procedure_id : 1536672425951808342
+     type_code : 15
+     code : |1-
+      // Summary: HFSQL trigger called when adding or deleting a post
+      // Syntax:
+      //TRIGGER_AddDeletePosts ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_AddDeletePosts()
+      
+      
+      SWITCH H.TriggerFunction
+      	CASE ~= "HADD"
+      		
+      		// Increments the counter of posts
+      		CounterIncrement(CPT_BLOGS + BlogPost.BlogID)	
+      		
+      		sGUID is string = HFSavePosition(Blog..Name)
+      		
+      		HReadSeekFirst(Blog, BlogID, BlogPost.BlogID)
+      		
+      		// Notification
+      		NotificationSend(	MODULE_BLOGS, ...
+      		NOTIFICATION_BLOGS_POSTCREATION, ...
+      		<§@155352d5026836790001§>, ...
+      		StringBuild(<§@155352d5026836790006§>, GetLogin(BlogPost.UserID), BlogPost.Title, Blog.Title))
+      		
+      		HFRestorePosition(sGUID)
+      		
+      	CASE ~= "HDelete"
+      		
+      		// Decrements the counter of posts
+      		CounterDecrement(CPT_BLOGS + BlogPost.BlogID)		
+      		
+      		// Deletes the counter of comments for this post
+      		ParameterDelete(CPT_COMMENTS_POST + BlogPost.PostID)		
+      		
+      	OTHER CASE
+      		dbgAssert(False,<§@155352d5026836790007§>+H.TriggerFunction)		
+      END
+     type : 458752
+   -
+     name : TRIGGER_AddDeleteComments
+     internal_properties : CAAAAAgAAABs1OGt9XMdNcq1alTZPsXib2oZJ0LhOZV4uByU93MOU+Kato4tggA4CmiRAtrzC338ZZe6LT0lbOcKJtyMsnKIax+YbSSpRf0I98mR7xtf2+Rv1HoaTR4t5cq1ddITp8bUA5TgQYQMt//yDQ6XcfajOii+c62GbYJ/PNtjgKAMeahqrFAtWqcSyOWXdVBUzSbG9geenTkr45Z9s2/8jyM37TZWipoH
+     procedure_id : 1536673001481229709
+     type_code : 15
+     code : |1-
+      // Summary: HFSQL trigger called when adding or deleting a comment
+      // Syntax:
+      //TRIGGER_AddDeleteComments ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_AddDeleteComments()
+      
+      GUID is string
+      
+      SWITCH H.TriggerFunction
+      	CASE ~= "HADD"
+      		
+      		// Increments the counter of comments for the post
+      		CounterIncrement(CPT_COMMENTS_POST + Comment.PostID)	
+      		
+      		GUID = HFSavePosition(BlogPost..Name + ";" + Blog..Name)
+      		
+      		HReadSeekFirst(BlogPost, PostID, Comment.PostID)
+      		HReadSeekFirst(Blog, BlogID, BlogPost.BlogID)
+      		
+      		// Increments the counter of comments for the blog			
+      		CounterIncrement(CPT_COMMENTS_BLOG + BlogPost.BlogID)	
+      		
+      		//
+      		// Benefit from this trigger to monitor the comments of a post
+      		//
+      		
+      		// Checks whether the author of the post has requested to follow the comments 
+      		IF BlogPost.FollowUpOfActiveComments THEN
+      			
+      			// Only if the author of the comment is not himself
+      			IF Comment.UserID <> BlogPost.UserID THEN
+      				
+      				// Notification
+      				NotificationSend(MODULE_BLOGS, NOTIFICATION_BLOGS_COMMENTS, ...
+      				StringBuild(<§@155352d5026836790008§>, Blog.Title), ...
+      				StringBuild(<§@155352d5026836790000§>, BlogPost.Title, GetUserName(Comment.UserID)), ...
+      				BlogPost.UserID)
+      				
+      			END
+      		END
+      		
+      		HFRestorePosition(GUID)
+      		
+      		
+      	CASE ~= "HDelete"
+      		
+      		// Decrements the counter of posts
+      		CounterDecrement(CPT_COMMENTS_POST + Comment.PostID)		
+      		
+      		GUID = HFSavePosition(BlogPost..Name)
+      		HReadSeekFirst(BlogPost, PostID, Comment.PostID)
+      		
+      		// Decrements the counter of comments for the blog
+      		CounterDecrement(CPT_COMMENTS_BLOG + BlogPost.BlogID)
+      		
+      		HFRestorePosition(GUID)
+      		
+      	OTHER CASE
+      		dbgAssert(False,<§@155352d5026836790007§>+H.TriggerFunction)		
+      END
+     type : 458752
+   -
+     name : TRIGGER_AddDeleteBlog
+     internal_properties : CAAAAAgAAACmx9qgJMzZ7LBIaW+WBoE64UDKd4iyly1aQBH/05i+UPqW3kyEbuIhlteYf9BfCesFskLuvKKtoLwdvKggcrQYM95bORbYWjrFsrL/M1g5f7ak9r2SNOOU415Oj4jcsOlt0PKRXYNPnB1+VDhDbIcWNZfyUqf9wMPpZOZFGn1ngkdN6HU5G17nooXyA0I1DecLRfZGdjva5lUKdFy7g8k1B8Ir3A==
+     procedure_id : 1562247891406811643
+     type_code : 15
+     code : |1-
+      // Summary: Trigger released when adding or deleting a blog
+      // Syntax:
+      //TRIGGER_AddDeleteBlog ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED TRIGGER_AddDeleteBlog()
+      
+      // Local variables
+      sKeyList 		is string
+      sKey 			is string
+      
+      SWITCH H.TriggerFunction
+      
+      	CASE ~= "HDelete"
+      		
+      		// Delete the notifications active for this blog
+      		sKeyList = ConfigureList(ForAll, NOTIFICATION_BLOGS_POSTCREATION + "_" + MODULE_BLOGS + Blog.BlogID)
+      		FOR EACH string sKey of sKeyList SEPARATED BY CR
+      			
+      			// Deletes the notification
+      			ParameterDelete(sKey)
+      			
+      		END
+      		
+      	OTHER CASE
+      		dbgAssert(False,<§@155352d5026836790007§>+H.TriggerFunction)		
+      END
+     type : 458752
+   -
+     name : BlogNotificationActivate
+     procedure_id : 1562652193532567363
+     type_code : 15
+     code : |1+
+      // Summary: Checks whether a notification of post creation in a blog is active for a user
+      // Syntaxe :
+      //[ <Résultat> = ] BlogNotificationActivate (<nBlogID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nBlogID : Identifier of the blog
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	Undefined type: True if a notification is active, False otherwise
+      PROCEDURE BlogNotificationActivate(nBlogID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      RESULT Val(ParameterRead(NOTIFICATION_BLOGS_POSTCREATION + "_" + MODULE_BLOGS + nBlogID + "_" + nUserID, ForAll, "0"))
+     type : 458752
+   -
+     name : BlogNotificationCreate
+     procedure_id : 1562652193532632961
+     type_code : 15
+     code : |1+
+      // Summary: Creates a notification of post creation in a blog for a user
+      // Syntaxe :
+      //BlogNotificationCreate (<nBlogID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nBlogID : Identifier of the blog
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE BlogNotificationCreate(nBlogID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterWrite(NOTIFICATION_BLOGS_POSTCREATION + "_" + MODULE_BLOGS + nBlogID + "_" + nUserID, "1")
+     type : 458752
+   -
+     name : BlogNotificationDelete
+     procedure_id : 1562652193532698544
+     type_code : 15
+     code : |1+
+      // Summary: Deletes a notification
+      // Syntaxe :
+      //BlogNotificationDelete (<nBlogID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nBlogID : Identifier of the blog
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE BlogNotificationDelete(nBlogID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      ParameterDelete(NOTIFICATION_BLOGS_POSTCREATION + "_" + MODULE_BLOGS + nBlogID + "_" + nUserID)
+     type : 458752
+   -
+     name : BlogCaption
+     procedure_id : 1562657068493549318
+     type_code : 15
+     code : |1+
+      // Summary: Returns the title of a blog
+      // Syntax:
+      //[ <Result> = ] BlogCaption (<nIDBlog>)
+      //
+      // Parameters:
+      //	nIDBlog: Identifier of the blog
+      // Return value:
+      // 	string: Title of the blog
+      //
+      PROCEDURE BlogCaption(nBlogID)
+      
+      // Local variables
+      sCaption 	is string
+      sGUID 		is string
+      
+      // Save the context
+      sGUID = HFSavePosition(Blog..Name)
+      
+      // Search for the blog	
+      HReadSeekFirst(Blog, BlogID, nBlogID)
+      IF HFound(Blog) THEN
+      	sCaption = Blog.Title
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      RESULT sCaption
+     type : 458752
+   -
+     name : BlogsUpdate
+     procedure_id : 1582603755601846433
+     type_code : 15
+     code : |1+
+      // Summary: Update the counters of blogs
+      // Syntax:
+      //BlogsUpdate ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED BlogsUpdate()
+      
+      GUID is string = HFSavePosition(Forum..Name + ";" + Topic..Name + ";" + Post..Name)
+      
+      HSetTrigger(False)
+      
+      // Check the consistencies of the keys
+      FOR EACH Comment 
+      	HSeekFirst(BlogPost, PostID, Comment.PostID)
+      	IF NOT HFound(BlogPost) THEN			
+      		HDelete(Comment)
+      		CONTINUE
+      	END
+      	
+      	HReadSeekFirst(BlogPost, PostID, Comment.PostID)
+      	HSeekFirst(Blog, BlogID, BlogPost.BlogID)
+      	IF NOT HFound(Blog) THEN
+      		// Deletes the comment
+      		HDelete(Comment)
+      		// Deletes the post
+      		HDelete(BlogPost)
+      		CONTINUE
+      	END
+      END
+      
+      HSetTrigger(True)
+      
+      // Deletes all the counters associated with the blogs
+      BlogCounterDelete()
+      
+      FOR EACH Blog
+      	
+      	// Calculates the number of posts in the blog
+      	QRY_Blogs_TotalPosts.pBlogID = Blog.BlogID
+      	HExecuteQuery(QRY_Blogs_TotalPosts)
+      	
+      	// Stores the total for this blog
+      	CounterIncrement(CPT_BLOGS + Blog.BlogID, QRY_Blogs_TotalPosts.Total)
+      	
+      	// Calculates the number of comments in the blog
+      	QRY_Blogs_TotalComments.pBlogID = Blog.BlogID
+      	QRY_Blogs_TotalComments.pPostID = Null
+      	HExecuteQuery(QRY_Blogs_TotalComments)
+      	
+      	// Stores the total for this blog
+      	CounterIncrement(CPT_COMMENTS_BLOG + Blog.BlogID, QRY_Blogs_TotalComments.Count_1)
+      	
+      	FOR EACH BlogPost WHERE BlogID = Blog.BlogID
+      		
+      		// Calculates the number of comments in the post
+      		QRY_Blogs_TotalComments.pBlogID = Null
+      		QRY_Blogs_TotalComments.pPostID = BlogPost.PostID
+      		HExecuteQuery(QRY_Blogs_TotalComments)
+      		
+      		// Stores the total for this post
+      		CounterIncrement(CPT_COMMENTS_POST + BlogPost.PostID, QRY_Blogs_TotalComments.Count_1)
+      		
+      	END
+      	
+      END	
+      
+      HFRestorePosition(GUID)
+     type : 458752
+   -
+     name : BlogCounterDelete
+     procedure_id : 1582603867277379574
+     type_code : 15
+     code : |1+
+      // Summary: Deletes all the counters associated with the blogs
+      // Syntax:
+      //BlogCounterDelete ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED  BlogCounterDelete()
+      
+      sKeyList is string
+      sKey is string
+      
+      // Retrieves all the counters saved
+      sKeyList = ConfigureList(ForAll, CPT_BLOGS, False)
+      sKeyList += [CR] + ConfigureList(ForAll, CPT_COMMENTS_POST, False)
+      sKeyList += [CR] + ConfigureList(ForAll, CPT_COMMENTS_BLOG, False)
+      
+      // Deletes all the counters
+      FOR EACH string sKey of sKeyList SEPARATED BY CR		
+      	// Deletes the counter
+      	ParameterDelete(sKey)
+      END
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x155352d502683679
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "A new comment was posted on your post called <I>'%1'</I>, by <B>%2</B>."
+     index : 0
+   -
+     text :
+      en-GB : New post in a blog
+     index : 1
+   -
+     text :
+      en-GB : "\r\n%1 wrote a new post in the blog to which you are registered.\r\nTitle of the post: %2\r\nIn the blog: %3\r\n\t\t\t"
+     index : 6
+   -
+     text :
+      en-GB : "Trigger not supported: "
+     index : 7
+   -
+     text :
+      en-GB : "[%1] New posted comment"
+     index : 8
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

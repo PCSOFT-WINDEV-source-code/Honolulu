@@ -1,0 +1,1435 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pShares
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561778ebe48974
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      CONSTANT
+      	NOTIFICATION_SHARE_DELETION = "NOTIFICATION_SHARE_DELETION"	
+      	NOTIFICATION_SHARE_MODIFICATION = "NOTIFICATION_SHARE_MODIFICATION"
+      	NOTIFICATION_SHARE_CREATION = "NOTIFICATION_SHARE_CREATION"
+      END
+     type : 720896
+  procedures :
+   -
+     name : bUploadFile
+     internal_properties : CAAAAAgAAAC9zfs1g6e96T/s7nbUyMtksuTyfXoaRitBm4z1SRCzrzKeFUGDC/fVx/Biy3pFqZ+UKQ4JK5zsYSAkjd4pOLV4i4CxWcm89q9h73XY/vg2UTvAiKjwlSt5rLsIM6rCtO2XkoT7ReureAmi8FpnUJcWM/VYDAddLumzegYZ3vF38vlYwznz0sweZRnHhsalU77RTc0praOJ/W1qE+Ab972vD5tm72/g2Tlv/fVSxpwNKUngECc=
+     procedure_id : 1825672507066517876
+     type_code : 15
+     code : |1-
+      // Summary: Procedure for uploading the file
+      // Syntax:
+      //[ <Result> = ] bUploadFile (<ControlName>, <sPathServerFile>)
+      //
+      // Parameters:
+      //	ControlName: Name of the upload control
+      //	sPathServerFile: Path of the file on the server
+      // Return value:
+      // 	boolean: True if successful, False otherwise
+      
+      PROCEDURE RESTRICTED bUploadFile(ControlName,sPathServerFile)
+      
+      // Upload the file
+      NameOfFile is string
+      
+      NameOfFile = UploadFileName(ControlName,False)
+      NameOfFile = fExtractPath(NameOfFile,fFileName+fExtension)
+      IF fDirectoryExist( fDataDir()+"\Files" ) = "" THEN
+      	fMakeDir( fDataDir()+"\Files" )
+      END
+      
+      IF  UploadCopyFile(ControlName, fDataDir()+"\Files" , NameOfFile) = "" THEN
+      	RESULT False
+      ELSE
+      	sPathServerFile = fDataDir()+"\Files\"+NameOfFile
+      	RESULT True
+      END
+     type : 458752
+   -
+     name : ShareAssignRightsToUserOrGroup
+     procedure_id : 1825672507066583412
+     type_code : 15
+     code : |1+
+      // Summary: Used to assign (add, modify or delete) rights to a user or to a group of users for a given share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareAssignRightsToUserOrGroup (<nShareID>, <nGroupID>, <nUserID>, <nRight>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share onto which the rights will be applied
+      //	nGroupID : Identifier of the group to which the rights will be applied, -1 if the rights are applied to a user
+      //	nUserID :  Identifier of the user to which the rights will be applied, -1 if the rights are applied to a group
+      //	nRight : Integer corresponding to the rights applied (0: no rights, 1: read rights, 2: read/write rights, 3: total control)
+      
+      PROCEDURE ShareAssignRightsToUserOrGroup(nShareID,nGroupID,nUserID,nRight)
+      
+      bReturn is boolean 
+      sMessage is string
+      
+      sGUID is string = HFSavePosition(ShareRights..Name)
+      
+      
+      //Modify the rights on the share
+      HReadSeek(ShareRights,RightsByGroupOrUserByShare,[nGroupID,nUserID,nShareID])
+      
+      IF HFound THEN
+      	ShareRights.Right = nRight
+      	IF  HModify(ShareRights) THEN
+      		bReturn = True	
+      	END
+      ELSE
+      	ShareRights.ShareID = nShareID
+      	ShareRights.GroupID = nGroupID
+      	ShareRights.UserID = nUserID
+      	ShareRights.Right = nRight
+      	IF  HAdd(ShareRights) THEN
+      		bReturn =  True	
+      	END
+      END
+      
+      
+      //If the modification was successfully performed: send a notification regarding the modification of the rights for a share
+      IF bReturn = True THEN
+      	
+      	sMessage = StringBuild(<§@158a97881e1fe3f20001§>,GetLogin(CurrentUser:UserID), ShareGetName(nShareID))
+      	
+      	NotificationSend(	MODULE_SHARES, NOTIFICATION_MODIFICATION,<§@158a97881e1fe3f20002§>,sMessage)
+      END
+      
+      //Reset to zero
+      HReset(ShareRights)
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+      
+      
+      
+     type : 458752
+   -
+     name : ShareIsPublic
+     procedure_id : 1825672507066648948
+     type_code : 15
+     code : |1-
+      // Summary: Indicates whether a share is public or RESTRICTED (note: all the folders are public)
+      // Syntaxe :
+      //[ <Résultat> = ] ShareIsPublic (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	boolean: True if the share is public, False otherwise
+      PROCEDURE ShareIsPublic(nShareID)
+      
+      bIsPublic is boolean
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	bIsPublic = Share.IsPublic
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bIsPublic
+     type : 458752
+   -
+     name : ShareModify
+     internal_properties : CAAAAAgAAACCLe5ILK7GiWQEWwkWGNOatQKuspZVoaauALBZ6c4yp5DNO3qZyPQJ7oZiUJYEYcruHva7rjRxw16qEbbc2nw9VaZQ9FAMCz40TP713SohCi+M/PqO85indRqVZUCtFbAs6wywdXZaBRkE37DRSaTN4lDWsx1mQdaJdnWBZr6uX1uFPd/s7/7rge6QeL35jCjK/B/eMVo=
+     procedure_id : 1825672507066714484
+     type_code : 15
+     code : |1+
+      // Summary: Used to modify a share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareModify (<nShareID>, <sCaption>, <sDescription>, <bPublic> [, <sPassword>])
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share to modify
+      //	sCaption : New caption, name of the share
+      //	sDescription : New description of the share
+      //	bPublic : New type of access to the share: True if public, False otherwise
+      //	sPassword (valeur par défaut="") : <specify the role of sPassword>
+      
+      // Return value:
+      // 	boolean: True if the modification was successful, False otherwise 
+      PROCEDURE ShareModify(nShareID,sCaption,sDescription,bPublic,sPassword="")
+      
+      bReturn is boolean 
+      sMessage is string
+      nParentFolderID is int 
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	nParentFolderID = Share.ParentFolderID
+      	
+      	//Modify the share
+      	Share.Caption = sCaption
+      	Share.Description = sDescription
+      	Share.IsPublic = bPublic
+      	Share.ModificationDateTime = Today() + Now()
+      	Share.ModifierID = CurrentUser:UserID
+      	Share.Password = sPassword
+      	
+      	IF HModify(Share) THEN
+      		
+      		// Retrieves the owner of the share
+      		nOwnerID is int
+      		nOwnerID = ShareGetOwnerID(nShareID)
+      		
+      		// If the owner is not the current user and if he is not an administrator
+      		IF NOT (nOwnerID = CurrentUser:UserID AND IsAdministratorOrModerator()) THEN
+      			
+      			// Send a notification of share modification
+      			sMessage = StringBuild(<§@158a97881e1fe3f20003§>,GetLogin(CurrentUser:UserID), ShareGetName(nShareID), ShareGetName(nParentFolderID))
+      			
+      			NotificationSend(	MODULE_SHARES, NOTIFICATION_MODIFICATION,<§@158a97881e1fe3f20004§>,sMessage, nOwnerID)
+      			
+      		END
+      		
+      		bReturn =  True
+      	END
+      	
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+      
+     type : 458752
+   -
+     name : ShareDeleteRightsUserOrGroup
+     procedure_id : 1825672507066780020
+     type_code : 15
+     code : |1-
+      // Summary: Used to delete the rights on a share for a user or for a group  
+      // Syntaxe :
+      //[ <Résultat> = ] ShareDeleteRightsUserOrGroup (<nShareID>, <nGroupID>, <nUserID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      //	nGroupID : Identifier of the group: -1 if the rights are associated with a user
+      //	nUserID : Identifier of the user: -1 if the rights are associated with a group
+      
+      // Return value:
+      PROCEDURE ShareDeleteRightsUserOrGroup(nShareID,nGroupID,nUserID)
+      
+      bReturn is boolean 
+      
+      sGUID is string = HFSavePosition(ShareRights..Name)
+      
+      HReadSeek(ShareRights,RightsByGroupOrUserByShare,[nGroupID,nUserID,nShareID])
+      
+      IF HFound(ShareRights) THEN
+      	HDelete(ShareRights)
+      	bReturn = True 
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : DeleteShare
+     procedure_id : 1825672507066845556
+     type_code : 15
+     code : |1-
+      // Summary: Used to delete a share
+      // Syntaxe :
+      //[ <Résultat> = ] DeleteShare (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : identifier of the share to delete
+      
+      // Return value:
+      // 	boolean: True if the deletion was performed, False otherwise
+      PROCEDURE DeleteShare(nShareID)
+      
+      bReturn is boolean
+      sMessage is string
+      sShareName is string
+      nParentFolderID  is string
+      sKeyShare is string
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      //Search for the record to delete
+      HReadSeek(Share,ShareID,nShareID)
+      
+      //Retrieve its name and the identifier of its parent folder
+      sShareName = Share.Caption
+      nParentFolderID = Share.ParentFolderID
+      
+      //If the share is a file
+      IF Share.IsFolder = 0 THEN
+      	
+      	//Retrieve the share key in order to delete the associated attachment thereafter
+      	sKeyShare = Share.Key
+      	
+      	//Delete the share
+      	IF HDelete(Share) THEN
+      		
+      		//Delete the attachment linked to the share
+      		ATTACHDelete(sKeyShare)
+      		
+      		//Delete the topic linked to the share from the "Shares" forum 
+      		ParameterDelete("TOPIC_SHARE_" + nShareID)
+      		
+      		//The deletion was successful: send a notification of deletion of a share file
+      		sMessage = StringBuild(<§@158a97881e1fe3f20005§>,GetLogin(CurrentUser:UserID), sShareName,ShareGetName(nParentFolderID))
+      		
+      		NotificationSend(	MODULE_SHARES, NOTIFICATION_DELETION,<§@158a97881e1fe3f20006§>,sMessage)
+      		
+      		bReturn = True 
+      	END
+      	
+      ELSE
+      	//If the share is a folder
+      	
+      	//Delete the share
+      	IF HDelete(Share) THEN
+      		
+      		//And its entire content
+      		ShareDeleteChild(nShareID)
+      		
+      		//Delete the topic linked to the share from the "Shares" forum 
+      		ParameterDelete("TOPIC_SHARE_" + nShareID)
+      		
+      		//The deletion was successful: send a notification of deletion of a share file
+      		sMessage = StringBuild(<§@158a97881e1fe3f20007§>,GetLogin(CurrentUser:UserID), sShareName,ShareGetName(nParentFolderID))
+      		
+      		NotificationSend(	MODULE_SHARES, NOTIFICATION_DELETION,<§@158a97881e1fe3f20008§>,sMessage)
+      		
+      		bReturn = True 
+      	END
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : ShareCreateShareFolder
+     procedure_id : 1825672507066911092
+     type_code : 15
+     code : |1+
+      // Summary: Used to create a share folder 
+      // Syntaxe :
+      //[ <Résultat> = ] ShareCreateShareFolder (<sFolderName>, <nParentFolderID>, <sDescription> [, <sPassword>])
+      //
+      // Paramètres :
+      //	sFolderName : Name for the folder to create (it's a caption)
+      //	nParentFolderID : Identifier of the parent folder: in which folder is this share created?
+      //	sDescription : Description for the folder to create
+      //	sPassword (valeur par défaut="") : <specify the role of sPassword>
+      
+      PROCEDURE ShareCreateShareFolder(sFolderName,nParentFolderID,sDescription,sPassword="")
+      
+      nCreatedFolderID is int
+      sMessage is string
+      
+      //Reset to zero
+      HReset(Share)
+      
+      //Assign the items of the Share file
+      Share.Caption = sFolderName
+      Share.ParentFolderID= nParentFolderID
+      Share.CreationDateTime = Today()+Now()
+      Share.IsFolder = 1
+      Share.OwnerID = CurrentUser:UserID
+      Share.Description = sDescription
+      Share.Password = sPassword
+      //All the folders are public
+      Share.IsPublic = 1
+      
+      //Add the share folder
+      IF  HAdd(Share) = False THEN
+      	Error(<§@158a97881e1fe3f20009§>,HErrorInfo())
+      	RESULT -1
+      END
+      //Retrieve the identifier of the created share folder
+      nCreatedFolderID = Share.ShareID
+      
+      //If the addition was successful: send a notification of creation of a share folder
+      sMessage = StringBuild(<§@158a97881e1fe3f2000a§>,GetLogin(CurrentUser:UserID), sFolderName,ShareGetName(nParentFolderID))
+      
+      NotificationSend(	MODULE_SHARES, NOTIFICATION_CREATION,<§@158a97881e1fe3f2000b§>,sMessage)
+      
+      RESULT nCreatedFolderID
+     type : 458752
+   -
+     name : ShareCreateShareFile
+     procedure_id : 1825672507066976628
+     type_code : 15
+     code : |1-
+      // Summary: Used to create a share file, a new shared resource
+      // Syntaxe :
+      //[ <Résultat> = ] ShareCreateShareFile (<sCaption>, <sDescription>, <nParentFolderID>, <sKey>, <bPublic> [, <sPassword>])
+      //
+      // Paramètres :
+      //	sCaption : Name, caption for the share file to create
+      //	sDescription : Description for the share file to create
+      //	nParentFolderID : Identifier of the parent folder
+      //	sKey : Key of the attachment associated with the share: the corresponding attachment must be created before creating the share for the file
+      //	bPublic : Is the shared file public? (which means: read/write for everyone and total control for the administrator, the moderators and the owner)
+      //	sPassword (valeur par défaut="") : <specify the role of sPassword>
+      
+      PROCEDURE ShareCreateShareFile(sCaption,sDescription,nParentFolderID,sKey,bPublic,sPassword="")
+      
+      nCreatedFileID is int
+      sMessage is string
+      
+      //Reset to zero
+      HReset(Share)
+      
+      //Assign the items of the Share file
+      Share.IsFolder = 0 //It's a file
+      Share.ParentFolderID = nParentFolderID
+      Share.OwnerID = CurrentUser:UserID
+      Share.Caption = sCaption
+      Share.CreationDateTime = Today()+Now()
+      Share.Description = sDescription
+      Share.IsPublic =bPublic
+      Share.Key = sKey
+      Share.Password = sPassword
+      
+      //Add the record
+      IF HAdd(Share) = False THEN
+      	RESULT -1
+      END
+      
+      //Retrieve the identifier of the created share folder
+      nCreatedFileID = Share.ShareID
+      
+      //If the addition was successful: send a notification of creation of a share file
+      sMessage = StringBuild(<§@158a97881e1fe3f2000c§>,GetLogin(CurrentUser:UserID), sCaption,ShareGetName(nParentFolderID))
+      
+      NotificationSend(	MODULE_SHARES, NOTIFICATION_CREATION,<§@158a97881e1fe3f2000d§>,sMessage)
+      
+      
+      RESULT nCreatedFileID
+     type : 458752
+   -
+     name : ShareFindRoot
+     procedure_id : 1825672507067042164
+     type_code : 15
+     code : |1-
+      // Summary: Finds the root folder
+      // Syntaxe :
+      //[ <Résultat> = ] ShareFindRoot ()
+      //
+      // Paramètres :
+      //	Aucun
+      
+      // Return value:
+      PROCEDURE ShareFindRoot()
+      
+      nShareRootID is int 
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      //Search for the root folder: its specific feature is that there is no parent folder
+      HReadSeek(Share,ParentFolderID,0)
+      
+      //If it is not found: create it 
+      IF NOT HFound(Share) THEN
+      	//Create the root folder
+      	nShareRootID = ShareCreateShareFolder(<§@158a97881e1fe3f2000e§>,0,<§@158a97881e1fe3f2000f§>)
+      ELSE
+      	nShareRootID = Share.ShareID
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nShareRootID
+     type : 458752
+   -
+     name : ShareGetRightsUserGroup
+     internal_properties : CAAAAAgAAAD4cE0BB0cDVYLtogyR9v2qR9KRX1U5rN1ExPiUV1ce9y6eRvbNpnwYJnR1CoK/o4koYScq3TnxjKtOeoR0VgocpxvY/RT1if1EoxUx9z9XL5ib1HwIQwwry+BbqwDpfdjyMcoKP7KaVUXIE0w93zRVkOZ8FeNkIzgtolHRDga6a9Z4qhpraJXwnvPFczZyE6+v1ueOvcnbg2aNM58sfys1twKqJv6b
+     procedure_id : 1825672507067107700
+     type_code : 15
+     code : |1+
+      // Summary: Used to retrieve the rights granted to a user or to a group on a share
+      // Syntaxe :
+      //ShareGetRightsUserGroup (<nShareID>, <nUserID>, <nUserRights> [, <nGroupRights>])
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      //	nUserID : Identifier of the user
+      //	nUserRights : Variable used to retrieve the rights granted to the user
+      //	nGroupRights (valeur par défaut=0) : Variable used to retrieve the rights granted to the group of the user
+      
+      PROCEDURE ShareGetRightsUserGroup(nShareID,nUserID,nUserRights,nGroupRights=0)
+      
+      // Variables
+      sListUsers is string
+      sUSERID is string
+      nGroupID is int
+      
+      //Reset the rights to 0
+      nUserRights = 0
+      nGroupRights = 0
+      
+      //If the user is the owner of the share or if he is a moderator or the administrator:
+      //he has total control on the share
+      IF  ShareIsShareOwner(nShareID, nUserID) OR IsAdministratorOrModerator(nUserID) THEN
+      	nUserRights = 3	
+      ELSE
+      	//If the user is not the owner of the share and if he is not a moderator or the admin.
+      	
+      	//If the share is public, the user has read-only rights
+      	IF ShareIsPublic( nShareID) THEN
+      		nUserRights = 1
+      	ELSE
+      		//If the share is RESTRICTED
+      		sGUID is string = HFSavePosition(ShareRights..Name)
+      		
+      		//Finds the rights of the share granted to the user as user
+      		HReadSeek(ShareRights,RightsByGroupOrUserByShare,[-1,nUserID,nShareID])
+      		IF HFound(ShareRights) THEN
+      			nUserRights = ShareRights.Right
+      		END
+      		
+      		//Exit if the maximum rights are granted to the user on the share
+      		//Otherwise, continue to find out whether he belongs to a group with more important rights on the share
+      		IF nUserRights = 3 THEN 
+      			HFRestorePosition(sGUID)
+      			RETURN
+      		END
+      		
+      		//Finds the rights of the share granted to the user as member of a group
+      		
+      		//Browse all the public groups
+      		FOR EACH Group on Title WHERE "UserID = -1"
+      			
+      			//Retrieve all the users found in the group browsed
+      			sListUsers = ListGroupMembers(-1, Group.Title)
+      			
+      			//Browse all the users of the group
+      			FOR EACH string sUSERID  of sListUsers  SEPARATED BY ";"
+      				//If the user belongs to this group
+      				IF nUserID =  Val(sUSERID) THEN
+      					
+      					nGroupID = Group.GroupID
+      					
+      					//Find the rights granted to the group on the share, that will also be the rights granted to the user on the share
+      					HReadSeek(ShareRights,RightsByGroupOrUserByShare,[nGroupID,-1,nShareID])
+      					IF HFound(ShareRights)  THEN
+      						nGroupRights = ShareRights.Right
+      						nUserRights = ShareRights.Right
+      					END
+      					
+      					//No need to browse the other users of the group
+      					BREAK
+      				END
+      			END
+      			
+      			//Exit if the maximum rights are granted to the user on the share: no need to browse the other groups
+      			//Otherwise, continue to find out whether the user belongs to a group with more important rights on the share
+      			IF nUserRights = 3 THEN 
+      				BREAK
+      			END
+      		END
+      		
+      		HFRestorePosition(sGUID)
+      	END
+      END
+      
+      
+      
+      
+     type : 458752
+   -
+     name : ShareIsFolder
+     procedure_id : 1825672507067173236
+     type_code : 15
+     code : |1+
+      // Summary: Indicates whether a share is a folder or a file
+      // Syntaxe :
+      //[ <Résultat> = ] ShareIsFolder (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	boolean: True if the share is a folder, False otherwise
+      PROCEDURE ShareIsFolder(nShareID)
+      
+      bTypeShare is boolean
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	bTypeShare = Share.IsFolder
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bTypeShare
+     type : 458752
+   -
+     name : ShareGetKey
+     procedure_id : 1825672507067238772
+     type_code : 15
+     code : |1+
+      // Summary: Used to retrieve the share key for a share file
+      // Syntaxe :
+      //[ <Résultat> = ] ShareGetKey (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	string: Share key (useful to retrieve the attachment associated with a share file)
+      PROCEDURE ShareGetKey(nShareID)
+      
+      sKeyShare is string
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	sKeyShare = Share.Key
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT sKeyShare
+     type : 458752
+   -
+     name : ShareGetDescription
+     internal_properties : CAAAAAgAAABcp1h72HonlATcybfoKLFEuU6WQuylDvYD3oAVdcAiP5LHYdwJdpSVLGSmqJYy1Vr4wKQFBpLBAySgYS6sKLzxo1RKksT+g6I6Qq6e6DGymaoXDZmhqn+MaEWgWv8YmsNPhhVX6M1xGmyvKnG4fI10EVfTZlwx9ItEiSjSETwM4i6AOoo7jvFcNJGTlSAcwBkrO5Fspyw=
+     procedure_id : 1825672507067304308
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: Used to retrieve the description of a given share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareGetDescription (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	String: Description of the share
+      PROCEDURE ShareGetDescription(nShareID)
+      
+      sDescription is string
+      
+      //Ajax procedure => it must be secured
+      //The user must be connected to access this type of information
+      IF NOT IsConnected(CurrentUser:UserID) THEN
+      	RESULT ""
+      END
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	
+      	sFile is string
+      	sFile = ATTACHGetFileInfo(Share.Key)
+      	
+      	IF Share.IsFolder = 1 THEN
+      		sDescription = StringBuild(<§@158a97881e1fe3f20010§>, Share.Caption)
+      	ELSE
+      		sDescription = StringBuild(<§@158a97881e1fe3f20011§>, sFile)
+      	END
+      	sDescription += [CR] + Share.Description
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT sDescription
+     type : 458752
+   -
+     name : ShareDeleteAllShareRights
+     internal_properties : CAAAAAgAAACOoHvK/pveCW+cFKQDVBv/fOCL+vpZGw1BRN47a2WA1HBhXYZ2tbNfF2n7jLFOnNZlDHx5/xgxQwJsG3bZPPwmSwmFpZDJzP2VCqisPq0No3Unnr69tLB8p/g9WpGYlbNgYhqAZL0oJMEoHV1A2p760vW6TbJDW8HfuKViWa+A6IV6w19fduKAj2AA+3YcVJdm0k4PJw==
+     procedure_id : 1825672507067369844
+     type_code : 15
+     code : |1+
+      // Summary: Used to delete all the rights associated with a share
+      // Syntaxe :
+      //ShareDeleteAllShareRights (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      PROCEDURE ShareDeleteAllShareRights(nShareID)
+      
+      sGUID is string = HFSavePosition(ShareRights..Name)
+      
+      //Delete all the rights associated with a share
+      HReadSeekFirst(ShareRights,ShareID,nShareID)
+      
+      WHILE HFound(ShareRights)
+      	HDelete(ShareRights)
+      	HReadNext(ShareRights)
+      END
+      
+      HFRestorePosition(sGUID)
+     type : 458752
+   -
+     name : ShareDeleteChild
+     internal_properties : CAAAAAgAAADiDY7oT9bp4ThYp+HGtPsOCfZu6kaBfWZ6rHTRYcq6u8xJS4oJVAD5cirm2G6I6d6aYnZjRrjVc3Je/bZMDsTh+XpInKiIzz6QyMILs5j3nA3iwmTkWUZV0/A7mza7WwKyESJCC+zQ+w8K5abvL7Lf6F7kpSMUv+TvpNNPFASEuRnL86ESjZQB75zeBjtfGrnrnL++UXo=
+     procedure_id : 1825672507067435380
+     type_code : 15
+     code : |1+
+      // Summary: Used to recursively delete the child elements of a share folder
+      // Syntaxe :
+      //ShareDeleteChild (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the parent share folder
+      
+      // Return value:
+      PROCEDURE ShareDeleteChild(nShareID)
+      
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      //Find the child elements of the share passed in parameter
+      HReadSeekFirst(Share,ParentFolderID,nShareID)
+      
+      WHILE HFound(Share) 
+      	
+      	DeleteShare(Share.ShareID)	
+      	//	//Store the ID of the share
+      	//	nIDShareChild = share.IDShare
+      	//	//Delete the share
+      	//	hdelete(share)
+      	//	
+      	//	//Delete the child elements from the share
+      	//	nPos  = HSavePosition(Share)
+      	//	ShareDeleteChildElements(nIDShareChild)
+      	//	HRestorePosition(npos)
+      	
+      	HReadNext(Share,ParentFolderID)
+      END 
+      
+      HFRestorePosition(sGUID)
+     type : 458752
+   -
+     name : ShareGetName
+     procedure_id : 1825672507067500916
+     type_code : 15
+     code : |1+
+      // Summary: Used to retrieve the name of a share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareGetName (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	string: Name of the share
+      PROCEDURE ShareGetName(nShareID)
+      
+      sShareName is string
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	sShareName = Share.Caption
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT sShareName
+     type : 458752
+   -
+     name : ShareRecreateShareOnServer
+     procedure_id : 1825672507067566452
+     type_code : 15
+     code : |1+
+      // Summary: Procedure used to physically re-create the tree structure of a share folder on the server 
+      // Syntaxe :
+      //ShareRecreateShareOnServer (<nShareID>, <sPath>, <bOKDownload>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share folder for which the tree structure is re-created
+      //	sPath : Path on the server where the tree structure is re-created
+      //	bOKDownload : <specify the role of bOKDownload>
+      
+      // Return value:
+      PROCEDURE RESTRICTED ShareRecreateShareOnServer(nShareID,sPath,bOKDownload )
+      
+      //Create the directory if it does not already exist
+      IF fDirectoryExist(sPath) = False THEN
+      	fMakeDir(sPath)
+      END
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      //Find all the shares contained in the folder
+      HReadSeekFirst(Share,ParentFolderID,nShareID)
+      
+      WHILE HFound(Share) 
+      	
+      	//If it's a folder
+      	IF Share.IsFolder THEN
+      		//Re-create its content
+      		ShareRecreateShareOnServer(Share.ShareID,sPath+["\"]+ Share.Caption,bOKDownload)
+      	ELSE
+      		// Don't add the shares with password
+      		IF Share.Password = "" THEN
+      			ShareRecreateResourceOnServer(Share.ShareID,sPath,bOKDownload)
+      		END
+      	END
+      	
+      	HReadNext(Share,ParentFolderID)
+      END 
+      
+      HFRestorePosition(sGUID)
+     type : 458752
+   -
+     name : ShareIsShareOwner
+     procedure_id : 1825672507067631988
+     type_code : 15
+     code : |1-
+      // Summary: Indicates whether a user is owner or not of a given share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareIsShareOwner (<nShareID>, <nUserID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE ShareIsShareOwner(nShareID,nUserID)
+      
+      bReturn is boolean
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	IF Share.OwnerID = nUserID THEN
+      		bReturn = True
+      	ELSE
+      		bReturn = False
+      	END
+      	
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : ShareGetOwnerID
+     procedure_id : 1825672507067697524
+     type_code : 15
+     code : |1+
+      // Summary: Used to retrieve the identifier of the owner of a group
+      // Syntaxe :
+      //[ <Résultat> = ] ShareGetOwnerID (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	integer: Identifier of the owner of the share
+      PROCEDURE ShareGetOwnerID(nShareID)
+      
+      nOwnerID is int
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	nOwnerID = Share.OwnerID
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT nOwnerID
+     type : 458752
+   -
+     name : ShareDiscussOnForum
+     procedure_id : 1825672507067763060
+     type_code : 15
+     code : |1+
+      // Summary: Used to discuss about a share in the corresponding discussion forum
+      // Syntaxe :
+      //ShareDiscussOnForum (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      PROCEDURE ShareDiscussOnForum(nShareID)
+      
+      nTopicID is int
+      sShareName is string = ShareGetName(nShareID)
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      // Checks whether a topic was created for this share
+      nTopicID = ParameterRead("TOPIC_SHARE_" + nShareID, ForAll, 0)
+      
+      // If no topic was created yet
+      IF nTopicID = 0 THEN
+      	
+      	// Create the topic
+      	nTopicID = TopicCreate(<§@158a97881e1fe3f20012§>+sShareName+"'", GetIDSharesForum(), <§@158a97881e1fe3f20013§> + sShareName+"'", <§@158a97881e1fe3f20014§> +sShareName + "'")
+      	
+      	// Save the identifier of the topic associated with this share
+      	ParameterWrite("TOPIC_SHARE_" + nShareID, nTopicID, ForAll)
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      // Displays the topic corresponding to the share
+      PageDisplay(PAGE_Forum_Messages, nTopicID)
+      
+     type : 458752
+   -
+     name : ShareRecreateResourceOnServer
+     procedure_id : 1825672507067828596
+     type_code : 15
+     code : |1-
+      // Summary: Procedure used to physically create a share file on the server 
+      // Syntaxe :
+      //ShareRecreateResourceOnServer (<nShareID>, <sPath>, <bOKDownload>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      //	sPath : Path on the server
+      //	bOKDownload : <specify the role of bOKDownload>
+      
+      // Return value:
+      PROCEDURE ShareRecreateResourceOnServer(nShareID,sPath,bOKDownload)
+      
+      nUserRights is int
+      sFileName is string
+      bufContent is Buffer
+      
+      //Retrieve the rights granted to the user on the shared file
+      ShareGetRightsUserGroup(nShareID,CurrentUser:UserID,nUserRights)
+      
+      //And if at least the read rights are granted to the user on the share
+      IF nUserRights > 0 THEN	
+      	bOKDownload = True
+      	//Retrieve the content of the share file and make it a physical file on the server
+      	//With the same tree structure as for the share file to which it corresponds
+      	bufContent = ATTACHGet(ShareGetKey(nShareID),"","",0,sFileName)
+      	fSaveText(sPath+["\"]+sFileName,bufContent)
+      END
+     type : 458752
+   -
+     name : ShareIsRespForShareModif
+     procedure_id : 1825672507067894132
+     type_code : 15
+     code : |1+
+      // Summary: Indicates whether a user is the last person who has modified a share
+      // Syntaxe :
+      //[ <Résultat> = ] ShareIsRespForShareModif (<nShareID>, <nUserID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE ShareIsRespForShareModif(nShareID,nUserID)
+      
+      bReturn is boolean
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	IF Share.ModifierID = nUserID THEN
+      		bReturn =  True
+      	ELSE
+      		bReturn = False
+      	END
+      	
+      END
+      
+      HFRestorePosition(sGUID)
+      RESULT bReturn
+      
+     type : 458752
+   -
+     name : ShareNotificationDelete
+     procedure_id : 1825672507067959668
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to delete a notification
+      // Syntaxe :
+      //ShareNotificationDelete (<sShareID>, <sNotification> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sShareID : Identifier of the affected WIKI
+      //	sNotification : Affected notification => NOTIFICATION_WIKI_CREATION, NOTIFICATION_WIKI_MODIFICATION
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE ShareNotificationDelete(sShareID, sNotification,nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      // If the document is empty, it's the global share
+      IF sShareID~= "" THEN
+      	ParameterDelete(sNotification + "_" + MODULE_SHARES + "0_" + nUserID)	
+      ELSE
+      	ParameterDelete(sNotification + "_" + MODULE_SHARES + sShareID + "_" + nUserID)
+      END
+      
+      
+     type : 458752
+   -
+     name : ShareNotificationEnabled
+     procedure_id : 1825672507068025204
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to find out whether a notification is active 
+      // Syntaxe :
+      //[ <Résultat> = ] ShareNotificationEnabled (<sShareID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sShareID : Identifier of wiki or "" if it is for the global notification
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE ShareNotificationEnabled(sShareID, nUserID = CurrentUser:UserID)
+      
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      IF sShareID ~= "" THEN
+      	RESULT Val(ParameterRead(NOTIFICATION_SHARE_CREATION + "_" + MODULE_SHARES + "0_" + nUserID, ForAll,"0"))	
+      ELSE
+      	RESULT Val(ParameterRead(NOTIFICATION_SHARE_MODIFICATION + "_" + MODULE_SHARES + sShareID + "_" + nUserID, ForAll, "0"))
+      END
+      
+      
+     type : 458752
+   -
+     name : CreateZipShareFolder
+     procedure_id : 1825672507068090740
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntaxe :
+      //CreateZipShareFolder (<sBaseArchivePath>, <sArchiveName>, <nShareID>, <bOKDownload>)
+      //
+      // Paramètres :
+      //	sBaseArchivePath : <specify the role of sArchiveBasePath>
+      //	sArchiveName : <specify the role of sArchiveName>
+      //	nShareID : <specify the role of nShareID>
+      //	bOKDownload : <specify the role of bOKDownload>
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      PROCEDURE CreateZipShareFolder(sBaseArchivePath,sArchiveName,nShareID,bOKDownload)
+      
+      //Stores the directory that was created: used for cleaning up later
+      BinAddDirectory(sBaseArchivePath+["\"]+ShareGetName(nShareID))
+      
+      //Re-create the entire tree structure of the share to download on the server
+      ShareRecreateShareOnServer(nShareID,sBaseArchivePath+["\"]+ShareGetName(nShareID),bOKDownload)
+      
+      //Make an archive from it: a .zip
+      zipCreate(sArchiveName,sBaseArchivePath+["\"]+sArchiveName+".zip")<§aad:0§>
+      
+      //Add to the archive the tree structure re-created on the server corresponding to the share 
+      zipAddDirectory(sArchiveName,sBaseArchivePath+["\"]+ShareGetName(nShareID),True,zipRelative)
+      zipClose(sArchiveName)
+      
+      //Stores the zip file that was created in the bin: used for cleaning up later
+      BinAddFile(sBaseArchivePath+["\"]+sArchiveName+".zip")
+     type : 458752
+   -
+     name : DownloadTheShare
+     internal_properties : CAAAAAgAAACsFCFtMUNm/yI9kB4ffgNQ3/qV45ChiiVI+EwUd+Ou49Lqxg59kmAYivgRkqqTG/18pVfqLV113DfqdrwM4jJYG6+oTXT5BT3ox4nhn9uvm+Rv9FIiVUblvRLd3do73/6ce5w4CezUDxca1bZfue7bQgCGK9VuNVoXxGPrCAhE8VCCtCiVYs8qwO2fHZgcxd9ve5ZX4h402ptKgE4pbC57MfaWylpH
+     procedure_id : 1825672507068156276
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntaxe :
+      //[ <Résultat> = ] DownloadTheShare (<nShareID>, <sPassword> [, <sError>])
+      //
+      // Paramètres :
+      //	nShareID : <specify the role of nShareID>
+      //	sPassword : <specify the role of sPassword>
+      //	sError (valeur par défaut="") : 
+      // Example:
+      // Indicate an example.
+      //
+      // 	Undefined type: // 	None
+      PROCEDURE RESTRICTED DownloadTheShare(nShareID, sPassword, sError = "")
+      
+      sFileName is string 
+      sBaseArchivePath is string 
+      sArchiveName is string
+      bufFileContent is Buffer
+      bOKDownload is boolean
+      
+      HReadSeek(Share,ShareID,nShareID)
+      
+      IF HFound(Share) THEN
+      	//If the share is a folder
+      	IF Share.IsFolder =1 THEN
+      		
+      		HReadSeekFirst(Share,ParentFolderID,Share.ShareID)
+      		IF HFound(Share) THEN
+      			//Create the zip corresponding to the folder of the share to download
+      			sBaseArchivePath  = fTempPath()+["\"]+"SHARE_"+CurrentUser:UserID+TimeSys
+      			sArchiveName =ShareGetName(nShareID)
+      			CreateZipShareFolder(sBaseArchivePath,sArchiveName,nShareID,bOKDownload)
+      			
+      			IF bOKDownload = True THEN
+      				//And allow the user to download it
+      				FileDisplay(sBaseArchivePath+["\"]+sArchiveName+".zip", "application/unknown",sArchiveName+".zip")
+      				RESULT True
+      			ELSE
+      				sError = <§@158a97881e1fe3f20015§>
+      				RESULT False
+      			END
+      			
+      		ELSE
+      			sError = <§@158a97881e1fe3f20016§>
+      			RESULT False
+      		END
+      		
+      	ELSE
+      		IF Share.Password = sPassword THEN
+      			
+      			bufFileContent = ATTACHGet(Share.Key,"","",0,sFileName)
+      			//Allow the user to download the file
+      			StringDisplay(bufFileContent, "application/unknown",sFileName)
+      			RESULT True
+      			
+      		ELSE
+      			sError = <§@158a97881e1fe3f20017§>
+      			RESULT -1
+      		END
+      	END
+      	
+      ELSE
+      	sError = <§@158a97881e1fe3f20016§>
+      	RESULT False
+      END
+     type : 458752
+   -
+     name : SendTheShare
+     procedure_id : 1825672507068221812
+     type_code : 15
+     code : |1+
+      // Summary: <specify the action of the procedure>
+      // Syntaxe :
+      //SendTheShare (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : <specify the role of nShareID>
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      PROCEDURE RESTRICTED SendTheShare(nShareID)
+      
+      // Variables
+      sBasePath is string 
+      sArchiveName is string
+      sKey is string
+      bOKDownload is boolean
+      
+      
+      HReadSeek(Share,ShareID,nShareID)
+      
+      IF HFound(Share) THEN
+      	
+      	//Create the zip corresponding to the share folder to send
+      	sBasePath  = fTempPath()+["\"]+"SHARE_"+CurrentUser:UserID+TimeSys()
+      	fMakeDir(sBasePath)
+      	
+      	IF Share.IsFolder =1 THEN
+      		
+      		sArchiveName =ShareGetName(nShareID)
+      		CreateZipShareFolder(sBasePath,sArchiveName,nShareID,bOKDownload)
+      		IF bOKDownload = True THEN
+      			ATTACHSave(sKey,sBasePath+["\"]+sArchiveName+".zip")
+      			MessagePrepare(<§@158a97881e1fe3f20012§>+Share.Caption+"'",<§@158a97881e1fe3f20018§>+Share.Caption+"'","",sKey)  
+      		ELSE
+      			Error(<§@158a97881e1fe3f20019§>)	
+      		END
+      		
+      		
+      	ELSE
+      		
+      		sKey = ATTACHDuplicate(Share.Key)
+      		MessagePrepare(<§@158a97881e1fe3f20012§>+Share.Caption+"'",<§@158a97881e1fe3f20018§>+Share.Caption+"'","",sKey)  
+      		
+      	END
+      	
+      ELSE
+      	Error(<§@158a97881e1fe3f20000§>, ErrorInfo())
+      END
+     type : 458752
+   -
+     name : DownloadTheCheckedShares
+     internal_properties : CAAAAAgAAADMdygOagAVYfaGO2WqGgs+g3Dk/NIP+e707kDFBWDS35LHwQwJVgTlfCRWiDaiFerIcDRltsKBQySwwb78qOyRg7RqgsSeExJqYv52gIm6oUKfhWE5wneUEH0YkrdQwuvnLs1fgAXJAjSn4kkw9HUcKR+rblQpDLOsISDKCT3DctoENu7bygn0mP0vjQCAOY7A1mEc95w=
+     procedure_id : 1825672507068287348
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] DownloadTheCheckedShares (<sControlLPR>, <sArchiveName>)
+      //
+      // Parameters:
+      //	sLPRControl: <specify the role of sLPRControl>
+      //	sArchiveName: <specify the role of sArchiveName>
+      // Return value:
+      // 	boolean: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DownloadTheCheckedShares(sControlLPR,sArchiveName)
+      
+      sBaseArchivePath is string = fTempPath()+["\"]+"SHARE_"+CurrentUser:UserID+TimeSys+["\"]
+      sShareName  is string
+      bOKDownload is boolean
+      
+      //Create the directory if it does not already exist
+      IF fDirectoryExist(sBaseArchivePath+["\"]+sArchiveName) = False THEN
+      	fMakeDir(sBaseArchivePath+["\"]+sArchiveName)
+      	//Stores the directory that was created: used for cleaning up later
+      	BinAddDirectory(sBaseArchivePath+["\"]+sArchiveName)
+      END
+      
+      //For each checked element found in the looper
+      FOR ALL ROW of sControlLPR
+      	IF sControlLPR.ATT_Checkmark = 1 THEN
+      		IF sControlLPR.ATT_TypeShare = 1 THEN	//if it's a folder
+      			sShareName =sControlLPR.ATT_Static
+      			ShareRecreateShareOnServer(sControlLPR.ATT_ID,sBaseArchivePath+["\"]+sArchiveName+["\"]+sShareName,bOKDownload)
+      		ELSE	//If it's a file
+      			IF ShareIsPasswordProtected(sControlLPR.ATT_ID) = False THEN
+      				// Only take the files that are not password protected
+      				ShareRecreateResourceOnServer(sControlLPR.ATT_ID,sBaseArchivePath+["\"]+sArchiveName,bOKDownload)
+      			END
+      		END
+      	END	
+      END
+      
+      //If there is something to download:  there is at least one file to download 
+      //and the rights to download have been granted to the user
+      
+      IF bOKDownload = True THEN
+      	//Make an archive from it: a .zip
+      	zipCreate(sArchiveName,sBaseArchivePath+["\"]+sArchiveName+".zip")
+      	
+      	//Stores the zip file that was created in the bin: used for cleaning up later
+      	BinAddFile(sBaseArchivePath+["\"]+sArchiveName+".zip")
+      	
+      	zipAddDirectory(sArchiveName,sBaseArchivePath+["\"]+sArchiveName,True,zipRelative)
+      	zipClose(sArchiveName)
+      	
+      	//And allow the user to download it
+      	FileDisplay(sBaseArchivePath+["\"]+sArchiveName+".zip", "application/unknown",sArchiveName+".zip")
+      	
+      ELSE
+      	RESULT False	
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : ShareCreateNotification
+     procedure_id : 1825672507068352884
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to save a notification (of addition or modification) for a share
+      // Syntaxe :
+      //ShareCreateNotification (<sShareID> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sShareID : Identifier of the share
+      //	nUserID : Identifier of the user for whom the parameter must be written
+      
+      PROCEDURE ShareCreateNotification(sShareID, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      IF sShareID ~= "" THEN
+      	ParameterWrite(NOTIFICATION_SHARE_CREATION + "_" + MODULE_SHARES + "0_" + nUserID, "1")
+      ELSE
+      	ParameterWrite(NOTIFICATION_SHARE_MODIFICATION + "_" + MODULE_SHARES + sShareID + "_" + nUserID, "1")
+      END
+     type : 458752
+   -
+     name : ShareIsPasswordProtected
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507068418420
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether a share is password protected
+      // Syntaxe :
+      //[ <Résultat> = ] ShareIsPasswordProtected (<nShareID>)
+      //
+      // Paramètres :
+      //	nShareID : Identifier of the share
+      
+      // Return value:
+      // 	boolean: True if the share is password-protected, False otherwise
+      PROCEDURE ShareIsPasswordProtected(nShareID)
+      
+      bPassword is boolean
+      
+      sGUID is string = HFSavePosition(Share..Name)
+      
+      HReadSeek(Share,ShareID,nShareID)
+      IF HFound(Share) THEN
+      	bPassword = Share.Password <> ""
+      END
+      
+      HFRestorePosition(sGUID)
+      
+      RESULT bPassword
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x158a97881e1fe3f2
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : The share was not found
+     index : 0
+   -
+     text :
+      en-GB : "%1 modified the rights on the %2 share"
+     index : 1
+   -
+     text :
+      en-GB : Notification about the modification of share rights
+     index : 2
+   -
+     text :
+      en-GB : "%1 modified a share.\r\nShare: %2 in %3 "
+     index : 3
+   -
+     text :
+      en-GB : Notification about the modification of a share
+     index : 4
+   -
+     text :
+      en-GB : "%1 deleted a share file.\r\nFile: %2 in %3 "
+     index : 5
+   -
+     text :
+      en-GB : Notification about the deletion of a share file
+     index : 6
+   -
+     text :
+      en-GB : "%1 deleted a share folder.\r\nFolder: %2 in %3 "
+     index : 7
+   -
+     text :
+      en-GB : Notification about the deletion of a share folder
+     index : 8
+   -
+     text :
+      en-GB : An error occurred while saving the share
+     index : 9
+   -
+     text :
+      en-GB : "%1 created a share folder.\r\nFolder: %2 in %3 "
+     index : 10
+   -
+     text :
+      en-GB : Notification about the creation of a share folder
+     index : 11
+   -
+     text :
+      en-GB : "%1 created a share file.\r\nFile: %2 in %3 "
+     index : 12
+   -
+     text :
+      en-GB : Notification about the creation of a share file
+     index : 13
+   -
+     text :
+      en-GB : My Documents
+     index : 14
+   -
+     text :
+      en-GB : Root folder
+     index : 15
+   -
+     text :
+      en-GB : "'%1' folder"
+     index : 16
+   -
+     text :
+      en-GB : "'%1' file"
+     index : 17
+   -
+     text :
+      en-GB : Shared '
+     index : 18
+   -
+     text :
+      en-GB : Don't hesitate to ask your question about the share '
+     index : 19
+   -
+     text :
+      en-GB : Discussion about the share '
+     index : 20
+   -
+     text :
+      en-GB : Unable to create the archive
+     index : 21
+   -
+     text :
+      en-GB : Document not found
+     index : 22
+   -
+     text :
+      en-GB : The document is password-protected
+     index : 23
+   -
+     text :
+      en-GB : The attached share '
+     index : 24
+   -
+     text :
+      en-GB : Nothing to send or you have no rights.
+     index : 25
+   -
+     text :
+      en-GB : You are already notified when a topic is created in this forum.
+     index : 26
+   -
+     text :
+      en-GB : Do you want to delete this notification?
+     index : 27
+   -
+     text :
+      en-GB : " \"Delete\""
+     index : 28
+   -
+     text :
+      en-GB : No action
+     index : 29
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

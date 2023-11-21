@@ -1,0 +1,52 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pBrowser
+ major_version : 28
+ minor_version : 0
+ type : 65539
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561774eb1077d1
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 41
+  p_codes :
+   -
+     type : 983040
+     role : N
+   -
+     type : 983042
+     role : N
+  procedures :
+   -
+     name : InFireFoxOrNetscapeBrw
+     internal_properties : CAAAAAgAAADz9G2T9/StdN8C5Gi7CZ6KbljSi7cvyybQcQcrs78rrCsk1HDYLnIX4iKt4r3XP4BfQyYpJAE+qEWg5noN/QRg4XeQsDSYvBzgRNL/pwmdKqGnNvB9TUQ2Efk=
+     procedure_id : 1825672489872750545
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] InFireFoxOrNetscapeBrw ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	boolean: True/False
+      //
+      PROCEDURE InFireFoxOrNetscapeBrw()
+      RESULT NOT (BrowserType() = BrowserTypeInternetExplorer)
+     type : 458752
+     role : N
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : NAV_CollectionNavigateur1
+resources :
+ string_res :
+  identifier : 0x15c23f400072368d
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

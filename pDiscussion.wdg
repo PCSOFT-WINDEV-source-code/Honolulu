@@ -1,0 +1,1267 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pDiscussion
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x159cfdd914c3e3da
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAADVwM4aJrmL2+QCZyZX+2yFPZMPYx6kKDx4+02IW15KajUTxu37ogbjRNXnREhV+wa53HBz7pwJuxxznI65HU+6w7p+z06seNHJXM8P5vYc/gIN29Wt9l9jm1c9o3ZScf/xf+5Iu26oJYzaZ3Jlp+7M6RPa+wAnPZR8
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of procedures for managing the real-time discussions
+      
+      CONSTANT
+      	
+      	// Constant regarding the answers to the requests
+      	CN_REQUEST_ACCEPTED = 1
+      	CN_REQUEST_REFUSED = 0
+      	CN_PENDING_REQUEST = -1
+      	CN_REQUEST_TIME_OUT = 999
+      	CN_ERROR = 0xFFFFFFFF
+      	
+      	CN_TYPE_REQUEST = 1
+      	CN_TYPE_JOIN = 2
+      	
+      	CS_TIME_OUT = 60000
+      	
+      	CS_SEPARATOR_PERSON = ";"
+      END
+      
+      gnPersonID is int
+      gsErrorMessage is string
+     type : 720896
+  procedures :
+   -
+     name : DiscussionRequestDiscussion
+     internal_properties : CAAAAAgAAAB/QHDIv1k511o7ZGloT8CK0fF3k1bq3+h2O550a2QPdr1EfjHJqUV4wPu+/AtPlo0LTz0/2cnHASmlqWyXWtY/V2Jf3LP97R8/+hihzxPgFQFFKNk/RxvFURN69/+2D/yqpjr3jpJVnf+v1pQkLE3uV6FMGOfBnUv7nf9+1FRyFAWy972xbAk7udoi6+oVldfaY3G6EX+gRVru8OFduNRa6w==
+     procedure_id : 1557398679961527258
+     type_code : 15
+     code : |1-
+      // Summary: used to add a request for discussion.
+      // Syntax:
+      //[ <Result> = ] DiscussionRequestDiscussion (<nIDRequestingPerson>, <nIDRequestedPerson> [, <sCommentRequested> [, <nIDDiscussion>]])
+      //
+      // This procedure is used to add a request for discussion.
+      //
+      // Parameters:
+      //	nIDRequestingPerson: Identifier of the person who has requested the discussion
+      //	nIDRequestedPerson: Identifier of the person who is requested
+      //	sCommentRequested (default value=""): A comment for the discussion (optional)
+      //	nDiscussionID (default value=-1): Identifier of the discussion if the discussion already exists (case of discussions with more than 2 persons)
+      // Return value:
+      // 	boolean:  True if the request was made, False otherwise
+      //
+      // Automatic process of errors:   run the block of code CASE ERROR
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionRequestDiscussion(nIDRequestingPerson,nIDRequestedPerson, sCommentAsk = "",nDiscussionID = -1)
+      
+      // Start a transaction
+      // the discussion cannot be dissociated from the request, 
+      // No discussion => No request
+      // No request => No discussion
+      //htransactionstart()
+      
+      IF nDiscussionID = -1 THEN
+      	// Add the discussion
+      	nDiscussionID = _bAddDiscussion(nIDRequestingPerson)
+      ELSE
+      	// The discussion already exists, we join it	
+      	IF DiscussionNbParticipants(nDiscussionID) > 3 THEN
+      		ErrorPropagate(<§@15827c44001201b2000d§>)
+      		RESULT False
+      	END
+      END
+      
+      HReadSeekFirst(DiscussionInvitation, RequestingPersonID_RequestedPersonID, [nIDRequestingPerson, nIDRequestedPerson])
+      bFound is boolean = HFound(DiscussionInvitation)
+      
+      // Update the HFSQL context
+      HReset(DiscussionInvitation)
+      DiscussionInvitation.DateTime 		= Today() + Now()
+      DiscussionInvitation.RequestingPersonID 	= nIDRequestingPerson
+      DiscussionInvitation.RequestedPersonID 		= nIDRequestedPerson
+      DiscussionInvitation.DiscussionID 	= nDiscussionID
+      DiscussionInvitation.Comment 	= sCommentAsk
+      DiscussionInvitation.AnswerGiven 	= CN_PENDING_REQUEST 			// The request is pending
+      
+      IF bFound THEN
+      	// Add the request
+      	HModify(DiscussionInvitation)
+      ELSE
+      	// Add the request
+      	HAdd(DiscussionInvitation)	
+      END
+      
+      // Save the global parameters
+      gnPersonID = nIDRequestingPerson
+      
+      RESULT True
+      
+      // Process the error
+      CASE Error:
+      // Propagate the error
+      ErrorPropagate(<§@15827c44001201b20000§>)
+      
+      RESULT False
+     type : 458752
+   -
+     name : _bAddDiscussion
+     internal_properties : CAAAAAgAAABdQA2XJ6TIsZhQ11qLgdcRlVRngxPzYVEtgHig8MuCJRRa0mt+1nkBd6WCzFc7khJrT2fs4PF470IJmOnP8eNo24AHH2VDS3dEcOmbOavygTCGDNCNEf6dYHEYsgisEPxYOmD3nA65T9eKT+/yQJPEOkrS5scO090RSJAFtnUNwb420L1ffqwYNuF/GA==
+     procedure_id : 1557398679961592794
+     type_code : 15
+     code : |1+
+      // Summary: used to add a discussion. If must be called from the ChatRequestDiscussion procedure only
+      // Syntax:
+      //[ <Result> = ] _bAddDiscussion (<nIDRequestingPerson>)
+      //
+      // This procedure is used to add a discussion. If must be called from the ChatRequestDiscussion procedure only
+      // No discussion can be added without going by this procedure
+      // Parameters:
+      //	nIDRequestingPerson: Person who has requested the discussion
+      // Return value:
+      // 	Undefined type: Identifier of the discussion, -1 if an error occurred
+      //
+      
+      // Example:
+      // Indicate an example.
+      
+      //// Automatic process of errors: RESULT -1
+      //
+      
+      PROCEDURE RESTRICTED _bAddDiscussion(nIDRequestingPerson)
+      
+      // Update the HFSQL context
+      Discussion.PersonsList = CS_SEPARATOR_PERSON + nIDRequestingPerson + CS_SEPARATOR_PERSON
+      Discussion.Pending = True
+      HAdd(Discussion)
+      
+      // Return the identifier of the discussion
+      RESULT Discussion.DiscussionID
+     type : 458752
+   -
+     name : DiscussionListRequests
+     procedure_id : 1557398679961658330
+     type_code : 15
+     code : |1-
+      // Summary: used to list the requests for discussion addressed to a person
+      // Syntax:
+      //[ <Result> = ] DiscussionListRequests (<nIDPerson>)
+      //
+      // This procedure is used to list the requests for discussion addressed to a person
+      //
+      // Parameters:
+      //	nPersonID: Identifier of the requested person
+      // Return value:
+      // 	string: DateTime + TAB + IDRequestingPerson + TAB + IDRequestedPerson
+      //
+      PROCEDURE DiscussionListRequests(nPersonID)
+      
+      // Local variables
+      sListRequests 	is string
+      
+      // Initialize the query
+      QRY_Discussion_ListRequestsByPerson.pnRequestedPersonid = nPersonID
+      HExecuteQuery(QRY_Discussion_ListRequestsByPerson)
+      
+      // Browse the results
+      FOR EACH QRY_Discussion_ListRequestsByPerson on datetime
+      	
+      	// Build the string
+      	// it contains:
+      	// DateTime of the request + TAB + Identifier of the requesting person + TAB + Identifier of the requested person
+      	sListRequests += [CR] + QRY_Discussion_ListRequestsByPerson.DateTime + TAB + ...
+      	QRY_Discussion_ListRequestsByPerson.IDRequestingPerson ...
+      	+ TAB + QRY_Discussion_ListRequestsByPerson.IDDiscussionInvitation + TAB + QRY_Discussion_ListRequestsByPerson.CommentAsk
+      	
+      END
+      
+      
+      RESULT sListRequests
+     type : 458752
+   -
+     name : DiscussionAcceptRequest
+     internal_properties : CAAAAAgAAAAM34km+p2LM0Jafr/gijXeTImHicFj7lFu9FrqtgEK91qgYssHbROYrXPWPQuCRnMMZ684xbe6oq1nscH9xKapdVr2FWTPC1MVk/+hO52w5+vn7IjZ6fSvrcAYUpDA0PhZ/QJLYO5TzRKT4VFwJvmoQ216mG+7u8SECyh/lCtC1H7uDeo=
+     procedure_id : 1557398679961723866
+     type_code : 15
+     code : |1-
+      // Summary: used to accept a request
+      // Syntax:
+      //[ <Result> = ] DiscussionAcceptRequest (<nRequestIdentifier>, <nIDDiscussion>)
+      //
+      // This procedure is used to accept a request
+      //
+      // Parameters:
+      //	nRequestIdentifier: Identifier of the request to accept
+      //	nDiscussionID: This parameter is an output parameter, it is used to retrieve the identifier of the discussion
+      // Return value:
+      // 	boolean: True if everything is OK, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      // 	nPersonID: <specify the role of nPersonID>
+      //	nRequestIdentifier: <specify the role of nRequestIdentifier>// Automatic process of errors:   run the CASE ERROR block
+      //
+      
+      PROCEDURE DiscussionAcceptRequest(nRequestIdentifier, nDiscussionID)
+      
+      // Search for information about the request
+      HReadSeekFirst(DiscussionInvitation,DiscussionInvitationID,nRequestIdentifier)
+      IF HFound(DiscussionInvitation) = False THEN
+      	_SetErrorMessage(<§@15827c44001201b20001§>)
+      	RESULT False
+      END
+      
+      HReadSeekFirst(Discussion,DiscussionID,DiscussionInvitation.DiscussionID)
+      IF HFound(Discussion) = False THEN
+      	_SetErrorMessage(<§@15827c44001201b20002§>)
+      	RESULT False
+      END
+      
+      
+      // Start a transaction
+      //HTransactionStart()
+      // Modify the request to say that it is accepted
+      DiscussionInvitation.AnswerGiven = CN_REQUEST_ACCEPTED
+      HModify(DiscussionInvitation)
+      
+      // Update the file of discussions with the person who accepts (the requested person)
+      Discussion.PersonsList += [CS_SEPARATOR_PERSON] +  DiscussionInvitation.RequestedPersonID + CS_SEPARATOR_PERSON
+      HModify(Discussion)
+      
+      //HTransactionEnd()
+      
+      // Save the global variables
+      nDiscussionID = Discussion.DiscussionID
+      gnPersonID = DiscussionInvitation.RequestedPersonID
+      
+      RESULT True
+      
+      CASE Error:
+      
+      _SetErrorMessage(<§@15827c44001201b20003§> + CR + HErrorInfo())
+      
+      HTransactionCancel()
+      RESULT False
+     type : 458752
+   -
+     name : DiscussionRefuseRequest
+     internal_properties : CAAAAAgAAAB0gOm2pCTJsYcp8A22zsfVxIMjEHsC8Gzubi47rmC2kaqfQmUDrQuMtnj4ZTPGBrGj1BIJTVpZ80DBDnS3pdR8CIxkziMF6JZoY79m1j9HvepBpfJ7yBBykh0ccJNtGILVCFN8AUfUQ4AihQZD1z1MkNcKtNwLxP3CSAIaSz2k4jgulWstnMoI8CnV92M=
+     procedure_id : 1557398679961789402
+     type_code : 15
+     group : 3
+     code : |1+
+      // Summary: used to refuse a request
+      // Syntax:
+      //[ <Result> = ] DiscussionRefuseRequest (<nRequestIdentifier>)
+      //
+      // This procedure is used to refuse a request
+      // Parameters:
+      //	nRequestIdentifier: Identifier of the request to delete
+      // Return value:
+      // 	boolean:  True if the request was refused, False otherwise
+      //
+      
+      // Automatic process of errors: RETURN FALSE
+      //
+      
+      PROCEDURE DiscussionRefuseRequest(nRequestIdentifier)
+      
+      HReadSeekFirst(DiscussionInvitation,DiscussionInvitationID,nRequestIdentifier)
+      IF HFound(DiscussionInvitation) = False THEN
+      	_SetErrorMessage(<§@15827c44001201b20001§>)
+      	RESULT False
+      END
+      
+      // Modify the request to say that it is accepted
+      DiscussionInvitation.AnswerGiven = CN_REQUEST_REFUSED
+      HModify(DiscussionInvitation)
+      
+      RESULT True
+     type : 458752
+   -
+     name : DiscussionGetMessages
+     procedure_id : 1557398679961854938
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to retrieve the list of messages received since the arrival in the discussion
+      // Syntax:
+      //[ <Result> = ] DiscussionGetMessages (<nIDDiscussion>, <dtDateTimeArrival>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion
+      //	dhArrivalDateTime: Date and time of arrival in the discussion
+      // Return value:
+      // 	string: List of all the messages received since the arrival
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionGetMessages(nDiscussionID, dtDateTimeArrival)
+      
+      // Local variables
+      sMessageList 		is string
+      
+      // Configure and run the query
+      QRY_Discussion_ListMessagesPerPerson.pDateTimeArrival 	= dtDateTimeArrival
+      QRY_Discussion_ListMessagesPerPerson.pIDDiscussion 		= nDiscussionID
+      QRY_Discussion_ListMessagesPerPerson.pldPerson 		= gnPersonID
+      HExecuteQuery(QRY_Discussion_ListMessagesPerPerson)
+      
+      // Browses the list of messages received during the discussion
+      FOR EACH QRY_Discussion_ListMessagesPerPerson on datetime
+      	
+      	sMessageList += [CR] + QRY_Discussion_ListMessagesPerPerson.DateTime+ TAB + QRY_Discussion_ListMessagesPerPerson.FromWho + TAB + ...
+      	_DiscussionProcessSmileys(QRY_Discussion_ListMessagesPerPerson.MessageBody) + TAB + QRY_Discussion_ListMessagesPerPerson.AttachmentID
+      	
+      END
+      
+      RESULT sMessageList
+     type : 458752
+   -
+     name : DiscussionSendMessage
+     procedure_id : 1557398679961920474
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to send a message
+      // Syntax:
+      //[ <Result> = ] DiscussionSendMessage (<nIDDiscussion>, <sMessage> [, <sIDAttachment>])
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion
+      //	sMessage: Message to send
+      //	sAttachmentID (default value=""): Key of the attachment associated with this message
+      // Return value:
+      // 	boolean: True if the message was sent, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionSendMessage(nDiscussionID,sMessage, sAttachmentID = "")
+      
+      // Configure the message
+      DiscussionMessage.Message 			= Replace(sMessage, CR, "<BR/>")
+      DiscussionMessage.DateTime 		= Today() + Now()
+      DiscussionMessage.SenderID 		= gnPersonID
+      DiscussionMessage.DiscussionID 		= nDiscussionID
+      DiscussionMessage.AttachmentKey 	= sAttachmentID
+      
+      RESULT HAdd(DiscussionMessage)
+     type : 458752
+   -
+     name : _CheckAnswersRequest
+     procedure_id : 1557398679961986010
+     type_code : 15
+     code : |1-
+      // Summary: Check the answers to the requests (RESTRICTED procedure)
+      // Syntax:
+      //[ <Result> = ] _CheckAnswersToRequest (<nDiscussionID>, <dhArrivalDateTime> [, <bRequested>])
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion
+      //	dhArrivalDateTime: Date and time of arrival in the discussion
+      //	bRequested (default value=0): Did we request the discussion or are we guest?
+      
+      // Return value:
+      // 	Undefined type: one of the CN_REQUEST_XXX constants
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _CheckAnswersRequest(nDiscussionID, dtDateTimeArrival, bRequested = False)
+      
+      IF bRequested THEN
+      	
+      	RESULT _CheckResponsesPerRequestedUser(nDiscussionID,dtDateTimeArrival )
+      	
+      ELSE
+      	
+      	RESULT _CheckResponsesPerRequestingUser(nDiscussionID)
+      	
+      END
+     type : 458752
+   -
+     name : _DeleteRequest
+     procedure_id : 1557398679962051546
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to delete a request
+      // Syntax:
+      //[ <Result> = ] _DeleteRequest (<nIDRequest>)
+      //
+      // Parameters:
+      //	nRequestID: identifier of the request to delete
+      // Return value:
+      // 	boolean:  True if the request was deleted, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _DeleteRequest(nRequestID)
+      
+      // Search for the invitation
+      HReadSeekFirst(DiscussionInvitation,DiscussionInvitationID,nRequestID)
+      
+      IF HFound(DiscussionInvitation) = False THEN
+      	RESULT True	
+      END
+      
+      RESULT HDelete(DiscussionInvitation)
+      
+     type : 458752
+   -
+     name : _CheckDiscussionValidity
+     procedure_id : 1557398679962117082
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to check the validity of a discussion
+      // Syntax:
+      //[ <Result> = ] _CheckDiscussionValidity (<nDiscussionID>)
+      //
+      // A discussion is invalid when:
+      // 1 - It does not exist anymore 
+      // 2 - Less than two persons are currently connected to this discussion
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion to check
+      // Return value:
+      // 	boolean:  True if the discussion is valid, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      
+      PROCEDURE RESTRICTED _CheckDiscussionValidity(nDiscussionID)
+      
+      
+      IF IsConnected() = False THEN
+      	DiscussionDisconnect(nDiscussionID)
+      	RESULT False
+      END
+      
+      // Search for the discussion
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      IF HFound(Discussion) = False THEN
+      	_SetErrorMessage(<§@15827c44001201b20005§> + CR + nDiscussionID)
+      	RESULT False
+      END
+      
+      // If the discussion is pending, return True, it is still valid
+      IF Discussion.Pending = True THEN
+      	_SetErrorMessage(<§@15827c44001201b20006§>+ CR + nDiscussionID)
+      	RESULT True
+      END
+      
+      // More than two persons
+      IF StringCount(Discussion.PersonsList,CS_SEPARATOR_PERSON) > 2 THEN
+      	_SetErrorMessage(<§@15827c44001201b20006§>+ CR + nDiscussionID)
+      	RESULT True
+      ELSE
+      	_SetErrorMessage(<§@15827c44001201b20008§> + Discussion.PersonsList+ CR + nDiscussionID)
+      	// Start a transaction
+      	HTransactionStart()
+      	
+      	// Delete all the requests associated with this discussion
+      	_DeleteDiscussionRequests(nDiscussionID)
+      	
+      	
+      	// Nobody is found in the discussion, delete the messages and the attachments
+      	// And the discussion itself
+      	IF Discussion.PersonsList ~= "" THEN
+      		
+      		_DeleteDiscussionMessage(nDiscussionID)
+      		
+      		// Delete the discussion
+      		HDelete(Discussion)
+      		
+      	END
+      	
+      	HTransactionEnd()
+      	
+      	RESULT False	
+      	
+      END
+     type : 458752
+   -
+     name : _DeleteDiscussionRequests
+     procedure_id : 1557398679962182618
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to delete the requests associated with a discussion
+      // Syntax:
+      //[ <Result> = ] _DeleteDiscussionRequests (<nDiscussionID>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion whose requests must be deleted
+      // Return value:
+      // 	boolean:  True if the requests have been deleted, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      
+      PROCEDURE RESTRICTED _DeleteDiscussionRequests(nDiscussionID)
+      
+      // Search for invitations
+      HReadSeekFirst(DiscussionInvitation,DiscussionID,nDiscussionID)
+      WHILE HFound(DiscussionInvitation)
+      	HDelete(DiscussionInvitation)
+      	HReadNext(DiscussionInvitation)
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : _DeleteDiscussionMessage
+     procedure_id : 1557398679962248154
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to delete the messages associated with a discussion
+      // Syntax:
+      //_[ <Result> = ] _DeleteDiscussionMessage (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion whose messages must be deleted
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      
+      PROCEDURE RESTRICTED _DeleteDiscussionMessage(nDiscussionID)
+      
+      // Search for the first message
+      HReadSeekFirst(DiscussionMessage,DiscussionID,nDiscussionID)
+      
+      WHILE HFound(DiscussionMessage)
+      	
+      	
+      	// Delete the links
+      	IF NOT DiscussionMessage.AttachmentKey ~= "" _AND_ ATTACHKeyExist(DiscussionMessage.AttachmentKey) THEN
+      		
+      		// Delete the attachment
+      		ATTACHDelete(DiscussionMessage.AttachmentKey)
+      		
+      	END
+      	
+      	// Delete the message
+      	HDelete(DiscussionMessage)
+      	
+      	
+      	// Goes to the next message
+      	HReadNext(DiscussionMessage)
+      	
+      END
+     type : 458752
+   -
+     name : _EnableDiscussion
+     procedure_id : 1557398679962313690
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to enable a discussion (if more than two persons take part in the discussion)
+      // Syntax:
+      //[ <Result> = ] _EnableDiscussion (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion to enable
+      // Return value:
+      // 	Undefined type: True if the discussion was enabled, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      
+      PROCEDURE RESTRICTED _EnableDiscussion(nDiscussionID)
+      
+      // Searches for the discussion
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      
+      IF HFound(Discussion) = False THEN
+      	RESULT -1
+      END
+      
+      Discussion.Pending = False
+      
+      RESULT HModify(Discussion)
+      
+     type : 458752
+   -
+     name : _dbgGetVariableValue
+     procedure_id : 1557398679962379226
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to retrieve the value of a server variable in AJAX
+      // Syntax:
+      //[ <Result> = ] _dbgGetVariableValue (<sVariableName>)
+      //
+      // Parameters:
+      //	sVariableName: Name of the variable
+      // Return value:
+      // 	Undefined type: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _dbgGetVariableValue(sVariableName)
+      
+      RESULT {sVariableName,indVariable}
+     type : 458752
+   -
+     name : _CheckResponsesPerRequestingUser
+     internal_properties : CAAAAAgAAADDYjp0BwqQLke9cE5c6ZxpFm3zNM1+aCwIepMNkLX2iAiFp5JMpZX0O4FEJIh8xf5S+PJUE3tG4Sm1qsuLpWtxfF8Kc2WeoQcZHzZ6l9L5i9a5Vew13mRQecKsNVCx8nx7DbVVlWBVwaphrvrDXeUjzWglzi0IJnzaU2Cv6Ha7J1uBrtn577LdYIKbMKhQLxQnd6OFS4Fo91MH9PDxTNilW67bwGmt7TukTEfGVDrHOFuuZBAk
+     procedure_id : 1557398679962444762
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to check the answers to an invitation started by the current user
+      // Syntax:
+      //[ <Result> = ] _CheckResponsesPerRequestingUser (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion whose answers must be checked
+      // Return value:
+      // 	Undefined type: <specify the possible values as well as their interpretation>
+      //
+      // Example:
+      // Indicate an example.
+      
+      PROCEDURE RESTRICTED _CheckResponsesPerRequestingUser(nDiscussionID)
+      
+      // Local variables
+      sDifference 		is string
+      nResult 			is int
+      
+      // Searches for the request
+      HReadSeekFirst(DiscussionInvitation,RequestingPersonID_DiscussionID,[gnPersonID,nDiscussionID])
+      
+      //The time-out is reached if the request is not found
+      IF HFound(DiscussionInvitation) = False THEN 
+      	_SetErrorMessage(<§@15827c44001201b20001§>)
+      	RESULT CN_ERROR
+      END
+      
+      IF DiscussionInvitation.AnswerGiven = CN_PENDING_REQUEST THEN
+      	
+      	sDifference = DateTimeDifference(DiscussionInvitation.DateTime,Today() + Now())
+      	IF Val(sDifference) > CS_TIME_OUT THEN
+      		
+      		//The time-out is reached, delete the request
+      		_DeleteRequest(DiscussionInvitation.DiscussionInvitationID)
+      		
+      		// enable the discussion in order to delete it
+      		// in _CheckDiscussionValidity if it is still pending
+      		// Because if it was still pending, it's a connection 
+      		_EnableDiscussion(nDiscussionID)
+      		
+      		// Also check the deletion of the discussion
+      		_CheckDiscussionValidity(nDiscussionID)
+      		
+      		// Return the time-out
+      		RESULT CN_REQUEST_TIME_OUT
+      	ELSE
+      		RESULT CN_PENDING_REQUEST	
+      	END
+      	
+      	
+      ELSE
+      	// Save the answer
+      	nResult = DiscussionInvitation.AnswerGiven
+      	
+      	// Enable the discussion
+      	SWITCH _EnableDiscussion(nDiscussionID)
+      		CASE -1
+      			_SetErrorMessage(<§@15827c44001201b2000a§> + nDiscussionID)
+      			RESULT CN_ERROR
+      		CASE 1
+      		// Continue
+      		OTHER CASE
+      			_SetErrorMessage(<§@15827c44001201b2000b§> + CR + HErrorInfo())
+      			RESULT CN_ERROR
+      			
+      	END
+      	
+      	// Also check the deletion of the discussion
+      	_CheckDiscussionValidity(nDiscussionID)
+      	
+      	// A result was found, delete the request
+      	_DeleteRequest(DiscussionInvitation.DiscussionInvitationID)
+      	
+      	// Return the answer whether it is accepted or not
+      	RESULT nResult	
+      	
+      END
+     type : 458752
+   -
+     name : _CheckResponsesPerRequestedUser
+     internal_properties : CAAAAAgAAAAgS8xX/RaWgXQEGxGGWJPaPQLWAr71iRaGeOiZ0VZK35B1O0LpQGQB7pZySFb0QapmXj57toQZ83ZyOda0YoQlhc7QvEBEO8aEDO7hKeYlVvuAYF7ypzTDUT7p0UypyaxYv1DkGcqWQXW4k/yNhdj5HnR6V6H6/ZJ1evktIgqyq2eJsRNQY8q3rQJ0lKnVwBTWf20AE7g=
+     procedure_id : 1557398679962510298
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to check the answer to an invitation (everything is OK sent by the requesting user)
+      
+      // Syntax:
+      //[ <Result> = ] _CheckResponsesPerRequestedUser (<nIDDiscussion>, <dtDateTimeArrival>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion
+      //	dhArrivalDateTime: Date and time of arrival
+      // Return value:
+      // 	Undefined type: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _CheckResponsesPerRequestedUser(nDiscussionID, dtDateTimeArrival)
+      
+      // This procedure is used to check whether the discussion was validated by the requesting user
+      // which means whether the discussion was enabled by the requesting user
+      
+      // Local variables
+      sDifference is string
+      
+      // Searches for the request
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      
+      IF HFound(Discussion) = False THEN
+      	_SetErrorMessage(<§@15827c44001201b2000a§> + nDiscussionID)
+      	RESULT CN_ERROR 
+      END
+      
+      IF Discussion.Pending THEN
+      	
+      	sDifference = DateTimeDifference(dtDateTimeArrival,Today() + Now())
+      	IF Val(sDifference) > CS_TIME_OUT THEN
+      		// Return the time-out
+      		RESULT CN_REQUEST_TIME_OUT
+      	ELSE
+      		RESULT CN_PENDING_REQUEST	
+      	END
+      ELSE
+      	RESULT CN_REQUEST_ACCEPTED	
+      END
+      
+     type : 458752
+   -
+     name : DiscussionGetNbMessages
+     procedure_id : 1557398679962575834
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to retrieve the number of messages (to find out whether it changed or not)
+      // Syntax:
+      //[ <Result> = ] DiscussionGetNbMessages (<nIDDiscussion>, <dtDateTime>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the discussion
+      //	dhDateTime: Date and time when the person arrived
+      // Return value:
+      // 	8-byte integer: Number of messages to display
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionGetNbMessages(nDiscussionID, dtDateTime)
+      
+      
+      // Configure and run the query
+      QRY_Discussion_ListMessagesPerPerson.pDateTimeArrival 	= dtDateTime
+      QRY_Discussion_ListMessagesPerPerson.pIDDiscussion 		= nDiscussionID
+      QRY_Discussion_ListMessagesPerPerson.pldPerson 		= gnPersonID
+      HExecuteQuery(QRY_Discussion_ListMessagesPerPerson)
+      
+      RESULT HNbRec(QRY_Discussion_ListMessagesPerPerson)
+     type : 458752
+   -
+     name : DiscussionNbRequests
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962641370
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to retrieve the number of pending requests for a person
+      // Syntax:
+      //[ <Result> = ] DiscussionNbRequests (<nPersonID>)
+      //
+      // Parameters:
+      //	nPersonID: Identifier of the person for whom the number of requests must be found
+      // Return value:
+      // 	Undefined type: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionNbRequests(nPersonID)
+      
+      IF gbFatalError = True THEN
+      	RESULT 0
+      END
+      
+      HSeekFirst(DiscussionInvitation, RequestedPersonID_AnswerGiven, [nPersonID, CN_PENDING_REQUEST])
+      RESULT HFound(DiscussionInvitation)
+      
+     type : 458752
+   -
+     name : DiscussionDisconnect
+     procedure_id : 1557398679962706906
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to disconnect from a discussion
+      // Syntax:
+      //[ <Result> = ] DiscussionDisconnect (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: Identifier of the connection from which we want to disconnect
+      // Return value:
+      // 	boolean: True if we are disconnected, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionDisconnect(nDiscussionID)
+      
+      // Search for the relevant discussion
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      
+      IF HFound(Discussion) = False THEN
+      	RESULT True
+      END
+      
+      // Delete the current user from the discussion
+      Discussion.PersonsList = Replace(Discussion.PersonsList,CS_SEPARATOR_PERSON + CurrentUser:UserID + CS_SEPARATOR_PERSON, CS_SEPARATOR_PERSON)
+      
+      HModify(Discussion)
+      
+      // By default, enable the discussion => Because if the request is active, it can be deleted
+      // no action if it is already active, otherwise it can be deleted
+      _EnableDiscussion(nDiscussionID)
+      
+      // Restarts the validation of the discussion
+      IF IsConnected() THEN
+      	_CheckDiscussionValidity(nDiscussionID)
+      end
+      
+      RESULT True
+     type : 458752
+   -
+     name : FindDiscussion
+     procedure_id : 1557398679962772442
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to find out whether two users are already taking part in a discussion
+      // Syntax:
+      //[ <Result> = ] FindDiscussion (<nFirstUser>, <nSecondUser>)
+      //
+      // Parameters:
+      //	nFirstUser: Identifier of the first user
+      //	nSecondUser: Identifier of the second user
+      // Return value:
+      // 	boolean: True if a discussion is already in progress between the two users, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE FindDiscussion(nFirstUser, nSecondUser)
+      
+      // This procedure is used to search for a discussion between the two users
+      FOR EACH Discussion
+      	
+      	IF Position(Discussion.PersonsList,CS_SEPARATOR_PERSON + nFirstUser + CS_SEPARATOR_PERSON) > 0 THEN
+      		// The first person is found
+      		// Search for the second person
+      		IF Position(Discussion.PersonsList,CS_SEPARATOR_PERSON + nSecondUser + CS_SEPARATOR_PERSON) > 0 THEN
+      			// the second person is found, return true
+      			RESULT True
+      		END
+      	END
+      	
+      END
+      
+      RESULT False
+     type : 458752
+   -
+     name : DiscussionCheck
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962837978
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to check whether a discussion is still valid
+      // Syntax:
+      //[ <Result> = ] DiscussionCheck (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: identifier of the procedure whose validity must be checked
+      // Return value:
+      // 	boolean: True if the discussion is valid, False otherwise
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionCheck(nDiscussionID)
+      
+      RESULT _CheckDiscussionValidity(nDiscussionID)
+     type : 458752
+   -
+     name : _SetErrorMessage
+     procedure_id : 1557398679962903514
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to assign the error message
+      // Syntax:
+      //_SetErrorMessage (<sMessage>)
+      //
+      // Parameters:
+      //	sMessage: Error message to save
+      // Return value:
+      // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _SetErrorMessage(sMessage)
+      
+      gsErrorMessage = sMessage
+     type : 458752
+   -
+     name : DiscussionErrorMessage
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1557398679962969050
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to retrieve the error message
+      // Syntax:
+      //[ <Result> = ] DiscussionErrorMessage ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: Last error message saved
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionErrorMessage()
+      
+      RESULT gsErrorMessage
+     type : 458752
+   -
+     name : DiscussionDisconnectUser
+     procedure_id : 1559646258183694958
+     type_code : 15
+     code : |1+
+      // Summary: Used to disconnect a user
+      // Syntaxe :
+      //DiscussionDisconnectUser ( [<nUserID>])
+      //
+      // Paramètres :
+      //	nUserID : <specify the role of nUserID>
+      // Example:
+      // Indicate an example.
+      //
+      // Return value:
+      PROCEDURE DiscussionDisconnectUser(nUserID = CurrentUser:UserID)
+      
+      
+      // This procedure is used to search for a discussion between the two users
+      FOR EACH Discussion
+      	
+      	// If the user takes part in the discussion
+      	IF Position(Discussion.PersonsList,CS_SEPARATOR_PERSON + nUserID + CS_SEPARATOR_PERSON) > 0 THEN
+      		
+      		// Disconnect from the discussion
+      		DiscussionDisconnect(Discussion.DiscussionID)
+      		
+      	END
+      	
+      END
+     type : 458752
+   -
+     name : DiscussionListAvailableUsers
+     internal_properties : CAAAAAgAAAAAq2w6nCxPySamG22qKhuuq8CMXErvAd789pgVfdi6t0KPIdRZHqRNzPTmkLYSZdpwQDxlrkLZ8+wYyV6E0MQZAzxaisR2g7pqEs5yPPXeTc4jCYXNViMwzKGMjoNM1vezAhGjRJllHhALhoWMgEloFWNvAgg92O/4pYTWtXkXzgbIevKf3kUwxKHjCazMXbRiao1gs9g=
+     procedure_id : 1560082695144530700
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: This procedure is used to return the list of users with whom a discussion can be started
+      // Syntax:
+      //[ <Result> = ] DiscussionListAvailableUsers ([<bLoginOnly>])
+      //
+      // This procedure is used to return the list of users with whom a discussion can be started
+      
+      // Parameters:
+      //	bLoginOnly (default value=0): Find out whether the login must necessarily be returned
+      // Return value:
+      // 	string: List of available users (ID + TAB + NAME or LOGIN)
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionListAvailableUsers(bLoginOnly = False)
+      
+      // Local variables
+      sUserList 	is string
+      sDisplayedName 		is string
+      
+      // Save the HFSQL context
+      sGUID is string = HFSavePosition(User..Name)
+      
+      // For each user
+      FOR EACH User
+      	
+      	// If the user is available
+      	IF DiscussionUserIsAvailable(User.UserID) = False THEN CONTINUE
+      	
+      	IF bLoginOnly = True THEN
+      		sDisplayedName = User.Login
+      	ELSE
+      		
+      		// Retrieve the name displayed	
+      		sDisplayedName = GetUserName(User.UserID)
+      		
+      	END
+      	
+      	// Build the list
+      	sUserList += [CR] + User.UserID + TAB + sDisplayedName
+      	
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT sUserList
+     type : 458752
+   -
+     name : DiscussionUserIsAvailable
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1560084073831188162
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: used to find out whether a user can be contacted via the messaging
+      // Syntaxe :
+      //[ <Résultat> = ] DiscussionUserIsAvailable ( [<nUserID>])
+      //
+      // This procedure is used to find out whether a user can be contacted via the messaging
+      // Paramètres :
+      //	nUserID : Identifier of the user whose availability must be checked
+      
+      // Return value:
+      // 	boolean: True if the user can be contacted via a discussion, False otherwise
+      PROCEDURE DiscussionUserIsAvailable(nUserID = User.UserID)
+      
+      // If he is not the user currently connected 
+      IF nUserID = CurrentUser:UserID THEN RESULT False
+      
+      // Find an existing discussion between the current user and the user currently browsed
+      IF FindDiscussion(CurrentUser:UserID, nUserID) = True THEN RESULT False
+      
+      // Continue if the current user is not connected
+      IF IsConnected(nUserID) = False THEN RESULT False
+      
+      // Don't propose the user if he is deleted
+      IF IsDeleted(nUserID) = True THEN RESULT False
+      
+      
+      RESULT True
+     type : 458752
+   -
+     name : _DiscussionProcessSmileys
+     internal_properties : CAAAAAgAAACUZrzFFc9McO8fI0SWsY8qpqZz3ZzyW85N8x0xULb5KWJQH5xq+UXMN8FMeKi5yjyVKplZb/bVrvXurDqBhLikycQUlPWztvcwMDK9Bf3LnGLIHDqrUsJ5w8ahLoFzvvt0f1JDLRX5qQMT4m5zcQEt95I/iGPS3EKUbeKPlKLXIVDwHZZYot+Ew+VaUe37MntbI/Q0elApNto+Q//Ip088wIsTWIdpsQ9I4DtqGErb8hXpv8pg8a9VD2HKp4Mq8WrFAyzqZQRFTXoCRFGTBVZW3jsqAyc=
+     procedure_id : 1560400956765409064
+     type_code : 15
+     code : |1-
+      // Summary: Manages the smileys in the message (replaces the text of the smiley by an image)
+      // Syntax:
+      //[ <Result> = ] _DiscussionProcessSmileys (<sMessageBody>)
+      //
+      // Parameters:
+      //	sMessageBody: <specify the role of sMessageBody>
+      // Return value:
+      // 	Undefined type: // 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE RESTRICTED _DiscussionProcessSmileys(LOCAL sMessageBody)
+      
+      // 1 - happy
+      // 2 - unhappy
+      // 3 - tongue
+      // 4 - cries
+      
+      // Local variables
+      sImageHappySmiley 		is string
+      sImageUnhappySmiley		is string
+      sImageSmileyStickTongueOut 		is string
+      sImageSmileyCry 			is string
+      sImageSmileyLaugh 			is string
+      sCodeCommonSmiley 			is string
+      
+      sCodeCommonSmiley = Replace([
+      	<IMG src="%web%/ext/modules/discussion/%1" align=absmiddle alt="%2">
+      ], "%web%", "/" + FolderWeb())
+      
+      // List of smileys
+      sImageHappySmiley 		= "1.gif"
+      sImageUnhappySmiley 		= "2.gif"
+      sImageSmileyStickTongueOut 		= "3.gif"
+      sImageSmileyCry 			= "4.gif"
+      sImageSmileyLaugh 			= "5.gif"
+      
+      
+      // Process the happy smiley
+      sMessageBody = Replace(sMessageBody, ":)", StringBuild(sCodeCommonSmiley, sImageHappySmiley, ":)"), WholeWord+IgnoreCase)
+      sMessageBody = Replace(sMessageBody, ":-)", StringBuild(sCodeCommonSmiley, sImageHappySmiley, ":-)"), WholeWord+IgnoreCase)
+      
+      // Process the unhappy smiley
+      sMessageBody = Replace(sMessageBody, ":(", StringBuild(sCodeCommonSmiley, sImageUnhappySmiley, ":("), WholeWord+IgnoreCase)
+      sMessageBody = Replace(sMessageBody, ":-(", StringBuild(sCodeCommonSmiley, sImageUnhappySmiley, ":-("), WholeWord+IgnoreCase)
+      
+      
+      // Process the smiley whose tongue is stuck out
+      sMessageBody = Replace(sMessageBody, ":p", StringBuild(sCodeCommonSmiley, sImageSmileyStickTongueOut, ":p"), WholeWord+IgnoreCase)
+      sMessageBody = Replace(sMessageBody, ":-p", StringBuild(sCodeCommonSmiley, sImageSmileyStickTongueOut, ":-p"), WholeWord+IgnoreCase)
+      
+      // Process the smiley who cries
+      sMessageBody = Replace(sMessageBody, ":'(", StringBuild(sCodeCommonSmiley, sImageSmileyCry, ":'("), WholeWord+IgnoreCase)
+      sMessageBody = Replace(sMessageBody, ":'-(", StringBuild(sCodeCommonSmiley, sImageSmileyCry, ":'-("), WholeWord+IgnoreCase)
+      
+      // Case of the smiley who laughs
+      sMessageBody = Replace(sMessageBody, ":s", StringBuild(sCodeCommonSmiley, sImageSmileyLaugh, ":s"), WholeWord+IgnoreCase)
+      
+      
+      RESULT sMessageBody
+     type : 458752
+   -
+     name : DiscussionListPerson
+     procedure_id : 1560405612524935654
+     type_code : 15
+     code : |1-
+      // Summary: <specify the action of the procedure>
+      // Syntax:
+      //[ <Result> = ] DiscussionListPerson (<nIDDiscussion>)
+      //
+      // Used to return the list of persons taking part in a discussion
+      //
+      // Parameters:
+      //	nDiscussionID: Discussion for which the participants are requested
+      // Return value:
+      // 	string: //  	 	None
+      //
+      // Example:
+      // Indicate an example.
+      //
+      PROCEDURE DiscussionListPerson(nDiscussionID)
+      
+      // Local variables
+      sGUID 				is string
+      sReturnString 		is string
+      
+      // Save the HFSQL context
+      sGUID = HFSavePosition(Discussion..Name)
+      
+      // Searches for the discussion
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      IF HFound(Discussion) THEN
+      	// Retrieve the list of persons taking part in a discussion
+      	sReturnString = Discussion.PersonsList
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      
+      RESULT sReturnString
+     type : 458752
+   -
+     name : DiscussionNbParticipants
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1579991492889415585
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Returns the list of persons taking part in a discussion
+      // Syntax:
+      //[ <Result> = ] DiscussionNbParticipants (<nIDDiscussion>)
+      //
+      // Parameters:
+      //	nDiscussionID: <specify the role of nDiscussionID>
+      // Return value:
+      // 	integer: Number of persons taking part in the discussion
+      //
+      PROCEDURE DiscussionNbParticipants(nDiscussionID)
+      
+      nNbPersons is int
+      
+      GUID is string
+      GUID = HFSavePosition(Discussion..Name)
+      
+      HReadSeekFirst(Discussion,DiscussionID,nDiscussionID)
+      IF HFound(Discussion) THEN	
+      	nNbPersons = StringCount(Discussion.PersonsList, CS_SEPARATOR_PERSON) / 2	
+      END
+      
+      HFRestorePosition(GUID)
+      
+      RESULT nNbPersons
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15827c44001201b2
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Unable to add the request for discussion
+     index : 0
+   -
+     text :
+      en-GB : Unable to find the invitation
+     index : 1
+   -
+     text :
+      en-GB : Unable to find the associated discussion
+     index : 2
+   -
+     text :
+      en-GB : Error
+     index : 3
+   -
+     text :
+      en-GB : Unable to find the discussion
+     index : 5
+   -
+     text :
+      en-GB : Discussion valid
+     index : 6
+   -
+     text :
+      en-GB : "List of persons involved: "
+     index : 8
+   -
+     text :
+      en-GB : "Unable to find the discussion #"
+     index : 10
+   -
+     text :
+      en-GB : "The HModify function returned False "
+     index : 11
+   -
+     text :
+      en-GB : Up to 3 simultaneous users can attend a discussion.
+     index : 13
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

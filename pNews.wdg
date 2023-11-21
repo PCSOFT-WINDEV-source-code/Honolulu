@@ -1,0 +1,304 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pNews
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561775eb1b7b5b
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Set of procedures for managing the news
+      
+      // Declare the constants for managing the news
+      CONSTANT
+      	// Manage the notifications
+      	NOTIFICATION_NEWS_DELETION 		= "NOTIFICATION_NEWS_DELETION"	
+      	NOTIFICATION_NEWS_MODIFICATION 	= "NOTIFICATION_NEWS_MODIFICATION"
+      	NOTIFICATION_NEWS_CREATION 		= "NOTIFICATION_NEWS_CREATION"
+      END
+     type : 720896
+  procedures :
+   -
+     name : NewsDelete
+     procedure_id : 1825672494168439643
+     type_code : 15
+     code : |1-
+      // Summary: Used to delete a news
+      // Syntaxe :
+      //[ <Résultat> = ] NewsDelete (<nNewsID>)
+      //
+      // Paramètres :
+      //	nNewsID : Identifier of the news to delete
+      
+      // Return value:
+      // 	boolean: True if the deletion was performed, False otherwise
+      PROCEDURE NewsDelete(nNewsID)
+      
+      // Local variables
+      sMessage 			is string		// Content of the notification message
+      sGUID 				is string		// Identifier of the context
+      
+      // Save the context
+      sGUID  = HFSavePosition(News..Name)
+      
+      // Searches for the record to delete
+      HReadSeekFirst(News,NewsID,nNewsID)
+      dbgAssert(HFound(News),StringBuild(<§@15acb28c55bc02670000§>,nNewsID))
+      IF HFound(News) = False THEN
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      	RESULT False
+      END
+      
+      // Delete the news
+      IF HDelete(News) THEN
+      	
+      	// Delete the topic linked to the news in the "News" forum 
+      	ParameterDelete("TOPIC_NEWS_" + nNewsID)
+      	
+      	// The deletion was successfully performed: send a notification about the deletion of a news
+      	sMessage = StringBuild(""+TAB+<§@15acb28c55bc0267000a§>+CR+""+TAB+<§@15acb28c55bc0267000b§>,GetLogin(CurrentUser:UserID), News.Title,News.CreationDateTime)
+      	NotificationSend(	MODULE_NEWS, NOTIFICATION_DELETION,<§@15acb28c55bc02670002§>,sMessage)
+      	
+      ELSE
+      	// Restore the context
+      	HFRestorePosition(sGUID)
+      	RESULT False
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // By default, the operation is performed without error
+      RESULT True
+     type : 458752
+   -
+     name : NewsDiscussOnForum
+     procedure_id : 1825672494168505179
+     type_code : 15
+     code : |1+
+      // Summary: Used to discuss about a news in the corresponding discussion forum
+      // Syntaxe :
+      //NewsDiscussOnForum (<nNewsID>)
+      //
+      // Paramètres :
+      //	nNewsID : Identifier of the news
+      
+      // Return value:
+      PROCEDURE NewsDiscussOnForum(nNewsID)
+      
+      // Local variables
+      nTopicID 				is int
+      sNewsTitle 		is string
+      sGUID 					is string
+      
+      // Save the context
+      sGUID  = HFSavePosition(News..Name)
+      
+      // Search for the news
+      HReadSeekFirst(News,NewsID,nNewsID)
+      dbgAssert(HFound(News),<§@15acb28c55bc02670009§>)
+      
+      // Retrieve the title of the current news
+      sNewsTitle  = News.Title
+      
+      // Checks whether a topic was created for this news
+      nTopicID = ParameterRead("TOPIC_NEWS_" + nNewsID, ForAll, 0)
+      
+      // If no topic was created yet
+      IF nTopicID = 0 THEN
+      	
+      	// Create the topic
+      	nTopicID = TopicCreate(StringBuild(<§@15acb28c55bc02670004§>,sNewsTitle), GetIDNewsForum(), StringBuild(<§@15acb28c55bc02670005§>,sNewsTitle), StringBuild(<§@15acb28c55bc02670006§>,sNewsTitle),News.UserID)
+      	
+      	// Save the identifier of the topic associated with this news
+      	ParameterWrite("TOPIC_NEWS_" + nNewsID, nTopicID, ForAll)
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // Displays the topic corresponding to the news
+      PageDisplay(PAGE_Forum_Messages, nTopicID)
+      
+     type : 458752
+   -
+     name : NewsGetTitle
+     procedure_id : 1825672494168570715
+     type_code : 15
+     code : |1+
+      // Summary: Used to retrieve the title of a news
+      // Syntaxe :
+      //[ <Résultat> = ] NewsGetTitle (<nNewsID>)
+      //
+      // Paramètres :
+      //	nNewsID : Identifier of the news
+      
+      // Return value:
+      // 	string: Title of the news
+      PROCEDURE NewsGetTitle(nNewsID)
+      
+      // Local variables
+      sNewsTitle 		is string
+      sGUID 					is string
+      
+      // Save the context
+      sGUID = HFSavePosition(News..Name)
+      
+      // Search for the news
+      HReadSeekFirst(News,NewsID,nNewsID)
+      dbgAssert(HFound(News),StringBuild(<§@15acb28c55bc02670000§>,nNewsID))
+      
+      IF HFound(News) THEN
+      	// Update the news
+      	sNewsTitle = News.Title
+      END
+      
+      // Restore the context
+      HFRestorePosition(sGUID)
+      
+      // Returns the title of the news
+      RESULT sNewsTitle
+     type : 458752
+   -
+     name : NewsNotificationEnabled
+     procedure_id : 1825672494168636251
+     type_code : 15
+     code : |1+
+      // Summary: This procedure is used to find out whether a notification is active 
+      // Syntaxe :
+      //[ <Résultat> = ] NewsNotificationEnabled (<sIDNews> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sIDNews : Identifier of wiki or "" for the global notification
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE NewsNotificationEnabled(sIDNews, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RESULT 0
+      
+      IF sIDNews ~= "" THEN
+      	RESULT Val(ParameterRead(NOTIFICATION_NEWS_CREATION + "_" + MODULE_NEWS + "0_" + nUserID, ForAll,"0"))	
+      ELSE
+      	RESULT Val(ParameterRead(NOTIFICATION_NEWS_MODIFICATION + "_" + MODULE_NEWS + sIDNews + "_" + nUserID, ForAll, "0"))
+      END
+     type : 458752
+   -
+     name : NewsNotificationDelete
+     procedure_id : 1825672494168701787
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to delete a notification
+      // Syntaxe :
+      //NewsNotificationDelete (<sIDNews>, <sNotification> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sIDNews : Identifier of the affected WIKI
+      //	sNotification : Affected notification => NOTIFICATION_WIKI_CREATION, NOTIFICATION_WIKI_MODIFICATION
+      //	nUserID : Identifier of the affected user
+      
+      PROCEDURE NewsNotificationDelete(sIDNews, sNotification, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      // If the document is empty, global subscription to the news 
+      IF sIDNews~= "" THEN
+      	ParameterDelete(sNotification + "_" + MODULE_NEWS + "0_" + nUserID)	
+      ELSE
+      	ParameterDelete(sNotification + "_" + MODULE_NEWS + sIDNews + "_" + nUserID)
+      END
+     type : 458752
+   -
+     name : NewsCreateNotification
+     procedure_id : 1825672494168767323
+     type_code : 15
+     code : |1-
+      // Summary: This procedure is used to save a notification (addition or modification) for a news
+      // Syntaxe :
+      //NewsCreateNotification (<sIDNews> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sIDNews : Identifier of the news
+      //	nUserID : Identifier of the user for whom the parameter must be written
+      
+      PROCEDURE NewsCreateNotification(sIDNews, nUserID = CurrentUser:UserID)
+      
+      // We must be connected
+      IF NOT IsConnected() THEN RETURN
+      
+      IF sIDNews ~= "" THEN
+      	ParameterWrite(NOTIFICATION_NEWS_CREATION + "_" + MODULE_NEWS + "0_" + nUserID, "1")
+      ELSE
+      	ParameterWrite(NOTIFICATION_NEWS_MODIFICATION + "_" + MODULE_NEWS + sIDNews + "_" + nUserID, "1")
+      END
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15acb28c55bc0267
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : "'%1' news item not found in the database"
+     index : 0
+   -
+     text :
+      en-GB : Notification about the deletion of a news item
+     index : 2
+   -
+     text :
+      en-GB : "'%1' news item"
+     index : 4
+   -
+     text :
+      en-GB : Don't hesitate to ask your question about the '%1' news item
+     index : 5
+   -
+     text :
+      en-GB : Discussion about the '%1' news
+     index : 6
+   -
+     text :
+      en-GB : News item not found
+     index : 9
+   -
+     text :
+      en-GB : "%1 has deleted a news."
+     index : 10
+   -
+     text :
+      en-GB : "News item: %2 dated %3"
+     index : 11
+   -
+     text :
+      en-GB : You are already notified when a topic is created in this forum.
+     index : 12
+   -
+     text :
+      en-GB : Do you want to delete this notification?
+     index : 13
+   -
+     text :
+      en-GB : " \"Delete\""
+     index : 14
+   -
+     text :
+      en-GB : No action
+     index : 15
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

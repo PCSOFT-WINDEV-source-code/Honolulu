@@ -1,0 +1,1969 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pMessaging
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x19561778eb7d86f4
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  internal_properties : CAAAAAgAAAC+4VKOZjGDmb91Fe0zj70d6vmq7TMFdM8kI2VvArllxDNh2FkhTYhsBv4ICLFQ0fi6adcz/2ghAuzx2CNLUDptIrvustSNY5bWrxpZpQfoORwVvOEmputvt1/CtwH70ZiXU/PWmXEF7yICsFIefiqHQ8t1xTpT78VxZZKeOjcLTaiu
+  type_code : 31
+  p_codes :
+   -
+     code : |1-
+      // Set of procedures for managing the messaging
+      
+      // Define the constants
+      CONSTANT
+      	// Types of recipients
+      	recipMain 	= 1
+      	CCRECIP 		= 2
+      	recipHidden 		= 4
+      	
+      	// Selected box
+      	IncomingBox  = 1
+      	Labels 		= 2
+      	BoxSent 	= 3
+      	BoxDeleted  = 4
+      	BoxArchived	= 5
+      	BoxSearch	= 6
+      END
+      
+      // Store the last error of the messaging
+      gsMessagingErrorInfo is string
+     type : 720896
+  procedures :
+   -
+     name : MessageSend
+     procedure_id : 1825672507059767028
+     type_code : 15
+     code : |1-
+      // Summary: Sends a message in the BAL of the specified users
+      // Syntax:
+      //[ <Result> = ] MessageSend (<sListMainRecipients>, <sListCopiedRecipients>, <sListHiddenRecipients>, <sObject>, <sMessage> [, <sIDSender> [, <nPriority> [, <bUrgent> [, <sListAttachments>]]]])
+      //
+      // Parameters:
+      //	sListMainRecipients: List of recipients (separated by the ; character, the list may contain: names of groups, email addresses and logins)
+      //	sListCopiedRecipients: List of recipients in copy ('')
+      //	sListHiddenRecipients: List of hidden recipients ('')
+      //	sObject: Object of the message
+      //	sMessage: Message in HHCode format or rough text
+      //	sSenderID: Identifier of the sender (current user by default)
+      //	nPriority (default value=1): Priority (PriorityLow, PriorityNormal, PriorityHigh)
+      //	bUrgent (default value=0): Urgent matter
+      //	sListAttachments (default value=""): List of attachments (separated by the ; character, the list may contain: file paths or attachment keys)
+      // Return value:
+      // 	boolean: True if the message was successfully sent, False otherwise
+      //
+      PROCEDURE MessageSend(sListMainRecipients, sListCopiedRecipients, sListHiddenRecipients, ...
+      sObject, sMessage, sSenderID = CurrentUser:UserID, nPriority = PriorityNormal, bUrgent = False, ...
+      sListAttachments = "")
+      
+      // Local variables
+      bReturn 				is boolean
+      sMessageText 			is string
+      sHTMLMessage  			is string
+      sMessageHHCode 			is string
+      nNbEmailRecipients 	is int
+      sListAttachmentKeys is string	
+      nMessageID 				is int
+      bExternalEmail 			is boolean
+      
+      // Initialize the error message
+      gsMessagingErrorInfo = ""
+      
+      // Stores the message in three formats
+      sMessageHHCode = sMessage
+      sHTMLMessage   = sMessage
+      sMessageText  = WL.HTMLToText(sMessageHHCode)
+      
+      // Initialize the files
+      HReset(Message)
+      
+      // If the sender is an internal user 
+      IF RecipientIsAUser(GetLogin(sSenderID)) THEN
+      	bExternalEmail 			  = False
+      ELSE
+      	// Otherwise, he is an external user(email address)
+      	bExternalEmail			  = True
+      END
+      
+      // Create the message
+      Message.CreationDateTime = Today + Now
+      Message.OUTGOINGDATETIME    = Today + Now	
+      Message.Priority		  = nPriority
+      Message.IsUrgent		  = bUrgent
+      Message.Subject			  = sObject
+      Message.Content			  = sMessageHHCode
+      
+      IF bExternalEmail = False THEN
+      	Message.SenderID	  = sSenderID	
+      	Message.SenderEmail   = ""
+      	Message.CreationDateTime = Today + Now
+      	Message.OUTGOINGDATETIME    = Message.CreationDateTime
+      ELSE
+      	
+      	sIdentifier is string
+      	IF Email.MessageID = "" THEN
+      		sIdentifier = Email.Sender + Email.ReceiveDate
+      	ELSE
+      		sIdentifier = Email.MessageID
+      	END
+      	
+      	Message.SenderID	  = -1	
+      	Message.SenderEmail   = sSenderID	
+      	Message.CreationDateTime = MessageGetDate(Email.ReceiveDate)
+      	Message.OUTGOINGDATETIME    = Message.OUTGOINGDATETIME
+      	Message.Identifier		  = sIdentifier
+      END
+      
+      // Add the message
+      bReturn = HAdd(Message, hAffectBrowse)
+      
+      // Store the identifier of the message
+      nMessageID = Message.MessageID
+      
+      // Was the message saved?
+      IF bReturn THEN
+      	
+      	// Creates the list of attachments
+      	sListAttachmentKeys = MessageCreateAttachments(nMessageID, sListAttachments, sSenderID)
+      	
+      	// Creates the list of message recipients
+      	nNbEmailRecipients =  MessageCreateRecipients(nMessageID, sListMainRecipients	, recipMain, bReturn)
+      	nNbEmailRecipients += MessageCreateRecipients(nMessageID, sListCopiedRecipients		, CCRECIP, bReturn)
+      	nNbEmailRecipients += MessageCreateRecipients(nMessageID, sListHiddenRecipients		, recipHidden, bReturn)
+      	
+      	// Send an email in answer if it is an external address	
+      	IF bExternalEmail = False THEN
+      		
+      		// An email must be sent to all the 'email' recipients
+      		IF nNbEmailRecipients > 0 THEN				
+      			bReturn = MessageSendSMTP(sSenderID, nMessageID, sObject, sMessageText, sHTMLMessage, ...
+      			bUrgent, nPriority, sListAttachmentKeys)
+      		END
+      		
+      	END		
+      	
+      	
+      ELSE
+      	// Store the error
+      	gsMessagingErrorInfo = HErrorInfo(hErrMessage)
+      END
+      
+      // Returns the status report
+      RESULT bReturn
+     type : 458752
+   -
+     name : RecipientIsAUser
+     procedure_id : 1825672507059832564
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether a recipient is a known user
+      // Syntax:
+      //[ <Result> = ] RecipientIsAUser (<sRecipient>)
+      //
+      // Parameters:
+      //	sRecipient: Recipient
+      // Return value:
+      // 	boolean: True if the recipient is a known user
+      //
+      PROCEDURE RecipientIsAUser(sRecipient)
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string
+      
+      // Save the context
+      GUID = HFSavePosition(User..Name)
+      
+      // Search for the user
+      HReadSeekFirst(User, Login, sRecipient)
+      bReturn = HFound(User)
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the result	
+      RESULT bReturn
+     type : 458752
+   -
+     name : RecipientIsAGroup
+     procedure_id : 1825672507059898100
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether a recipient is a known group
+      // Syntax:
+      //[ <Result> = ] RecipientIsAGroup (<sRecipient>)
+      //
+      // Parameters:
+      //	sRecipient: Recipient
+      // Return value:
+      // 	boolean: True if the recipient is a group
+      //
+      PROCEDURE RecipientIsAGroup(sRecipient)
+      
+      // Local variables
+      bReturn 		is boolean
+      GUID 			is string
+      
+      // Save the context
+      GUID  = HFSavePosition(Group..Name)
+      
+      // Search for the group of users
+      HSeekFirst(Group, TitleByUser, [sRecipient, CurrentUser:UserID])
+      bReturn = HFound(Group)
+      
+      IF NOT bReturn THEN
+      	// Public group
+      	HSeekFirst(Group, TitleByUser, [sRecipient, ForAll])
+      	bReturn = HFound(Group)
+      END
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      // Returns the result		
+      RESULT bReturn
+     type : 458752
+   -
+     name : RecipientIsAnEmailAddress
+     procedure_id : 1825672507059963636
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether a recipient is an external email address
+      // Syntax:
+      //[ <Result> = ] RecipientIsAnEmailAddress (<sRecipient>)
+      //
+      // Parameters:
+      //	sRecipient: Recipient
+      // Return value:
+      // 	boolean: True if the recipient is an email address
+      //
+      PROCEDURE RecipientIsAnEmailAddress(sRecipient)
+      
+      // Local variables
+      bReturn is boolean
+      
+      // Checks whether the string matches the regular expression of an email address
+      bReturn = MatchRegularExpression(sRecipient, "[-.a-z0-9]+[@][-.a-z0-9]+[.][a-z]{2,4}")	
+      
+      // Returns the result			
+      RESULT bReturn
+     type : 458752
+   -
+     name : RecipientIsAlreadyPresent
+     procedure_id : 1825672507060029172
+     type_code : 15
+     code : |1+
+      // Summary: Checks whether a recipient is already found in the list of message recipients
+      // Syntaxe :
+      //[ <Résultat> = ] RecipientIsAlreadyPresent (<nMessageID>, <pRecipient>)
+      //
+      // Paramètres :
+      //	nMessageID : Identifier of message
+      //	pRecipient : Recipient to check (ID or email address)
+      
+      // Return value:
+      PROCEDURE RecipientIsAlreadyPresent(nMessageID, pRecipient)
+      
+      // Local variables
+      bReturn is boolean
+      GUID    is string
+      
+      // Save the context
+      GUID  = HFSavePosition(Recipient..Name)
+      
+      // If <pRecipient> is a string, check the email address
+      IF NOT (("" + Val(pRecipient)) = pRecipient) THEN
+      	// Search for the recipient by email address
+      	HSeekFirst(Recipient, RecipientEmailByMessageID, [pRecipient, nMessageID])
+      	
+      	// Otherwise, check the ID
+      ELSE
+      	
+      	HSeekFirst(Recipient, UserIDByMessageID, [Val(pRecipient), nMessageID])
+      	
+      END
+      
+      // Was the recipient found?
+      bReturn = HFound(Recipient)
+      
+      // Restore the context
+      HFRestorePosition(GUID)
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : MessageCreateRecipients
+     procedure_id : 1825672507060094708
+     type_code : 15
+     code : |1-
+      // Summary: Creates the list of message recipients
+      // Syntaxe :
+      //[ <Résultat> = ] MessageCreateRecipients (<nMessageID>, <sRecipientList> [, <nTypeOfRecipients> [, <bReturn>]])
+      //
+      // Paramètres :
+      //	nMessageID : Identifier of message
+      //	sRecipientList : List of recipients
+      //	nTypeOfRecipients (valeur par défaut=1) : Type of the recipients (recipMain, recipSecondary, recipHidden)
+      //	bReturn (valeur par défaut=0) : <specify the role of bReturn>
+      
+      // Return value:
+      // 	integer: // 	None
+      PROCEDURE RESTRICTED MessageCreateRecipients(nMessageID, sRecipientList, nTypeOfRecipients = recipMain, bReturn = False)
+      
+      // Local variables
+      sRecipient 			is string	
+      sListMembers 			is string
+      nNbEmailRecipients 	is int
+      
+      // Create the list of recipients
+      FOR EACH string sRecipient of sRecipientList SEPARATED BY ";"
+      	// Check the validity of the recipient
+      	IF sRecipient ~= "" THEN CONTINUE
+      	
+      	// Detect the type of user
+      	SWITCH True
+      		// He is a user of the database
+      		CASE RecipientIsAUser(sRecipient)
+      			
+      			// Checks whether the user is not already found in the list of recipients for this message
+      			IF RecipientIsAlreadyPresent(Message.MessageID, GetID(sRecipient)) = False THEN
+      				
+      				HReset(Recipient)
+      				
+      				// Creates the recipient
+      				Recipient.IsMainRecipient  = (nTypeOfRecipients = recipMain)
+      				Recipient.IsSecondaryRecipient = (nTypeOfRecipients = CCRECIP)
+      				Recipient.IsHiddenRecipient	   = (nTypeOfRecipients = recipHidden)
+      				Recipient.UserID 			   = GetID(sRecipient)
+      				Recipient.MessageID 				   = nMessageID
+      				HAdd(Recipient)
+      				
+      				// Automatic labels
+      				AutomaticFilter(Recipient.UserID, Message.MessageID, Message.SenderID, Message.SenderEmail, Message.Subject, Message.Content)
+      				
+      			END
+      			
+      			bReturn = True AND bReturn
+      			
+      		// It's a group
+      		CASE RecipientIsAGroup(sRecipient)
+      			
+      			// We must create as many recipients as the number of members in this group
+      			sListMembers = ListGroupMembers(CurrentUser:UserID, sRecipient)
+      			
+      			// Function by recursivity on the list of group members
+      			nNbEmailRecipients += MessageCreateRecipients(nMessageID, sListMembers, nTypeOfRecipients, bReturn)				
+      			
+      		// It's an external email address
+      		CASE RecipientIsAnEmailAddress(sRecipient)
+      			
+      			// Checks whether the user is not already found in the list of recipients for this message
+      			IF RecipientIsAlreadyPresent(Message.MessageID, sRecipient) = False THEN
+      				
+      				HReset(Recipient)
+      				
+      				Recipient.IsMainRecipient  = (nTypeOfRecipients = recipMain)
+      				Recipient.IsSecondaryRecipient = (nTypeOfRecipients = CCRECIP)
+      				Recipient.IsHiddenRecipient	   = (nTypeOfRecipients = recipHidden)
+      				Recipient.RecipientEmail 		   = sRecipient
+      				Recipient.MessageID 				   = nMessageID
+      				HAdd(Recipient)
+      				
+      				nNbEmailRecipients ++
+      			END				
+      			
+      			bReturn = True AND bReturn
+      			
+      		// Invalid recipient
+      		OTHER CASE
+      			gsMessagingErrorInfo += [CR] + <§@15544fb30201b50c0000§> + sRecipient + <§@15544fb30201b50c0001§>
+      			bReturn = False AND bReturn
+      	END
+      END
+      
+      RESULT nNbEmailRecipients
+     type : 458752
+   -
+     name : MessageCreateAttachments
+     procedure_id : 1825672507060160244
+     type_code : 15
+     code : |1-
+      // Summary: Creates the list of message attachments
+      // Syntaxe :
+      //[ <Résultat> = ] MessageCreateAttachments (<nMessageID>, <sListAttachments> [, <nUserID>])
+      //
+      // Paramètres :
+      //	nMessageID : Identifier of message
+      //	sListAttachments : List of attachments
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      PROCEDURE RESTRICTED MessageCreateAttachments(nMessageID, sListAttachments, nUserID = CurrentUser:UserID)
+      
+      // Local variables
+      sListAttachmentKeys is string
+      sKey					is string
+      sAttachment 			is string
+      
+      // Browse the attachments
+      FOR EACH string sAttachment of sListAttachments SEPARATED BY ";"
+      	IF sAttachment <> "" THEN
+      		
+      		// Checks whether it is a key or a file name
+      		IF ATTACHKeyExist(sAttachment) THEN
+      			sKey = sAttachment
+      		ELSE
+      			// The attachment must be saved
+      			IF NOT ATTACHSave(sKey, sAttachment, *, *, nUserID) THEN
+      				sKey = ""
+      				gsMessagingErrorInfo += [CR] + <§@15544fb30201b50c0002§> + sAttachment + ">"
+      			END
+      		END
+      		
+      		IF sKey <> "" THEN
+      			
+      			// Checks whether the attachment is not already saved
+      			HReadSeekFirst(MessageAttach, KeyByMessage, [sKey, nMessageID])
+      			IF NOT HFound(MessageAttach) THEN
+      				
+      				// Saves the attachment
+      				MessageAttach.Key = sKey
+      				MessageAttach.MessageID = nMessageID
+      				HAdd(MessageAttach)		
+      				
+      				sListAttachmentKeys += [";"] + sKey		
+      			END
+      			
+      		END
+      	END		
+      END
+      
+      // Returns the list of attachments	
+      RESULT sListAttachmentKeys
+     type : 458752
+   -
+     name : MessageSendSMTP
+     procedure_id : 1825672507060225780
+     type_code : 15
+     code : |1-
+      // Summary: Sends a message to the 'Email' recipients
+      // Syntaxe :
+      //[ <Résultat> = ] MessageSendSMTP (<nUserID>, <nMessageID>, <sObject>, <sMessageText> [, <sHTMLMessage> [, <bUrgent> [, <nPriority> [, <sListAttachmentKeys>]]]])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the sender
+      //	nMessageID : Identifier of message
+      //	sObject : Subject of the message
+      //	sMessageText : Text message
+      //	sHTMLMessage (valeur par défaut="") : HTML message
+      //	bUrgent (valeur par défaut=0) : Urgent matter
+      //	nPriority (valeur par défaut=1) : Priority
+      //	sListAttachmentKeys (valeur par défaut="") : List of keys for the attachments
+      
+      // Return value:
+      PROCEDURE RESTRICTED MessageSendSMTP(nUserID, nMessageID, sObject, sMessageText, sHTMLMessage = "", bUrgent = False, nPriority = PriorityNormal, sListAttachmentKeys = "")
+      
+      // Local variables
+      bReturn 					is boolean
+      sSenderAddress, sSenderEmail, sUserSMTP, sSMTPPWD, sSMTPServer are strings
+      nSMTPport					is int
+      sUserEmail, sUserPOP, sPwdPOP, sPOPServer are strings
+      nPortPOP					is int
+      sKey 						is string
+      bufAttachment 				is buffer
+      sMIMEType 					is string
+      sFileName 				is string
+      arrFiles 				is array of 0 strings
+      
+      // If the user has the rights to send emails, retrieve his parameters
+      IF GetEmailParametersSMTP(nUserID, sSenderAddress, sSenderEmail, sUserSMTP, sSMTPPWD, sSMTPServer, nSMTPport) THEN
+      	IF GetEmailParametersPOP(nUserID, sUserEmail, sUserPOP, sPwdPOP, sPOPServer, nPortPOP) THEN
+      		
+      		// Search for the message
+      		HReadSeekFirst(Message, MessageID, nMessageID)
+      		
+      		// Up to 10 seconds
+      		EmailSetTimeOut(10)
+      		
+      		IF sSenderEmail ~= "" THEN
+      			gsMessagingErrorInfo += [CR] + <§@15544fb30201b50c000b§>
+      			RESULT False
+      		END
+      		
+      		bConnected is boolean
+      		//	if sSMTPPWD <> "" then
+      		// Starts an SMTP session
+      		//bConnected = EmailStartSMTPSession(sUserSMTP, sSMTPPWD, sSMTPServer, nSMTPport)
+      		//		else
+      		//			// Starts a full session	
+      					bConnected = EmailStartSession(sUserPOP, sPwdPOP, sPOPServer, sSMTPServer, nPortPOP, nSMTPport, vrai)
+      		//		END
+      		
+      		IF bConnected THEN
+      			// Reinitialize the email variables
+      			EmailReset()
+      			
+      			// Configure the email
+      			Email.Sender 		= sSenderEmail
+      			Email.SenderAddress = sSenderAddress
+      			Email.Subject 			= sObject
+      			Email.Message 			= sMessageText
+      			Email.HTML				= sHTMLMessage
+      			Email.Priority			= bUrgent ? PriorityHigh ELSE nPriority
+      			
+      			// Browse the recipients
+      			FOR EACH Recipient WHERE MessageID = Message.MessageID
+      				
+      				// If he is an 'Email' recipient
+      				IF Recipient.RecipientEmail <> "" THEN
+      					
+      					SWITCH True
+      					
+      						// Main recipient
+      						CASE Recipient.IsMainRecipient
+      							Email.NbRecipient += 1
+      							Email.Recipient[Email.NbRecipient] = Recipient.RecipientEmail
+      							
+      						// Secondary recipient								
+      						CASE Recipient.IsSecondaryRecipient
+      							Email.NbCc += 1
+      							Email.Cc[Email.NbCc] = Recipient.RecipientEmail
+      							
+      						// Hidden recipient
+      						CASE Recipient.IsHiddenRecipient
+      							Email.NbBcc += 1
+      							Email.Bcc[Email.NbBcc] = Recipient.RecipientEmail
+      							
+      					END
+      					
+      				END
+      			END
+      			
+      			// Attachments
+      			IF sListAttachmentKeys <> "" THEN
+      				
+      				// Create the directory of attachments
+      				IF fDirectoryExist(fDataDir() + "\EmailAttach") = False THEN
+      					fMakeDir(fDataDir() + "\EmailAttach")
+      				END
+      				
+      				// For each attachment
+      				FOR EACH string sKey of sListAttachmentKeys SEPARATED BY ";"
+      					
+      					// Retrieves the attachment
+      					bufAttachment = ATTACHGet(sKey, "", sMIMEType, "", sFileName)
+      					fSaveText(fDataDir() + "\EmailAttach\" + sFileName, bufAttachment)
+      					
+      					IF ErrorOccurred = False THEN
+      						// Creates the attachment in the email
+      						Email.NbAttach ++
+      						Email.AttachContentType[Email.NbAttach] = sMIMEType
+      						Email.Attach[Email.NbAttach] = fDataDir() + "\EmailAttach\" + sFileName
+      						Email.AttachIdentifier[Email.NbAttach] = "wdcid" + Email.NbAttach
+      						
+      						// Replaces the attachments found in the source of the message by the attach identifiers
+      						IF Position(Email.HTML, "src=""" + sKey + """") > 0 THEN
+      							Email.HTML = Replace(Email.HTML, "src=""" + sKey + """", "src=""cid:" + Email.AttachIdentifier[Email.NbAttach] + """")
+      						END
+      						
+      						// Adds the file (for future deletion)
+      						ArrayAdd(arrFiles, sFileName)
+      					ELSE
+      						gsMessagingErrorInfo += [CR] + StringBuild(<§@15544fb30201b50c0003§>, sFileName)
+      					END
+      				END
+      				
+      			END
+      			
+      			// Sends the email
+      			bReturn = EmailSendMessage(sUserSMTP)
+      			IF NOT bReturn THEN
+      				gsMessagingErrorInfo += [CR] + ErrorInfo(errMessage)
+      			ELSE
+      				Message.Identifier = Email.MailIdentifier
+      				HModify(Message)
+      			END
+      			
+      			// Close the session
+      			EmailCloseSession(sUserSMTP)
+      			
+      			// Deletes the temporary files
+      			FOR ALL ELEMENT sFileName of arrFiles
+      				fDelete(sFileName, frReadOnly)
+      			END
+      			
+      		ELSE
+      			gsMessagingErrorInfo += [CR] + EmailMsgError(Email.Error)
+      			bReturn = False
+      		END
+      	ELSE
+      		gsMessagingErrorInfo += [CR] + <§@15544fb30201b50c0004§>
+      		bReturn = False
+      	END
+      ELSE
+      	gsMessagingErrorInfo += [CR] + <§@15544fb30201b50c0004§>
+      	bReturn = False
+      END
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : NotificationSend
+     procedure_id : 1825672507060291316
+     type_code : 15
+     code : |1-
+      // Summary: Sends a notification
+      // Syntax:
+      //[ <Result> = ] NotificationSend (<sModule>, <sNotificationType>, <sTitle>, <sMessage> [, <nIDRecipient>])
+      //
+      // Parameters:
+      //	sModule: Module that performs the notification (see the MODULE_XXXX constants)
+      //	sNotificationType: Type of notification to perform (see the NOTIFICATION_XXXX constants)
+      //	sTitle: Title of the notification message
+      //	sMessage: Notification message
+      //	nIDRecipient (default value=-1): Specifies a recipient in addition to the default recipient (administrator and moderator)
+      // Return value:
+      // 	boolean: True if the notification was sent, False otherwise
+      //
+      PROCEDURE NotificationSend(sModule, sNotificationType, sTitle, sMessage, nRecipientID = -1)
+      
+      // Local variables
+      bReturn 				is boolean
+      sListRecipientID 	is string
+      
+      // Consider that if the user who asks for the notification is an administrator
+      // Send no notification if he is an administrator or a moderator
+      IF IsAdministratorOrModerator() THEN
+      	
+      	// Send the message even if an additional recipient was specified
+      	// This person must be warned of this action
+      	IF nRecipientID <> -1 THEN
+      		// Retrieve the login of the additional identifier
+      		sListRecipientID = GetLogin(nRecipientID)
+      	ELSE
+      		// No additional recipient was specified, return true,
+      		// No message was sent but it's OK
+      		RESULT True	
+      	END
+      	
+      ELSE
+      	
+      	// Retrieves the list of persons affected by the notification according to the type and module 
+      	sListRecipientID = NotificationCreateRecipients(sModule, sNotificationType, nRecipientID)
+      	
+      END
+      
+      // Is there a list of recipients?	
+      IF sListRecipientID <> "" THEN		
+      	// Sends the notification in hidden copy
+      	bReturn = MessageSend("", "", sListRecipientID, sTitle, sMessage, SYSTEMID())				
+      END	
+      
+      RESULT bReturn
+     type : 458752
+   -
+     name : NotificationCreateRecipients
+     procedure_id : 1825672507060356852
+     type_code : 15
+     code : |1-
+      // Summary: Returns a list of recipients according to a notification
+      // Syntax:
+      //[ <Result> = ] NotificationCreateRecipients (<sModule>, <sNotificationType>, <nIDRecipient>)
+      //
+      // Parameters:
+      //	sModule: Name of the module
+      //	sNotificationType: Type of notification
+      //	nRecipientID: Identifier of the recipient
+      // Return value:
+      // 	string: List of recipients
+      //
+      PROCEDURE RESTRICTED NotificationCreateRecipients(sModule, sNotificationType, nRecipientID)
+      
+      // Local variables
+      sListDefaultRecipients 	is string
+      sListTempRecipients 	is string
+      sListRecipients 		is string
+      sRecipient 				is string
+      sOneParameter			is string
+      
+      // Retrieve the administrators and the moderators
+      sListTempRecipients = ListMembersWithPower(True, True)
+      
+      // For each user, check whether he wants to be notified
+      FOR EACH string sRecipient of sListTempRecipients SEPARATED BY CR
+      	
+      	// Check (the notification is active by default)
+      	IF ParameterRead(sNotificationType + "_" + sModule, sRecipient, "On") = "On" THEN
+      		// Add it only if he is not the current user (no notification is sent to the persons who provoke the notification)
+      		IF Val(sRecipient) <> CurrentUser:UserID THEN
+      			sListDefaultRecipients += [";"] + GetLogin(sRecipient)
+      		END
+      	END
+      	
+      END	
+      
+      // If a custom recipient is specified
+      IF nRecipientID <> -1 THEN
+      	// Add it only if he is not the current user (no notification is sent to the persons who provoke the notification)
+      	IF nRecipientID <> CurrentUser:UserID THEN
+      		sListRecipients += [";"] + GetLogin(nRecipientID)		
+      	END	
+      END
+      
+      // Manage the type of notification	
+      SWITCH sNotificationType
+      
+      	// Creation, Modification, Deletion
+      	CASE NOTIFICATION_CREATION, NOTIFICATION_MODIFICATION, NOTIFICATION_DELETION
+      		
+      		// It's the list of 'administrator' or 'moderator' recipients
+      		sListRecipients = sListDefaultRecipients
+      		
+      	// Deletion of a wiki by an administrator or moderator, addition of a comment on a post of a blog
+      	CASE NOTIFICATION_WIKI_DELETION, NOTIFICATION_BLOGS_COMMENTS
+      		
+      		// Inform the owner passed in parameter only
+      		IF nRecipientID <> CurrentUser:UserID THEN
+      			sListRecipients = GetLogin(nRecipientID)
+      		END
+      		
+      	// Add a post into a blog
+      	CASE NOTIFICATION_BLOGS_POSTCREATION
+      		
+      		// Retrieves the recipients linked to the notification
+      		sListRecipients += [";"] + NotificationFindRecipients(sNotificationType + "_" + sModule + BlogPost.BlogID)	
+      		
+      		// Add the administrators and the moderators
+      		sListRecipients += [";"] + sListDefaultRecipients
+      		
+      	CASE NOTIFICATION_WIKI_MODIFICATION, NOTIFICATION_WIKI_CREATION
+      		
+      		// Name of the backup parameter for the notifications of the forum
+      		IF sNotificationType = NOTIFICATION_WIKI_MODIFICATION THEN	sOneParameter = sNotificationType + "_" + sModule + WIKI.WIKIID
+      		IF sNotificationType = NOTIFICATION_WIKI_CREATION THEN	sOneParameter = sNotificationType + "_" + sModule + "0"
+      		
+      		// Retrieves the recipients linked to the notification
+      		sListRecipients += [";"] + NotificationFindRecipients(sOneParameter)		
+      		
+      		// Add the administrators and the moderators
+      		sListRecipients += [";"] + sListDefaultRecipients	
+      		
+      	// Create an answer in a subject
+      	CASE NOTIFICATION_FORUM_REPLY_CREATION, NOTIFICATION_FORUM_TOPIC_CREATION
+      		
+      		// Name of the backup parameter for the notifications of the forum
+      		sOneParameter = sNotificationType + "_" + sModule
+      		
+      		IF sNotificationType = NOTIFICATION_FORUM_REPLY_CREATION THEN sOneParameter += Topic.TopicID
+      		IF sNotificationType = NOTIFICATION_FORUM_TOPIC_CREATION THEN sOneParameter += Topic.ForumID
+      		
+      		// Retrieves the recipients linked to the notification
+      		sListRecipients += [";"] + NotificationFindRecipients(sOneParameter)		
+      		
+      		// Add the administrators and the moderators
+      		sListRecipients += [";"] + sListDefaultRecipients
+      		
+      	OTHER CASE
+      		sListRecipients	= ""
+      END
+      
+      RESULT sListRecipients
+     type : 458752
+   -
+     name : MessagePrepare
+     procedure_id : 1825672507060422388
+     type_code : 15
+     code : |1-
+      // Summary: Prepares for sending a message
+      // Syntax:
+      //MessagePrepare (<sSubject>, <sMessage>, <sListRecipients>, <sListAttachments>)
+      //
+      // Parameters:
+      //	sSubject: Subject of the message
+      //	sMessage: Content of the message
+      //	sListRecipients: List of recipients (Login 1 <TAB> Login 2 <TAB> .... Login N)
+      //	sListAttachments: List of keys for the message attachments (Key 1 <TAB> Key 2 <TAB> .... Key N)
+      // Return value:
+      // 	None
+      //
+      PROCEDURE MessagePrepare(sSubject, sMessage, sListRecipients, sListAttachments)
+      
+      // Opens the page for typing a message
+      PageDisplay(PAGE_Messaging_NewMessage, sSubject, sMessage, sListRecipients, sListAttachments)
+     type : 458752
+   -
+     name : NotificationFindRecipients
+     procedure_id : 1825672507060487924
+     type_code : 15
+     code : |1-
+      // Summary: Finds all the recipients who have subscribed to a notification
+      // Syntax:
+      //[ <Result> = ] NotificationFindRecipients (<sNotificationParameter>)
+      //
+      // Parameters:
+      //	sNotificationParameter: Notification
+      // Return value:
+      // 	string: List of recipients found
+      //
+      PROCEDURE RESTRICTED NotificationFindRecipients(sNotificationParameter)
+      
+      // Local variables
+      sKeyList,sKey 			are strings
+      sListRecipients 	is string
+      
+      // Sends a notification to all the users saved
+      sKeyList = ConfigureList(ForAll, sNotificationParameter)
+      FOR EACH string sKey of sKeyList SEPARATED BY CR			
+      	
+      	// Builds the list of message recipients
+      	// no need to check the duplicated recipients, the MessageSend function will do it for you			
+      	IF Val(ExtractString(sKey, lastRank, "_")) <> CurrentUser:UserID THEN	
+      		sListRecipients += [";"] + GetLogin(ExtractString(sKey, lastRank, "_"))
+      	END
+      	
+      END
+      
+      RESULT sListRecipients
+     type : 458752
+   -
+     name : MessageReadingPOP
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507060553460
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Retrieves the email messages from a email box for the specified user
+      // Syntaxe :
+      //[ <Résultat> = ] MessageReadingPOP ( [<bTotalReading> est booléen [, <nMessagePos> est entier [, <sUserPop> est chaîne [, <sUserEmail> est chaîne [, <nUserID>]]]]])
+      //
+      // Paramètres :
+      //	bTotalReading (booléen - valeur par défaut=1) : True to entirely read the email account, False to partially read it
+      //	nMessagePos (entier - valeur par défaut=0) : Number of the message to read in case of a partial read operation
+      //	sUserPop (chaîne ANSI - valeur par défaut="") : <specify the role of sPopUser>
+      //	sUserEmail (chaîne ANSI - valeur par défaut="") : <specify the role of sUserEmail>
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	Undefined type: True if the read operation was successful, False otherwise
+      PROCEDURE MessageReadingPOP(bTotalReading is boolean = True, nMessagePos is int = 0, sUserPop is string = "", sUserEmail is string = "", nUserID = CurrentUser:UserID)
+      
+      WHEN EXCEPTION
+      	ExceptionEnable()
+      	RESULT False
+      END
+      
+      // Check whether the user is connected
+      IF IsConnected(nUserID) = False THEN RESULT False
+      
+      // Local variables
+      nLastMsgReadID 					is int
+      nTotalMessages 						is int
+      sListRecipients 				is string
+      sListRecipientsCC 				is string
+      sListAttachments 				is string
+      nNbRecipients 					is int
+      nNbAttachments 					is int
+      sMessage 							is string
+      sLocalCopy 						is string
+      sKey 								is string
+      sRecipientName					is string
+      sRecipientEmail 					is string
+      
+      IF bTotalReading THEN
+      	
+      	// Connection to the POP server
+      	sConnectionReturn is string = MessageReadingPOPConnect(nUserID)
+      	IF sConnectionReturn = "" THEN RESULT False
+      	
+      	// Extracts the connection information
+      	sUserPop 			= ExtractString(sConnectionReturn, 1)
+      	nLastMsgReadID 	= ExtractString(sConnectionReturn, 3)
+      	nTotalMessages 		= ExtractString(sConnectionReturn, 3)
+      	sUserEmail 	= ExtractString(sConnectionReturn, 4)
+      	
+      	nLastMsgReadID += 1
+      	
+      ELSE
+      	
+      	// Read a single message
+      	nLastMsgReadID = nMessagePos
+      	nTotalMessages  = nMessagePos
+      	
+      END
+      
+      // Browses the emails of the POP box
+      FOR i = nLastMsgReadID TO nTotalMessages
+      	
+      	// Reads the message
+      	IF EmailReadMessage(sUserPop, i) THEN
+      		IF Email.Out = False THEN
+      			
+      			sIdentifier is string
+      			IF Email.MessageID = "" THEN
+      				sIdentifier = Email.Sender + Email.ReceiveDate
+      			ELSE
+      				sIdentifier = Email.MessageID
+      			END
+      			
+      			// Checks whether the email was already imported
+      			HSeekFirst(Message, Identifier, sIdentifier)
+      			IF HFound(Message) THEN CONTINUE
+      			
+      			// Retrieves the message
+      			sMessage = Email.HTML
+      			IF sMessage ~= "" THEN sMessage = Email.Message
+      			
+      			sListRecipients = ""
+      			sListRecipientsCC = ""
+      			sListAttachments = ""
+      			
+      			// Retrieves the recipients
+      			nNbRecipients = Email.NbRecipient
+      			
+      			FOR j = 1 TO nNbRecipients					
+      				
+      				// Extracts the email information of the recipient
+      				MessagePOPExtractEmailInfo(Email.Recipient[j], sRecipientName, sRecipientEmail)
+      				
+      				IF Lower(sRecipientEmail) = Lower(sUserEmail) THEN 
+      					sListRecipients += [";"] 	+ GetLogin(nUserID)
+      				ELSE
+      					sListRecipients += [";"] + sRecipientName + TAB + sRecipientEmail					
+      				END					
+      			END
+      			
+      			// Retrieves the CC recipients
+      			nNbRecipients = Email.Cc
+      			
+      			FOR j = 1 TO nNbRecipients				
+      				
+      				// Extracts the email information of the recipient
+      				MessagePOPExtractEmailInfo(Email.Cc[j], sRecipientName, sRecipientEmail)
+      				
+      				IF Lower(sRecipientEmail) = Lower(sUserEmail) THEN 
+      					sListRecipientsCC += [";"] 	+ GetLogin(nUserID)
+      				ELSE
+      					sListRecipientsCC += [";"] + sRecipientName + TAB + sRecipientEmail					
+      				END	
+      			END
+      			
+      			// Retrieves the attachments
+      			nNbAttachments = Email.NbAttach
+      			
+      			FOR j = 1 TO nNbAttachments
+      				
+      				// Defines the local name where the attachment will be copied
+      				sLocalCopy = CompleteDir(fTempPath()) + Email.Attach[j]
+      				
+      				// Saves the attachment
+      				EmailSaveAttachment(Email.Attach[j], sLocalCopy)
+      				
+      				// The attachment will be deleted on the disk when closing
+      				BinAddFile(sLocalCopy)
+      				
+      				// Saves the attachment (with its identifier)
+      				ATTACHSave(sKey, sLocalCopy, attachOther, Email.AttachIdentifier[j], nUserID)
+      				
+      				sListAttachments += [";"] + sKey											
+      				
+      			END
+      			
+      			// Extracts the email information of the sender
+      			MessagePOPExtractEmailInfo(Email.Sender, sRecipientName, sRecipientEmail)
+      			
+      			// Simulates the sending of the email in the messaging
+      			MessageSend(sListRecipients, sListRecipientsCC, "", Email.Subject, sMessage, ...
+      			sRecipientName + TAB + sRecipientEmail, Email.Priority, (Email.Priority = PriorityHigh), sListAttachments)
+      			
+      		END
+      	END
+      	
+      END
+      
+      IF bTotalReading THEN
+      	
+      	// Close the connection to the POP server
+      	MessageReadingPOPDisconnect(sUserPop, nTotalMessages, nUserID)
+      	
+      END	
+      
+      IF bTotalReading THEN 
+      	RESULT True
+      ELSE
+      	RESULT nMessagePos	
+      END
+     type : 458752
+   -
+     name : MessageGetDate
+     procedure_id : 1825672507060618996
+     type_code : 15
+     code : |1-
+      // Summary: Transforms a POP date into a WLanguage DateTime
+      // Syntax:
+      //[ <Result> = ] MessageGetDate (<sEmailReceptionDate>)
+      //
+      // Parameters:
+      //	sEmailReceptionDate: POP date
+      // Return value:
+      // 	datetime: WLanguage DateTime
+      //
+      PROCEDURE RESTRICTED MessageGetDate(sEmailReceptionDate <useful>)
+      
+      // Local variables
+      dtDateTime is datetime
+      
+      RESULT dtDateTime
+     type : 458752
+   -
+     name : MessageErrorInfo
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507060684532
+     type_code : 15
+     code : |1-
+      // Summary: Returns the last error message
+      // Syntax:
+      //[ <Result> = ] MessageErrorInfo ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: Error message
+      //
+      PROCEDURE MessageErrorInfo()
+      
+      RESULT gsMessagingErrorInfo
+     type : 458752
+   -
+     name : MessagePOPExtractEmailInfo
+     procedure_id : 1825672507060750068
+     type_code : 15
+     code : |1-
+      // Summary: Retrieves the name and the email address from a full email address
+      // Syntax:
+      //MessagePOPExtractEmailInfo (<sFullAddress>, <sName>, <sEmail>)
+      //
+      // Parameters:
+      //	sFullAddress: Full email address
+      //	sName: Name
+      //	sEmail: Email address
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED MessagePOPExtractEmailInfo(sFullAddress, sName, sEmail)
+      
+      // Is there any "<"
+      IF Position(sFullAddress, "<") > 0 THEN
+      	// There is a name and an email address
+      	sEmail = ExtractString(ExtractString(sFullAddress, 2, "<"), 1, ">")
+      	sName  = Replace(NoSpace(ExtractString(sFullAddress, 1, "<")), Charact(34), "")
+      ELSE
+      	sEmail = sFullAddress
+      	sName = sFullAddress
+      END
+     type : 458752
+   -
+     name : NotificationDelete
+     procedure_id : 1825672507060815604
+     type_code : 15
+     code : |1-
+      // Summary: Deletes a notification from a module
+      // Syntax:
+      //NotificationDelete (<sModule>, <sNotification>, <sIdentifier>)
+      //
+      // Parameters:
+      // 	sModule: Affected module
+      // 	sNotification: Identifier of the notification
+      // 	sIdentifier: Identifier of the notified element
+      // Return value:
+      // 	None
+      //
+      PROCEDURE NotificationDelete(sModule, sNotification, sIdentifier)
+      
+      // Search for the module
+      SWITCH sModule
+      	// Notification of news
+      	CASE MODULE_NEWS
+      		NewsNotificationDelete(sIdentifier, sNotification, CurrentUser:UserID)
+      		
+      	// Notifications of blogs
+      	CASE MODULE_BLOGS
+      		IF sNotification = NOTIFICATION_BLOGS_POSTCREATION THEN
+      			BlogNotificationDelete(sIdentifier, CurrentUser:UserID)		
+      		END
+      		
+      	// Notification of forums
+      	CASE MODULE_FORUM
+      		
+      		IF sNotification = NOTIFICATION_FORUM_TOPIC_CREATION THEN
+      			ForumNotificationDelete(sIdentifier, CurrentUser:UserID)
+      		END
+      		
+      		IF sNotification = NOTIFICATION_FORUM_REPLY_CREATION THEN
+      			TopicNotificationDelete(sIdentifier, CurrentUser:UserID)
+      		END
+      		
+      	// Notification of shares
+      	CASE MODULE_SHARES
+      		ShareNotificationDelete(sIdentifier, sNotification, CurrentUser:UserID)
+      		
+      	// WIKI notification
+      	CASE MODULE_WIKI
+      		WIKINotificationDelete(sIdentifier, sNotification, CurrentUser:UserID)
+      		
+      END
+     type : 458752
+   -
+     name : BuildMessageDateTime
+     procedure_id : 1825672507060881140
+     type_code : 15
+     code : |1-
+      // Summary: Returns the date and time of the message in everyday language
+      // Syntax:
+      //[ <Result> = ] BuildMessageDateTime (<sDateTime>)
+      //
+      // Parameters:
+      //	sDateTime: Date and time of the message
+      // Return value:
+      // 	string: Date and time in everyday language
+      //
+      PROCEDURE RESTRICTED BuildMessageDateTime(sDateTime)
+      
+      // Local variables
+      sMSGDATETIME 			is string
+      dtDateTime 			is datetime = sDateTime
+      
+      // Retrieves the date and time in everyday language
+      sMSGDATETIME = NaturalDateTime(dtDateTime)
+      
+      RESULT sMSGDATETIME
+     type : 458752
+   -
+     name : BuildMessageSubject
+     procedure_id : 1825672507060946676
+     type_code : 15
+     code : |1-
+      // Summary: Builds the HTML code of a message subject
+      // Syntaxe :
+      //[ <Résultat> = ] BuildMessageSubject (<nMessageID> [, <nEST_List>])
+      //
+      // Paramètres :
+      //	nMessageID : Identifier of message
+      //	nEST_List (valeur par défaut=1) : <specify the role of nList>
+      
+      // Return value:
+      // 	string: HTML code
+      PROCEDURE RESTRICTED BuildMessageSubject(nMessageID, nEST_List = IncomingBox)
+      
+      // Local variables
+      sMsgSubject 			is string
+      bDisplayLabel is boolean
+      
+      // Search for the message
+      HReadSeekFirst(Message, MessageID, nMessageID)
+      IF HFound(Message) THEN
+      	// Build the subject			
+      	IF Message.Subject ~= "" THEN Message.Subject = <§@15544fb30201b50c0005§>
+      	sMsgSubject = Message.Subject + "#g!" + Replace(HTMLToText(Message.Content), CR, " ") + "#/g!"		
+      	
+      	
+      	SWITCH True
+      		CASE nEST_List = BoxSent
+      			bDisplayLabel = False
+      			
+      		CASE nEST_List = BoxSearch, nEST_List = BoxDeleted
+      			IF Message.SenderID = CurrentUser:UserID THEN
+      				bDisplayLabel = True
+      			ELSE
+      				bDisplayLabel = False
+      			END
+      			
+      		CASE nEST_List = Labels
+      			bDisplayLabel = True
+      			
+      		OTHER CASE
+      			bDisplayLabel = True
+      			
+      	END
+      	
+      	// Only if we are not positioned in the list of deleted messages or in the list of elements sent
+      	IF bDisplayLabel  THEN
+      		
+      		// Find the label		
+      		HReadSeekFirst(LabelMessage, UserByMessage, [CurrentUser:UserID, Message.MessageID])
+      		IF HFound(LabelMessage) THEN
+      			HReadSeekFirst(Label, LabelID, LabelMessage.LabelID)
+      			IF HFound(Label) THEN
+      				// The message includes a label
+      				sMsgSubject = "#v!" + Label.Caption + "#/v!" + sMsgSubject
+      			ELSE
+      				dbgAssert(False, <§@15544fb30201b50c0006§>)
+      				HDelete(LabelMessage)
+      			END			
+      		END
+      		
+      	END
+      END	
+      
+      // Truncates
+      sMsgSubject = Ellipsis(sMsgSubject, 900)
+      IF Position(sMsgSubject, "#g!") > 0 _AND_ Position(sMsgSubject, "#/g!") < 1 THEN sMsgSubject += "#/g!"
+      
+      // Replaces the markers
+      sMsgSubject = Replace(sMsgSubject, "#v!", "<font size=-2 color=green>")
+      sMsgSubject = Replace(sMsgSubject, "#/v!", "</font>&nbsp;")	
+      sMsgSubject = Replace(sMsgSubject, "#g!", "<font color=gray> - ")
+      sMsgSubject = Replace(sMsgSubject, "#/g!", "</font>")
+      
+      // Return the subject	
+      RESULT sMsgSubject
+     type : 458752
+   -
+     name : GetNameDisplayedEmail
+     procedure_id : 1825672507061012212
+     type_code : 15
+     code : |1-
+      PROCEDURE restricted GetNameDisplayedEmail(sStoredEmail)
+      
+      RESULT ExtractString(sStoredEmail, 1)
+     type : 458752
+   -
+     name : MessageLabelApply
+     procedure_id : 1825672507061077748
+     type_code : 15
+     code : |1-
+      // Summary: Applies a label to a list of messages
+      // Syntaxe :
+      //[ <Résultat> = ] MessageLabelApply (<sIDList>, <nCombo> [, <bAutomatic> [, <nUserID>]])
+      //
+      // Paramètres :
+      //	sIDList : List of message identifiers
+      //	nCombo : Identifier of the label to apply
+      //	bAutomatic (valeur par défaut=0) : True for an automatic application
+      //	nUserID : <specify the role of nUserID>
+      
+      // Return value:
+      // 	boolean: True if the label was applied
+      PROCEDURE MessageLabelApply(sIDList, nCombo, bAutomatic = False, nUserID = CurrentUser:UserID)
+      
+      EXTERN COMBO_ACTIONS
+      EXTERN EDT_INFOAUTOLABEL
+      
+      // Local variables
+      sID 			is string
+      nLabelID 	is int
+      sSender		is string
+      sOldSender	is string
+      nSenderAcc	is int
+      sAutoSender is string
+      
+      // Retrieve the label to apply
+      IF bAutomatic THEN
+      	nLabelID = nCombo
+      ELSE
+      	nLabelID = COMBO_ACTIONS[nCombo]..StoredValue
+      END
+      
+      // For each message
+      FOR EACH string sID of sIDList SEPARATED BY TAB
+      	
+      	IF sID ~= "" THEN CONTINUE
+      	
+      	IF bAutomatic = False THEN
+      		
+      		// Retrieves the sender
+      		HReadSeekFirst(Message, MessageID, sID)
+      		IF HFound(Message) THEN
+      			sSender = Message.SenderEmail = "" ? Message.SenderID ELSE Message.SenderEmail
+      		ELSE
+      			dbgAssert(False, <§@15544fb30201b50c0007§> + sID + <§@15544fb30201b50c0008§>)
+      			BREAK
+      		END
+      		
+      		// Check whether there is no automatic label on this sender with this label
+      		IF ParameterExist(MODULE_MESSAGING + "_AUTOLABEL;FROM;" + sSender + ";" + nLabelID, nUserID) THEN
+      			// If an automatic label is already found
+      		ELSE
+      			// If the sender changed
+      			IF sOldSender <> sSender THEN
+      				sOldSender = sSender
+      				sAutoSender = sSender
+      				nSenderAcc = 0
+      			ELSE
+      				// If the sender is still the same for the same label
+      				nSenderAcc ++
+      				sAutoSender = sSender
+      			END			
+      		END		
+      		
+      	END
+      	
+      	// Checks whether the label was not already applied to this message
+      	HSeekFirst(LabelMessage, LabelByMessage, [nLabelID, sID])
+      	IF NOT HFound(LabelMessage) THEN
+      		// Creates the label associated with the message
+      		LabelMessage.LabelID = nLabelID
+      		LabelMessage.MessageID = sID
+      		LabelMessage.UserID = nUserID
+      		HAdd(LabelMessage)
+      		dbgAssert(NOT HErrorDuplicates(), <§@15544fb30201b50c0009§>)
+      	END
+      	
+      END
+      
+      IF bAutomatic = False THEN
+      	// If the same label was applied at least three times to the same sender
+      	// propose to add it automatically
+      	IF nSenderAcc > 2 THEN
+      		EDT_INFOAUTOLABEL = nLabelID + TAB + sAutoSender
+      	END
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : MarkAsRead
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061143284
+     type_code : 15
+     code : |1-
+      // Summary: Marks the messages as read
+      // Syntax:
+      //[ <Result> = ] MarkAsRead (<sIDList>)
+      //
+      // Parameters:
+      //	sIDList: List of messages that will be marked as read
+      // Return value:
+      // 	boolean: // 	None
+      //
+      PROCEDURE MarkAsRead(sIDList)
+      
+      // Local variables
+      sID 	is string
+      
+      // For each message
+      FOR EACH string sID of sIDList SEPARATED BY TAB
+      	
+      	IF sID ~= "" THEN CONTINUE
+      	
+      	// Retrieves the message
+      	HReadSeekFirst(Recipient, UserIDByMessageID, [CurrentUser:UserID, sID])
+      	IF HFound(Recipient) THEN
+      		// Marks the message
+      		Recipient.DateTimeReading = Today + Now
+      		Recipient.IsRead = True
+      		HModify(Recipient)
+      	END
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : MarkAsNotRead
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061208820
+     type_code : 15
+     code : |1-
+      // Summary: Marks the messages as not read
+      // Syntax:
+      //[ <Result> = ] MarkAsNotRead (<sIDList>)
+      //
+      // Parameters:
+      //	sIDList: List of IDs of the messages that must be marked as not read
+      // Return value:
+      // 	boolean: // 	None
+      //
+      PROCEDURE MarkAsNotRead(sIDList)
+      
+      // Local variables
+      sID 		is string
+      
+      // For each message
+      FOR EACH string sID of sIDList SEPARATED BY TAB
+      	
+      	IF sID ~= "" THEN CONTINUE
+      	
+      	// Retrieves the message
+      	HReadSeekFirst(Recipient, UserIDByMessageID, [CurrentUser:UserID, sID])
+      	IF HFound(Recipient) THEN
+      		// Marks the message
+      		Recipient.IsRead = False
+      		HModify(Recipient)
+      	END
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : MessageLabelDelete
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061274356
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Deletes the labels associated with all the selected messages
+      // Syntax:
+      //[ <Result> = ] MessageLabelDelete (<sIDList>)
+      //
+      // Parameters:
+      //	sIDList: List of IDs of the selected messages
+      // Return value:
+      // 	boolean: // 	None
+      //
+      PROCEDURE MessageLabelDelete(sIDList)
+      
+      // Local variables
+      sID 	is string
+      
+      // Deletes the labels associated with all the selected messages
+      FOR EACH string sID of sIDList SEPARATED BY TAB
+      	
+      	IF sID ~= "" THEN CONTINUE
+      	
+      	FOR EACH LabelMessage WHERE UserByMessage = [CurrentUser:UserID, sID]
+      		HDelete(LabelMessage)
+      	END
+      	
+      END
+      
+      RESULT True
+     type : 458752
+   -
+     name : SPIMGetMessage
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061339892
+     type_code : 15
+     code : |1-
+      // Summary: Checks whether the user has received a SPIM
+      // Syntax:
+      //[ <Result> = ] SPIMGetMessage ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	string: Information about the SPIM or empty string ("") if no SPIM was sent
+      //
+      PROCEDURE RESTRICTED SPIMGetMessage()
+      
+      IF gbFatalError = True THEN
+      	RESULT ""
+      END
+      
+      sSPIM is string
+      
+      // Checks whether the user has received a SPIM
+      QRY_Messaging_SPIM.pIDUser = "#" + CurrentUser:UserID + "#"
+      HExecuteQuery(QRY_Messaging_SPIM)
+      IF ErrorOccurred THEN RESULT ""
+      
+      // Read the results
+      HReadFirst(QRY_Messaging_SPIM)
+      IF HOut(QRY_Messaging_SPIM) THEN
+      	// No new SPIM
+      	RESULT ""
+      END
+      
+      // Retrieves the information about the SPIM
+      HReadSeekFirst(Spim, SpimID, QRY_Messaging_SPIM.SpimID)
+      IF HFound(Spim) THEN
+      	
+      	// Lock the record
+      	HRead(Spim, hRecNumCurrent, hLockWrite)
+      	
+      	WHILE HErrorLock()
+      		Multitask(-20)	
+      		HRead(Spim, hRecNumCurrent, hLockWrite)
+      	END
+      	
+      	// Delete the user from the list of recipients
+      	Spim.RecipientsList = Replace(Spim.RecipientsList, "#" + CurrentUser:UserID + "#", "")
+      	
+      	// Stores
+      	sSPIM = Spim.SenderID + "$!" + GetUserName(Spim.SenderID) + "$!" + Spim.OUTGOINGDATETIME + "$!" + Spim.Content
+      	
+      	// If no other recipient is found, we can delete
+      	IF Spim.RecipientsList = "" THEN
+      		HDelete(Spim)
+      	ELSE
+      		HModify(Spim)
+      	END
+      	
+      	// Unlocks the file
+      	HUnlockRecNum(Spim, hRecNumCurrent)		
+      	
+      END
+      
+      RESULT sSPIM
+     type : 458752
+   -
+     name : SPIMDeleteMessage
+     procedure_id : 1825672507061405428
+     type_code : 15
+     code : |1-
+      // Summary: Clean the SPIMs
+      // Syntax:
+      // SPIMDeleteMessage ()
+      //
+      // Parameters:
+      //	None
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED SPIMDeleteMessage()
+      
+      QRY_Messaging_SPIM.pIDUser = "#" + CurrentUser:UserID + "#"
+      HExecuteQuery(QRY_Messaging_SPIM)
+      
+      // For all the SPIMs received by this user
+      HReadFirst(QRY_Messaging_SPIM)
+      WHILE NOT HOut(QRY_Messaging_SPIM)
+      	
+      	// Retrieves the information about the SPIM
+      	HReadSeekFirst(Spim, SpimID, QRY_Messaging_SPIM.SpimID)
+      	IF HFound(Spim) THEN
+      		
+      		// Lock the record
+      		HRead(Spim, hRecNumCurrent, hLockWrite)
+      		
+      		WHILE HErrorLock()
+      			Multitask(-20)	
+      			HRead(Spim, hRecNumCurrent, hLockWrite)
+      		END
+      		
+      		// Delete the user from the list of recipients
+      		Spim.RecipientsList = Replace(Spim.RecipientsList, "#" + CurrentUser:UserID + "#", "")
+      		
+      		// If no other recipient is found, we can delete
+      		IF Spim.RecipientsList = "" THEN
+      			HDelete(Spim)
+      		ELSE
+      			HModify(Spim)
+      		END
+      		
+      		// Unlocks the file
+      		HUnlockRecNum(Spim, hRecNumCurrent)		
+      		
+      	END
+      	
+      	HReadNext(QRY_Messaging_SPIM)
+      END
+     type : 458752
+   -
+     name : AutomaticSenderFilterCreated
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061470964
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Saves an automatic label
+      // Syntax:
+      //AutomaticSenderFilterCreated (<sInfoAutoLabel>)
+      //
+      // Parameters:
+      //	sInfoAutoLabel: Information about the automatic label
+      // Return value:
+      // 	None
+      //
+      PROCEDURE PUBLIC  AutomaticSenderFilterCreated(sINFOAUTOLABEL)
+      
+      // Extracts the identifier from the label
+      nLabelID is int
+      nLabelID = ExtractString(sINFOAUTOLABEL, firstRank, TAB)
+      
+      // Extracts the sender
+      sSender is string
+      sSender = ExtractString(sINFOAUTOLABEL, lastRank, TAB)
+      
+      // Backup
+      ParameterWrite(MODULE_MESSAGING + "_AUTOLABEL;FROM;" + sSender + ";" + nLabelID, 1, CurrentUser:UserID)
+     type : 458752
+   -
+     name : AutomaticFilter
+     procedure_id : 1825672507061536500
+     type_code : 15
+     code : |1-
+      // Summary: Applies the labels automatically
+      // Syntaxe :
+      //AutomaticFilter (<nUserID>, <nMessageID>, <nSenderID>, <sSenderID>, <sMessageSubject>, <sMessageContent>)
+      //
+      // Paramètres :
+      //	nUserID : Recipient
+      //	nMessageID : Message identifier
+      //	nSenderID : Sender (via identifier)
+      //	sSenderID : Sender (via email address)
+      //	sMessageSubject : Subject of message
+      //	sMessageContent : Message body
+      
+      PROCEDURE RESTRICTED AutomaticFilter(nUserID, nMessageID, nSenderID, sSenderID, sMessageSubject, sMessageContent)
+      
+      sSender is string
+      
+      // Retrieves the sender
+      IF sSenderID ~= "" THEN
+      	sSender = nSenderID
+      ELSE
+      	sSender = sSenderID
+      END
+      
+      sListAutoLabels is string
+      nLabelID is int
+      sContains is string
+      sAutoLabel is string
+      sRoughContent is string = HTMLToText(HHCodeToHTML(sMessageContent))
+      
+      // Searches for the automatic filters on the sender
+      sListAutoLabels = ConfigureList(nUserID, MODULE_MESSAGING + "_AUTOLABEL;FROM;" + sSender + ";", False)
+      FOR EACH string sAutoLabel of sListAutoLabels SEPARATED BY CR
+      	
+      	// Extracts the identifier from the label
+      	nLabelID = Val(sAutoLabel[[PositionOccurrence(sAutoLabel, ";", lastRank) + 1 TO]])
+      	
+      	// Applies the label
+      	AutomaticFilterApply(nLabelID, nMessageID, sAutoLabel, nUserID)	
+      	
+      END
+      
+      // Searches for the automatic filters on the subject
+      sListAutoLabels = ConfigureList(nUserID, MODULE_MESSAGING + "_AUTOLABEL;OBJECT;", False)
+      FOR EACH string sAutoLabel of sListAutoLabels SEPARATED BY CR
+      	
+      	// Extracts the identifier from the label
+      	nLabelID = Val(sAutoLabel[[PositionOccurrence(sAutoLabel, ";", lastRank) + 1 TO]])
+      	
+      	// Retrieves the filter
+      	sContains = sAutoLabel[[PositionOccurrence(sAutoLabel, ";", 2) +1 TO PositionOccurrence(sAutoLabel, ";", lastRank) -1]]
+      	
+      	// If the filter corresponds
+      	IF Position(sMessageSubject, sContains, 0, IgnoreCase) > 0 THEN
+      		// Applies the label
+      		AutomaticFilterApply(nLabelID, nMessageID, sAutoLabel, nUserID)	
+      	END
+      END
+      
+      // Searches for the automatic filters on the message content
+      sListAutoLabels = ConfigureList(nUserID, MODULE_MESSAGING + "_AUTOLABEL;MESSAGE;", False)
+      FOR EACH string sAutoLabel of sListAutoLabels SEPARATED BY CR
+      	
+      	// Extracts the identifier from the label
+      	nLabelID = Val(sAutoLabel[[PositionOccurrence(sAutoLabel, ";", lastRank) + 1 TO]])
+      	
+      	// Retrieves the filter
+      	sContains = sAutoLabel[[PositionOccurrence(sAutoLabel, ";", 2) +1 TO PositionOccurrence(sAutoLabel, ";", lastRank) -1]]
+      	
+      	// If the filter corresponds
+      	IF Position(sRoughContent, sContains, 0, IgnoreCase) > 0 THEN
+      		// Applies the label
+      		AutomaticFilterApply(nLabelID, nMessageID, sAutoLabel, nUserID)	
+      	END
+      END
+     type : 458752
+   -
+     name : CaptionLabel
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061602036
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Returns the caption of a label
+      // Syntax:
+      //[ <Result> = ] CaptionLabel (<nIDLabel>)
+      //
+      // Parameters:
+      //	nLabelID: Identifier of the label
+      // Return value:
+      // 	Undefined type: Caption of the label
+      //
+      PROCEDURE CaptionLabel(nLabelID)
+      
+      GUID is string
+      GUID = HFSavePosition(Label..Name)
+      
+      HReadSeekFirst(Label,LabelID,nLabelID)
+      IF HFound(Label) THEN
+      	RETURN = Label.Caption
+      ELSE
+      	RETURN = ""
+      END
+      
+      END:	
+      HFRestorePosition(GUID)
+     type : 458752
+   -
+     name : SenderName
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061667572
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Returns the name of the sender passed in parameter
+      // Syntax:
+      //[ <Result> = ] SenderName (<sSender>)
+      //
+      // Parameters:
+      //	sSender: Identifier or email address
+      // Return value:
+      // 	string: Name of the sender
+      //
+      PROCEDURE SenderName(sSender)
+      
+      sSenderName is string	
+      sSenderName = IsNumeric(sSender) ? GetUserName(sSender) ELSE GetNameDisplayedEmail(sSender)
+      
+      RESULT sSenderName
+     type : 458752
+   -
+     name : MessageReadingPOPConnect
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061733108
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Start reading the messages found in the email account of the user
+      // Syntaxe :
+      //[ <Résultat> = ] MessageReadingPOPConnect ( [<nUserID>])
+      //
+      // Paramètres :
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	string: Information about the email account
+      PROCEDURE MessageReadingPOPConnect(nUserID = CurrentUser:UserID)
+      
+      // Check whether the user is connected
+      IF IsConnected(nUserID) = False THEN RESULT ""
+      
+      // Local variables
+      sUserPOP, sPwdPOP, sPOPServer 		are strings
+      sUserSMTP, sSMTPPWD, sSMTPServer 	are strings
+      nPortPOP 							is int
+      nSMTPport 							is int
+      nIDLastMsgRead 					is int
+      nTotalMessages 						is int
+      sUserEmail					is string
+      bConfigOK 							is boolean
+      
+      // Retrieves the email setting of the user
+      bConfigOK = GetEmailParametersPOP(nUserID, sUserEmail, sUserPOP, sPwdPOP, sPOPServer, nPortPOP)
+      IF bConfigOK = False THEN 
+      	gsMessagingErrorInfo = <§@15544fb30201b50c000a§>
+      	RESULT ""	
+      END
+      bConfigOK = GetEmailParametersSMTP(nUserID, "", "", sUserSMTP, sSMTPPWD, sSMTPServer, nSMTPport)
+      IF bConfigOK = False THEN 
+      	gsMessagingErrorInfo = <§@15544fb30201b50c000a§>
+      	RESULT ""
+      END
+      
+      // Up to 10 seconds to connect
+      EmailSetTimeOut(10)
+      
+      // Connection to the POP server
+      EmailStartSession(sUserPOP, sPwdPOP, sPOPServer, sSMTPServer, nPortPOP, nSMTPport, True)
+      IF ErrorOccurred THEN
+      	gsMessagingErrorInfo = EmailMsgError(Email.Error)
+      	RESULT ""
+      END
+      
+      // Retrieves the last message read in the box
+      nIDLastMsgRead = ParameterRead("EMAIL_POP_LAST", nUserID, 0)
+      nTotalMessages = EmailNbMessage(sUserPOP)
+      
+      RESULT sUserPOP + TAB + nIDLastMsgRead + TAB + nTotalMessages + TAB + sUserEmail
+     type : 458752
+   -
+     name : MessageReadingPOPDisconnect
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061798644
+     type_code : 15
+     group : 3
+     code : |1-
+      // Summary: Disconnection from the email server
+      // Syntaxe :
+      //[ <Résultat> = ] MessageReadingPOPDisconnect (<sUserPOP>, <nTotalMessages> [, <nUserID>])
+      //
+      // Paramètres :
+      //	sUserPOP : Identifier of the connection
+      //	nTotalMessages : Total number of messages
+      //	nUserID : Identifier of the user
+      
+      // Return value:
+      // 	boolean: True 
+      PROCEDURE MessageReadingPOPDisconnect(sUserPOP, nTotalMessages, nUserID = CurrentUser:UserID)
+      
+      IF nTotalMessages <> -1 THEN
+      	
+      	// Saves the number of the last email read 
+      	ParameterWrite("EMAIL_POP_LAST", nTotalMessages, nUserID)
+      	
+      END
+      
+      // Close the connection to the POP server
+      EmailCloseSession(sUserPOP)	
+      
+      RESULT True
+     type : 458752
+   -
+     name : AutomaticFilterApply
+     procedure_id : 1825672507061864180
+     type_code : 15
+     code : |1-
+      // Summary: Applies an automatic label
+      // Syntaxe :
+      //AutomaticFilterApply (<nLabelID>, <nMessageID>, <sAutoLabel>, <nUserID>)
+      //
+      // Paramètres :
+      //	nLabelID : Identifier of the label
+      //	nMessageID : Identifier of message
+      //	sAutoLabel : Key of the label
+      //	nUserID : Identifier of the user
+      
+      PROCEDURE RESTRICTED AutomaticFilterApply(nLabelID, nMessageID, sAutoLabel, nUserID)
+      
+      // Checks whether the label still exists
+      HSeekFirst(Label,LabelID,nLabelID)
+      IF HFound(Label) THEN			
+      	// Applies the label
+      	MessageLabelApply("" + nMessageID, nLabelID, True, nUserID)			
+      ELSE
+      	// Deletes the automatic label
+      	ParameterDelete(sAutoLabel, nUserID)
+      END
+     type : 458752
+   -
+     name : AutomaticFilterDeleteFromLabel
+     procedure_id : 1825672507061929716
+     type_code : 15
+     code : |1+
+      // Summary: Deletes all the automatic filters linked to a label
+      // Syntax:
+      //AutomaticFilterDeleteFromLabel (<nIDLabel>)
+      //
+      // Parameters:
+      // 	nLabelID: Identifier of the label
+      // Return value:
+      // 	None
+      //
+      PROCEDURE AutomaticFilterDeleteFromLabel(nLabelID)
+      
+      // Retrieves the list of filters for the user
+      sListFilters is string
+      sListFilters = ConfigureList(CurrentUser:UserID, MODULE_MESSAGING + "_AUTOLABEL;", False)
+      
+      nFilterLabelID is int
+      sFilter is string
+      
+      // Browses the filters
+      FOR EACH string sFilter of sListFilters SEPARATED BY CR
+      	IF sFilter ~= "" THEN CONTINUE
+      	
+      	nFilterLabelID = ExtractString(sFilter, lastRank, ";")
+      	IF nFilterLabelID = nLabelID THEN
+      		// This filter must be deleted
+      		ParameterDelete(sFilter, CurrentUser:UserID)
+      	END		
+      END
+      
+     type : 458752
+   -
+     name : SPIMSend
+     internal_properties : CAAAAAgAAACs91BklxzGtVrzkSAlcI9q2uzpneX2uXWFg96myBJlYZm39XAe9pIB4s3Z7MhLaGu8/RG753EzvzNbWIWW/vyvFqCmRjlmI/X+nZO+jBjTYHMIUGMKlHhBzvA2I+ORY4ERHGAsiRFjO0sD1RRnC8yZnQhMmcY69K2Yqk4yhxXFO7a8
+     procedure_id : 1825672507061995252
+     type_code : 15
+     code : |1-
+      // Summary: Sends a SPIM
+      // Syntax:
+      //SPIMSend (<sSPIM>)
+      //
+      // Parameters:
+      //	sSPIM: Message
+      // Return value:
+      // 	None
+      //
+      PROCEDURE RESTRICTED SPIMSend(sSPIM)
+      
+      // Sends the SPIM
+      sListUsers is string
+      
+      FOR EACH User WHERE IsConnected = True
+      	IF User.IsDeleted = True THEN CONTINUE	
+      	IF User.UserID = CurrentUser:UserID THEN CONTINUE	
+      	sListUsers += "#" + User.UserID + "#"	
+      END
+      
+      IF sListUsers ~= "" THEN RETURN
+      
+      // Create the SPIM
+      HReset(Spim)
+      Spim.Content = sSPIM
+      Spim.OUTGOINGDATETIME = Today + Now
+      Spim.RecipientsList = sListUsers
+      Spim.SenderID = CurrentUser:UserID
+      HAdd(Spim)
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x15544fb30201b50c
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : Recipient '
+     index : 0
+   -
+     text :
+      en-GB : "' unknown"
+     index : 1
+   -
+     text :
+      en-GB : Unable to save the attachment <
+     index : 2
+   -
+     text :
+      en-GB : Unable to join the <%1> file
+     index : 3
+   -
+     text :
+      en-GB : You have no sufficient rights to send/receive an email or your POP/SMTP setting is incorrect
+     index : 4
+   -
+     text :
+      en-GB : (No object)
+     index : 5
+   -
+     text :
+      en-GB : The label does not exist anymore!
+     index : 6
+   -
+     text :
+      en-GB : "The message "
+     index : 7
+   -
+     text :
+      en-GB : " does not exist anymore"
+     index : 8
+   -
+     text :
+      en-GB : Duplicate error detected while automatically applying a label
+     index : 9
+   -
+     text :
+      en-GB : The setting of your email account is incomplete
+     index : 10
+   -
+     text :
+      en-GB : No email address was specified as sender. Configure your email parameters.
+     index : 11
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

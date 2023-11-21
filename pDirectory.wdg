@@ -1,0 +1,483 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : pDirectory
+ major_version : 28
+ minor_version : 0
+ type : 7
+ description : ""
+ subtype : 0
+procedure_set :
+ identifier : 0x1967639844aa3c75
+ internal_properties : CAAAAAgAAABGLu41kG7fjQV3iS4F72qmnKaNh5694reolNKIW0iw
+ code_elements :
+  type_code : 31
+  p_codes :
+   -
+     code : |1+
+      // Set of procedures for managing the directory
+     type : 720896
+   -
+     code : |1-
+      
+     type : 720898
+  procedures :
+   -
+     name : IsUserProfile
+     internal_properties : CAAAAAgAAAA++nM8PpfNqbt/to12fscnDO3nlstkwBCOMMAzThgWx3ZlZssnUydsFpreVfPizkuvyr4/YXAhb2wf5AAD8Sh2FBKcAJ9LUfO1ChaPcdaefGPakp/Sr/kHB4BXAS6EA/2uMSTJkBatLKmBbAtC6qA3veTDDW8u6QrvL1GTHoxHdWVjKnAsk8t+eqNfbZk=
+     procedure_id : 1830541279187647605
+     type_code : 15
+     code : |1-
+      // Summary: Indicates whether a contact is a user profile
+      // Syntax:
+      //[ <Result> = ] IsUserProfile (<pnIdContact>)
+      //
+      // Parameters:
+      //	pnContactID: 	Identifier of the du contact to check
+      // Return value:
+      // 	boolean: 			TRUE if the contact is a user, FALSE otherwise
+      //
+      // Automatic process of errors: RETURN FALSE
+      //
+      
+      PROCEDURE IsUserProfile(pnContactID)
+      
+      // Local variables
+      bIsUser		is boolean
+      GUID 				is string
+      
+      // Save the context
+      GUID = HFSavePosition(Contact..Name)
+      
+      // By default, the contact is not a user
+      bIsUser = False
+      
+      // Reads the record
+      HReadSeekFirst(Contact,ContactID,pnContactID)
+      IF HFound(Contact) THEN	
+      	// Retrieves the requested information
+      	bIsUser = Contact.IsKnownUser	 
+      END
+      
+      // Restores the context
+      HFRestorePosition(GUID)
+      
+      // Returns the retrieved value 
+      RESULT bIsUser
+     type : 458752
+   -
+     name : ProfileGetIdentifier
+     internal_properties : CAAAAAgAAABdQA2XJ6TIsZhQ11qLgdcRlVRngxPzYVEtgHig8MuCJRRa0mt+1nkBd6WCzFc7khJrT2fs4PF470IJmOnP8eNo24AHH2VDS3dEcOmbOavygTCGDNCNEf6dYHEYsgisEPxYOmD3nA65T9eKT+/yQJPEOkrS5scO090RSJAFtnUNwb420L1ffqwYNuF/GA==
+     procedure_id : 1830541279187713141
+     type_code : 15
+     code : |1-
+      // Summary: Retrieves the identifier of profile ("contact" record) for a user
+      // Syntax:
+      //[ <Result> = ] ProfileGetIdentifier (<pnUserID>)
+      //
+      // Parameters:
+      //	pnUserID: 	Identifier of the user
+      // Return value:
+      // 	integer: 			Identifier of profile ("contact") for this user
+      //
+      // Automatic process of errors: RESULT -1
+      //
+      
+      PROCEDURE ProfileGetIdentifier(pnUserID)
+      
+      // Identifier of the "contact" record corresponding to the profile
+      nUserIdentifier		is int
+      GUID 						is string
+      
+      // Save the context
+      GUID = HFSavePosition(Contact..Name)
+      
+      // By default, the identifier is not valid
+      nUserIdentifier	= -1	
+      
+      // Specifies the user identifier for the query
+      QRY_Organizer_GetProfile.pUserID = pnUserID
+      
+      // Runs the query
+      HExecuteQuery(QRY_Organizer_GetProfile)
+      
+      // Reads the result of the query
+      HReadFirst(QRY_Organizer_GetProfile)
+      
+      // Retrieves the identifier of contact
+      IF HFound THEN nUserIdentifier = QRY_Organizer_GetProfile.ContactID
+      
+      // Restores the context
+      HFRestorePosition(GUID)
+      
+      // Returns the identifier of profile ("Contact") for this user
+      RESULT nUserIdentifier
+     type : 458752
+   -
+     name : ProfileCreate
+     internal_properties : CAAAAAgAAABdQA2XJ6TIsZhQ11qLgdcRlVRngxPzYVEtgHig8MuCJRRa0mt+1nkBd6WCzFc7khJrT2fs4PF470IJmOnP8eNo24AHH2VDS3dEcOmbOavygTCGDNCNEf6dYHEYsgisEPxYOmD3nA65T9eKT+/yQJPEOkrS5scO090RSJAFtnUNwb420L1ffqwYNuF/GA==
+     procedure_id : 1830541279187778677
+     type_code : 15
+     code : |1-
+      // Summary: Create a profile for a user
+      // Syntax:
+      //[ <Result> = ] ProfileCreate (<pnUserID>)
+      //
+      // Parameters:
+      //	pnUserID: 	Identifier of the user for whom a profile must be created
+      // Return value:
+      // 	integer: 			Identifier of the Contact record corresponding to the profile, -1 if the profile was not created
+      //
+      // Example:
+      // // Create the profile of the current user
+      // CreateProfile(User.UserID)
+      // Automatic process of errors: RESULT -1
+      //
+      
+      PROCEDURE ProfileCreate(pnUserID)
+      
+      // Local variables
+      nProfileIdentifier 		is int
+      
+      // Checks whether this user does not already have a profile
+      IF ProfileGetIdentifier(pnUserID) <> -1 THEN
+      	// Displays an error message and returns -1
+      	Error(<§@159e267d1d1b1cd30000§>)
+      	RESULT -1	
+      END
+      
+      // Save the context
+      GUID is string = HFSavePosition(User..Name)
+      
+      // By default, the profile has no identifier
+      nProfileIdentifier = -1
+      
+      // Reads the User record
+      HReadSeekFirst(User, UserID, pnUserID)
+      IF HFound(User) = False THEN	
+      	Error(<§@159e267d1d1b1cd30001§>)
+      	// Restores the context
+      	HFRestorePosition(GUID)
+      	
+      	RESULT -1
+      END
+      
+      // Creates the profile for this user (<=> Contact record)
+      HReset(Contact)
+      
+      // This contact is the profile of the user and it is public
+      Contact.UserID	= pnUserID
+      Contact.IsKnownUser	= True
+      Contact.IsPublic		= True
+      
+      // Retrieves the information about the User record
+      Contact.DisplayedName	= User.DisplayedName
+      Contact.Name			= User.Name
+      Contact.FirstName		= User.FirstName
+      Contact.Email		= User.Email
+      Contact.Avatar 		= User.Avatar
+      
+      IF Contact.DisplayedName ~= "" THEN
+      	Contact.DisplayedName = Contact.FirstName + " " + Contact.Name
+      END
+      
+      IF Contact.DisplayedName ~= "" THEN
+      	Contact.DisplayedName = User.Login
+      END
+      
+      // If the user had no avatar, attaches the default image
+      IF Contact.Avatar = "" THEN HLinkMemo(Contact, Avatar, fWebDir() + ["\"] + "ext\default-avatar.gif")
+      
+      // Adds the Contact record
+      IF HAdd(Contact) = False THEN
+      	// Restores the context
+      	HFRestorePosition(GUID)	
+      	RESULT -1
+      END
+      
+      // Retrieves the identifier of the created Contact record
+      nProfileIdentifier = Contact.ContactID
+      
+      // Restores the context
+      HFRestorePosition(GUID)
+      
+      // Returns the identifier of the profile for the user
+      RESULT nProfileIdentifier
+     type : 458752
+   -
+     name : ProfileDelete
+     internal_properties : CAAAAAgAAAA++nM8PpfNqbt/to12fscnDO3nlstkwBCOMMAzThgWx3ZlZssnUydsFpreVfPizkuvyr4/YXAhb2wf5AAD8Sh2FBKcAJ9LUfO1ChaPcdaefGPakp/Sr/kHB4BXAS6EA/2uMSTJkBatLKmBbAtC6qA3veTDDW8u6QrvL1GTHoxHdWVjKnAsk8t+eqNfbZk=
+     procedure_id : 1830541279187844213
+     type_code : 15
+     code : |1+
+      // Summary: Deletes the profile of a user
+      // Syntax:
+      //[ <Result> = ] ProfileDelete (<pnUserID>)
+      //
+      // Parameters:
+      //	pnUserID: Identifier of the user for whom the profile must be deleted
+      // Return value:
+      // 	boolean: 				TRUE if the profile of the user was deleted, FALSE otherwise
+      //
+      // Automatic process of errors: RETURN FALSE
+      //
+      
+      PROCEDURE ProfileDelete(pnUserID)
+      
+      // Local variables
+      nProfileIdentifier		is int
+      
+      // Retrieves the identifier of the profile for this user
+      nProfileIdentifier = ProfileGetIdentifier(pnUserID)
+      
+      // Checks whether this user has a profile
+      IF nProfileIdentifier = -1 THEN
+      	Error(<§@159e267d1d1b1cd30002§>)
+      	RESULT False
+      END
+      
+      // Checks whether the Contact record exists
+      HReadSeekFirst(Contact,ContactID,nProfileIdentifier)
+      IF HFound(Contact) = False THEN
+      	Error(<§@159e267d1d1b1cd30003§>)
+      	RESULT False	
+      END
+      
+      // Deletes the Contact record 
+      IF HDelete(Contact) = False THEN
+      	Error(<§@159e267d1d1b1cd30004§>,HErrorInfo())
+      	RESULT False
+      END
+      
+      // The profile is deleted
+      RESULT True
+     type : 458752
+   -
+     name : ProfileModify
+     internal_properties : CAAAAAgAAAAg6SxcOtnIQet8oK+xvLjev6mK80pVKODF3XC8Ulhep0/4a9eWfl9/L2PnSjic9GSWSD46aPMTJlBEsAB0PzN3kZ40/tjs59Z5kYxvHlG8c5k03rCDmkkks7EXi9dTi8ZmbZImq9c/VWGGEE2FTf7cvbj5WHT9d1FngvMHg9HxZ8VraOsJ7ZMbpHccWpsM
+     procedure_id : 1830541279187909749
+     type_code : 15
+     code : |1+
+      // Summary: Modifying a profile for a user: the information is retrieved from the User record
+      // Syntax:
+      //[ <Result> = ] ProfileModify (<pnUserID>)
+      //
+      // Parameters:
+      //	pnUserID: 	Identifier of the user for whom the profile must be modified
+      // Return value:
+      // 	boolean: 				TRUE if the modification of the profile is effective, FALSE otherwise
+      //
+      // Automatic process of errors: RETURN FALSE
+      //
+      // Automatic process of exceptions:   run CASE EXCEPTION:
+      //
+      
+      PROCEDURE ProfileModify(pnUserID)
+      
+      // Local variables
+      nProfileIdentifier	is int
+      
+      // Save the context
+      GUID is string = HFSavePosition(User..Name)
+      
+      // Reads the User record
+      HReadSeekFirst(User, UserID, pnUserID)
+      IF HFound(User) = False THEN
+      	Error(<§@159e267d1d1b1cd30001§>)
+      	// Restores the context
+      	HFRestorePosition(GUID)
+      	
+      	RESULT False
+      END
+      
+      // Retrieves the identifier of the profile for this user
+      nProfileIdentifier = ProfileGetIdentifier(pnUserID)
+      
+      // Reads the Contact record corresponding to the profile of this user
+      HReadSeekFirst(Contact,ContactID,nProfileIdentifier)
+      IF HFound(Contact) = False THEN
+      	// Creates the profile
+      	HFRestorePosition(GUID)
+      	ProfileCreate(pnUserID)
+      	RESULT True
+      END
+      
+      // Retrieves the information about the User record
+      Contact.DisplayedName	= User.DisplayedName
+      Contact.Name			= User.Name
+      Contact.FirstName		= User.FirstName
+      Contact.Email		= User.Email
+      Contact.Avatar 		= User.Avatar
+      
+      IF Contact.DisplayedName ~= "" THEN
+      	Contact.DisplayedName = Contact.FirstName + " " + Contact.Name
+      END
+      
+      IF Contact.DisplayedName ~= "" THEN
+      	Contact.DisplayedName = User.Login
+      END
+      
+      // If the user had no avatar, attaches the default image of the directory
+      IF Contact.Avatar = "" THEN HLinkMemo(Contact, Avatar, fWebDir() + ["\"] + "ext\default-avatar.gif")
+      
+      // Modifies the Contact record
+      IF HModify(Contact) = False THEN
+      	// Restores the context
+      	HFRestorePosition(GUID)
+      	
+      	RESULT False
+      END
+      
+      // Restores the context
+      HFRestorePosition(GUID)
+      
+      // The modification is done
+      RESULT True
+      
+      CASE EXCEPTION:
+      dbgAssert(False,<§@159e267d1d1b1cd30008§>+ExceptionInfo())
+      // Restores the context
+      HFRestorePosition(GUID)
+      
+      RESULT False
+     type : 458752
+   -
+     name : ContactImport
+     internal_properties : CAAAAAgAAABLAqVz64Dd3RzYAuTcRrejo8LQZXJM8YxogcAYDLK5hgDFbm4XRSGf3OGoXcb40XcGFq6UioKMbXVVEcAq4YBZon3XcPzxJCxb3XBhM4H5OmBKj3Ps4xSEZmth4JfCxMdEAjq2j6xcGL0xTPyYcS/zH/G4vcpLVB4f41koOlcSUaUw6fw62Gcq9Tcvgrkebp/DA+hSW030VPG1XCfunob+78ZA1Nho5QmwKBbbrdkT2c3/LlU4dZZMyka0IxDGPA==
+     procedure_id : 1830541279187975285
+     type_code : 15
+     code : |1-
+      // Summary: Imports a list of contacts from a formatted file
+      // Syntax:
+      //[ <Result> = ] ContactImport (<psFile> [, <pbIgnoreFirstOne>])
+      //
+      // Parameters:
+      //	psFile: 			File containing the contacts to import
+      //	pbIgnoreFirstOne (default value=1): TRUE if the first line of the file must be ignored, FALSE otherwise
+      // Return value:
+      // 	integer: 			Number of imported contacts, -1 if an error occurred
+      //
+      // Automatic process of errors: RETURN FALSE
+      //
+      
+      PROCEDURE ContactImport(psFile,pbIgnoreFirstOne = True)
+      
+      // Local variables
+      sContents		is string			// Content of the file
+      sALine		is string			// Browsed line
+      bFirstLine	is boolean = True	// TRUE if the browsed line is the first one, FALSE otherwise
+      nImportedNumber	is int			// Number of imported contacts
+      
+      // Checks the file existence
+      IF fFileExist(psFile) = False THEN RESULT -1
+      
+      // Loads the file content
+      sContents = fLoadText(psFile)
+      
+      // Check whether the file is not empty
+      IF sContents = "" THEN RESULT -1
+      
+      // Browses all the lines of the file
+      FOR EACH string sALine of sContents SEPARATED BY CR
+      	
+      	// Check whether the line is not empty
+      	IF sALine ~= "" THEN CONTINUE
+      	
+      	// If the browse is positioned on the first line and if the first line must be ignored
+      	IF bFirstLine _AND_ pbIgnoreFirstOne THEN 
+      		// Indicates that the first line is not browsed anymore
+      		bFirstLine = False
+      		// Continues on the next line
+      		CONTINUE
+      	END
+      	
+      	// Initializes a Contact record
+      	HReset(Contact)
+      	
+      	// The contact belongs to the current user
+      	Contact.UserID 		= CurrentUser:UserID
+      	// The contact is not a user
+      	Contact.IsKnownUser		= False
+      	// The contact is public by default
+      	Contact.IsPublic			= True
+      	
+      	// Format of the string
+      	//<FirstName>;<Name>;<NameDisplayed>;<Email>;<Cell>;<Address>;<City>;<ZipCode>;<Country>;<InternetSite>;<Phone>;<Fax>;<Company>;<Position>;<Comments>
+      	
+      	// Name information
+      	Contact.FirstName				= ExtractString(sALine, 1, ";")
+      	Contact.Name					= ExtractString(sALine, 2, ";")	
+      	Contact.DisplayedName			= ExtractString(sALine, 3, ";")
+      	
+      	// Company information
+      	Contact.InternetSite		= ExtractString(sALine, 10, ";")
+      	Contact.Company				= ExtractString(sALine, 13, ";")
+      	Contact.OccupationExt		= ExtractString(sALine, 14, ";")
+      	
+      	// Address information
+      	Contact.Address				= ExtractString(sALine, 6, ";")
+      	Contact.ZipCode			= ExtractString(sALine, 8, ";")
+      	Contact.City				= ExtractString(sALine, 7, ";")
+      	Contact.Country				= ExtractString(sALine, 9, ";")
+      	
+      	// Contact details
+      	Contact.Phone			= ExtractString(sALine, 11, ";")
+      	Contact.Fax					= ExtractString(sALine, 12, ";")
+      	Contact.Mobile				= ExtractString(sALine, 5, ";")
+      	Contact.Email				= ExtractString(sALine, 4, ";")
+      	
+      	// Comments
+      	Contact.Comment			= ExtractString(sALine, 15, ";")
+      	
+      	// Adds the contact
+      	IF HAdd(Contact) = False THEN
+      		Error(StringBuild(<§@159e267d1d1b1cd30007§>,ExtractString(sALine, 3, ";")) ,HErrorInfo())
+      	ELSE
+      		// Increments the number of imported contacts
+      		nImportedNumber++
+      	END	
+      END
+      
+      // Returns the number of imported contacts
+      RESULT nImportedNumber
+     type : 458752
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : COL_Collection1
+resources :
+ string_res :
+  identifier : 0x159e267d1d1b1cd3
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+  strings :
+   -
+     text :
+      en-GB : This user already owns a profile.
+     index : 0
+   -
+     text :
+      en-GB : The record of this user was not found in the database.
+     index : 1
+   -
+     text :
+      en-GB : This user has no profile.
+     index : 2
+   -
+     text :
+      en-GB : The record of this contact is not found in the database.
+     index : 3
+   -
+     text :
+      en-GB : An error occurred while deleting the profile
+     index : 4
+   -
+     text :
+      en-GB : "An error occurred while saving the contact: '%1'"
+     index : 7
+   -
+     text :
+      en-GB : "Fatal error detected: "
+     index : 8
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
